@@ -1,0 +1,1028 @@
+// The Village Circle — data model (BRD v2 §11) on MongoDB via Prisma.
+// Use `prisma db push` (MongoDB has no migrations). Transactions need a replica set (Atlas is fine).
+// AuditEvent, Attestation, ConsentRecord and AskStateChange are append-only: the app never
+// updates or deletes them (enforced in src/lib/append-only.ts and covered by tests).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Enums ─────────────
+
+enum Role {
+  PARTICIPANT
+  MENTOR
+  GUARDIAN
+  ADMIN
+  SAFEGUARDING_LEAD
+}
+
+enum AccountStatus {
+  ACTIVE
+  PENDING_GUARDIAN // minor without verified guardian authorization (BR-05)
+  SUSPENDED
+  PAUSED
+  CLOSED
+}
+
+enum AgeBand {
+  AGE_13_15
+  AGE_16_17
+  ADULT
+}
+
+enum Cohort {
+  HIGH_SCHOOL
+  COLLEGE
+  GRADUATE
+  EARLY_CAREER
+}
+
+enum ApplicationType {
+  MENTOR
+  GUARDIAN
+}
+
+enum ApplicationState {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  SCREENING
+  APPROVED
+  DECLINED
+  APPEALED
+  WITHDRAWN
+}
+
+enum VerificationStatus {
+  NOT_STARTED
+  PENDING
+  APPROVED
+  DECLINED
+  EXPIRED
+}
+
+enum AskState {
+  DRAFT
+  AWAITING_GUARDIAN
+  SUBMITTED
+  IN_TEAM_REVIEW
+  OPEN_TO_MENTORS
+  MENTOR_STEPPED_FORWARD
+  CONNECTION_APPROVED
+  SCHEDULED
+  HELD
+  COMPLETE
+  FOLLOW_UP_REQUESTED
+  ONGOING_MENTORSHIP
+  WITHDRAWN
+  ANSWERED_BY_RESOURCE
+  REDIRECTED
+  NOT_PROCEEDING
+  GUARDIAN_DECLINED
+  LAPSED
+}
+
+enum Urgency {
+  FLEXIBLE
+  SOON
+  TIME_SENSITIVE
+}
+
+enum ReasonCode {
+  R_NEW
+  R_THIN
+  R_CONSENT
+  R_FLAG
+  R_REFER
+  R_NOONE
+  R_QUIET
+  R_MANY
+  R_TIME
+  R_AGAIN
+  R_MISS
+  R_CONCERN
+}
+
+enum ReviewDecision {
+  PENDING
+  RELEASE
+  RETURN_FOR_INFO
+  ANSWERED_BY_RESOURCE
+  REDIRECT
+  NOT_PROCEEDING
+}
+
+enum StepResponse {
+  NONE
+  STEPPED_FORWARD
+  PASSED
+  REFERRED_ON
+}
+
+enum ConnectionStatus {
+  PROPOSED
+  AWAITING_GUARDIAN
+  CONFIRMED
+  HELD
+  MISSED
+  CANCELLED
+}
+
+enum Attendance {
+  UNKNOWN
+  BOTH
+  PARTICIPANT_ABSENT
+  MENTOR_ABSENT
+  NEITHER
+}
+
+enum GuardianAuthKind {
+  ASK
+  MENTOR_AND_TIME
+}
+
+enum ConsentKind {
+  TERMS
+  PRIVACY
+  CODE_OF_CONDUCT
+  RECORDING
+  GUARDIAN_GUIDELINES
+  SAFEGUARDING_ATTESTATION
+}
+
+enum ModerationState {
+  PENDING
+  APPROVED
+  REJECTED
+  REMOVED
+}
+
+enum ResourceType {
+  ARTICLE
+  GUIDE
+  TEMPLATE
+  VIDEO
+  EVENT_RECORDING
+}
+
+enum EventType {
+  WORKSHOP
+  PANEL
+  OFFICE_HOURS
+  ORIENTATION
+}
+
+enum IncidentCategory {
+  SAFEGUARDING
+  CONDUCT
+  CONTACT_DETAILS
+  NO_SHOW
+  TECHNICAL
+  OTHER
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentState {
+  REPORTED
+  TRIAGED
+  INVESTIGATING
+  ACTIONED
+  CLOSED
+}
+
+enum Channel {
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum GoalProgress {
+  NOT_STARTED
+  IN_PROGRESS
+  ACHIEVED
+  PARKED
+}
+
+// ───────────── Accounts ─────────────
+
+model User {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  email            String        @unique
+  emailVerified    DateTime?
+  passwordHash     String?
+  image            String?
+  roles            Role[]
+  dateOfBirth      DateTime?
+  ageBand          AgeBand?
+  countryOfOrigin  String?
+  countryOfResidence String?
+  phone            String? // mentor mobile, used only by the team for verification
+  languages        String[]
+  status           AccountStatus @default(ACTIVE)
+  mfaSecret        String? // encrypted TOTP secret (admins / safeguarding leads)
+  mfaEnabled       Boolean       @default(false)
+  mfaVerifiedAt    DateTime? // set by /api/mfa/verify; jwt callback only trusts this, never client input
+  mfaRecoveryCodes String[] // hashed
+  failedLogins     Int           @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  participant   ParticipantProfile?
+  mentor        MentorProfile?
+  guardian      Guardian?
+  accounts      Account[]
+  sessions      Session[]
+  applications  Application[]
+  notifications Notification[]
+  thanksWritten Thanks[]            @relation("ThanksAuthor")
+  reported      Incident[]          @relation("IncidentReporter")
+}
+
+// Auth.js adapter collections
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  mfaPassed    Boolean  @default(false)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// One-time codes (SMS / email) with lockout counters — guardian verification, phone checks.
+model OneTimeCode {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  target    String // email or E.164 phone
+  purpose   String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([target, purpose])
+}
+
+// ───────────── Profiles ─────────────
+
+model ParticipantProfile {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @unique @db.ObjectId
+  cohort     Cohort?
+  interests  String[]
+  goalsText  String[]
+  communityBackground String? // optional: country of origin and languages, only ever used to offer a closer match
+  visibility String   @default("PRIVATE")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asks        Ask[]
+  goals       Goal[]
+  guardianIds String[]       @db.ObjectId
+  links       GuardianLink[]
+  connections Connection[]
+}
+
+model MentorProfile {
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String             @unique @db.ObjectId
+  bio                 String
+  primaryExpertise    String // EXP-xxx code
+  extraExpertise      String[] // max 2, enforced in domain
+  expertiseOther      String?
+  languages           String[]
+  verification        VerificationStatus @default(NOT_STARTED)
+  clearedForMinors    Boolean            @default(false)
+  minorsRequestedAt   DateTime? // STEP5 mentor asked the team to clear them for participants under 18
+  bioClearedAt        DateTime? // STEP5 reviewer cleared the bio; reset when the mentor edits it
+  bioClearedById      String?            @db.ObjectId
+  optedForMinors      Boolean            @default(false)
+  codeOfConductAt     DateTime?
+  orientationDoneAt   DateTime?
+  monthlyHours        Int                @default(2)
+  hoursGivenThisMonth Float              @default(0)
+  conversationLength  Int                @default(30)
+  availability        Json?
+  visibility          String             @default("PRIVATE")
+  resumeKey           String?
+  linkedinUrl         String?
+  lastAskAt           DateTime?
+  responseRate        Float? // internal; never shown, never lowered by passing (BR-12)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortlists  ShortlistEntry[]
+  connections Connection[]
+}
+
+model Guardian {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String    @unique @db.ObjectId
+  relationship       String
+  mobile             String?
+  verificationMethod String?
+  verified           Boolean   @default(false)
+  verifiedAt         DateTime?
+  attendancePref     String    @default("RECEIVE_RECORDING")
+  guidelinesVersion  String?
+  consentState       String    @default("PENDING")
+  createdAt          DateTime  @default(now())
+
+  user  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links GuardianLink[]
+  auths GuardianAuthorization[]
+}
+
+model GuardianLink {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  guardianId    String    @db.ObjectId
+  participantId String    @db.ObjectId
+  active        Boolean   @default(true)
+  endsOn        DateTime? // 18th birthday (BR-19)
+  createdAt     DateTime  @default(now())
+
+  guardian    Guardian           @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  participant ParticipantProfile @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([guardianId, participantId])
+}
+
+// ───────────── Applications & consent ─────────────
+
+model Application {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  applicantId    String           @db.ObjectId
+  type           ApplicationType
+  state          ApplicationState @default(DRAFT)
+  payload        Json?
+  submittedAt    DateTime?
+  decision       String?
+  decidedById    String?          @db.ObjectId
+  decisionNote   String?
+  decidedAt      DateTime?
+  screeningRef   String?
+  screeningState String?
+  checklist      Json? // STEP5 reviewer-checklist: { expertise?, attestation?, g0..g3? } ticks saved by the reviewer, editable after approval
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  applicant   User         @relation(fields: [applicantId], references: [id])
+  attestation Attestation?
+}
+
+// Immutable once signed; versions retained.
+model Attestation {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  applicationId    String   @unique @db.ObjectId
+  statementVersion String
+  typedLegalName   String
+  affirmed         Boolean
+  ipAddress        String
+  signedAt         DateTime @default(now())
+  nextDueAt        DateTime
+
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+// Append-only record of every consent / acknowledgement.
+model ConsentRecord {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String      @db.ObjectId
+  kind      ConsentKind
+  version   String
+  granted   Boolean
+  ipAddress String?
+  createdAt DateTime    @default(now())
+
+  @@index([userId, kind])
+}
+
+model GuardianAuthorization {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  guardianId  String           @db.ObjectId
+  askId       String           @db.ObjectId
+  kind        GuardianAuthKind
+  mentorId    String?          @db.ObjectId
+  scheduledAt DateTime?
+  approved    Boolean
+  note        String?
+  decidedAt   DateTime         @default(now())
+
+  guardian Guardian @relation(fields: [guardianId], references: [id])
+  ask      Ask      @relation(fields: [askId], references: [id])
+
+  @@index([askId, kind])
+}
+
+// ───────────── Asks ─────────────
+
+model Topic {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug          String   @unique
+  name          String
+  parentId      String?  @db.ObjectId
+  guidedPrompts String[]
+  expertiseMap  String[]
+  active        Boolean  @default(true)
+  later         Boolean  @default(false)
+  sortOrder     Int      @default(0)
+
+  asks Ask[]
+}
+
+model Ask {
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  participantId    String      @db.ObjectId
+  submittedById    String      @db.ObjectId
+  topicId          String      @db.ObjectId
+  answers          Json
+  urgency          Urgency     @default(FLEXIBLE)
+  completeness     Int         @default(0)
+  state            AskState    @default(DRAFT)
+  reasonCode       ReasonCode?
+  serviceWindowDue DateTime?
+  releaseRound     Int         @default(0)
+  teamNote         String? // R-THIN note or redirect/not-proceeding note, written by a person, shown to the participant
+  redirectLinks    Json? // [{title, note, url?}] shown on the Redirected screen
+  exitedAt         DateTime?
+  pausedForCrisis  Boolean     @default(false)
+  submittedAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  participant ParticipantProfile      @relation(fields: [participantId], references: [id])
+  topic       Topic                   @relation(fields: [topicId], references: [id])
+  review      Review?
+  shortlist   ShortlistEntry[]
+  connection  Connection?
+  history     AskStateChange[]
+  auths       GuardianAuthorization[]
+
+  @@index([participantId, state])
+  @@index([state, serviceWindowDue])
+}
+
+// Append-only.
+model AskStateChange {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  askId     String      @db.ObjectId
+  from      AskState?
+  to        AskState
+  actorId   String?     @db.ObjectId
+  reason    ReasonCode?
+  note      String?
+  createdAt DateTime    @default(now())
+
+  ask Ask @relation(fields: [askId], references: [id])
+
+  @@index([askId, createdAt])
+}
+
+model Review {
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  askId             String         @unique @db.ObjectId
+  reviewerId        String?        @db.ObjectId
+  expertiseNeeded   String[]
+  ageBandHandling   String?
+  sessionLength     Int            @default(30)
+  mentorSummary     String?
+  summaryApprovedAt DateTime?
+  flags             String[]
+  withheld          String[] // names, schools and employers that must never appear in the mentor summary
+  decision          ReviewDecision @default(PENDING)
+  note              String?
+  stepsDone         String[] // A..F
+  startedAt         DateTime       @default(now())
+  decidedAt         DateTime?
+
+  ask Ask @relation(fields: [askId], references: [id])
+}
+
+model ShortlistEntry {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  askId       String       @db.ObjectId
+  mentorId    String       @db.ObjectId
+  rank        Int
+  score       Float
+  round       Int          @default(1)
+  releasedAt  DateTime?
+  response    StepResponse @default(NONE)
+  respondedAt DateTime?
+  reason      String? // internal only, never shown to participant (BR-12)
+  note        String? // mentor's private note to the team (pass / refer on)
+  suggestedColleague String? // internal only
+  offeredTimes DateTime[] // up to three windows, offered when stepping forward
+  lengthMinutes Int?
+
+  ask    Ask           @relation(fields: [askId], references: [id])
+  mentor MentorProfile @relation(fields: [mentorId], references: [id])
+
+  @@unique([askId, mentorId])
+}
+
+model Connection {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  askId            String           @unique @db.ObjectId
+  mentorId         String           @db.ObjectId
+  participantId    String           @db.ObjectId
+  status           ConnectionStatus @default(PROPOSED)
+  guardianApproved Boolean          @default(false)
+  scheduledAt      DateTime?
+  durationMinutes  Int              @default(30)
+  roomName         String? // per-conversation video room
+  attendance       Attendance       @default(UNKNOWN)
+  recordingKey     String?
+  notes            String?
+  nextSteps        String?
+  hoursCounted     Boolean          @default(false)
+  offeredTimes     DateTime[] // mentor-offered windows (D14)
+  guardianMentorApprovedAt DateTime?
+  guardianTimeApprovedAt   DateTime?
+  guardianAttends  Boolean          @default(false)
+  rescheduleCount  Int              @default(0)
+  changeRequestedBy String? // PARTICIPANT | MENTOR
+  changeReason     String? // team-only
+  mentorJoinedAt   DateTime?
+  participantJoinedAt DateTime?
+  guardianJoinedAt DateTime?
+  endedAt          DateTime?
+  participantOutcome String? // HAPPENED | PROBLEM
+  guardianOutcome  String?
+  mentorOutcome    String?
+  helpedNextStep   String? // YES | LITTLE | NOT_REALLY
+  mentorFeedback   Int? // private 1..5 to the team
+  pausedByConcern  Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  ask         Ask                @relation(fields: [askId], references: [id])
+  mentor      MentorProfile      @relation(fields: [mentorId], references: [id])
+  participant ParticipantProfile @relation(fields: [participantId], references: [id])
+  thanks      Thanks[]
+}
+
+model Goal {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  participantId String       @db.ObjectId
+  statement     String
+  targetDate    DateTime?
+  linkedAskIds  String[]     @db.ObjectId
+  progress      GoalProgress @default(NOT_STARTED)
+  createdAt     DateTime     @default(now())
+
+  participant ParticipantProfile @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+// ───────────── Village ─────────────
+
+model Resource {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  type          ResourceType
+  body          String?
+  fileKey       String?
+  topics        String[]
+  cohorts       Cohort[]
+  contributorId String?         @db.ObjectId
+  lastReviewed  DateTime?
+  visibility    String          @default("PUBLIC")
+  moderation    ModerationState @default(PENDING)
+  createdAt     DateTime        @default(now())
+}
+
+model Event {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  type          EventType
+  startsAt      DateTime
+  host          String
+  capacity      Int?
+  registrations String[]  @db.ObjectId
+  recordingKey  String?
+  createdAt     DateTime  @default(now())
+}
+
+model Thanks {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  connectionId String          @db.ObjectId
+  authorId     String          @db.ObjectId
+  body         String
+  sharePublicly Boolean         @default(false)
+  moderation   ModerationState @default(PENDING)
+  publishedAt  DateTime?
+  createdAt    DateTime        @default(now())
+
+  connection Connection @relation(fields: [connectionId], references: [id])
+  author     User       @relation("ThanksAuthor", fields: [authorId], references: [id])
+  // No rating field by design (BR-17).
+}
+
+model Post {
+  id         String          @id @default(auto()) @map("_id") @db.ObjectId
+  authorId   String          @db.ObjectId
+  body       String
+  moderation ModerationState @default(PENDING)
+  createdAt  DateTime        @default(now())
+}
+
+// ───────────── Safety & operations ─────────────
+
+model Incident {
+  id           String           @id @default(auto()) @map("_id") @db.ObjectId
+  reporterId   String           @db.ObjectId
+  subjectId    String?          @db.ObjectId
+  connectionId String?          @db.ObjectId
+  category     IncidentCategory
+  severity     IncidentSeverity @default(MEDIUM)
+  state        IncidentState    @default(REPORTED)
+  description  String
+  resolution   String?
+  actionedById String?          @db.ObjectId
+  evidenceRefs String[]
+  dueAt        DateTime? // 48h concern / 24h flagged windows
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  reporter User @relation("IncidentReporter", fields: [reporterId], references: [id])
+}
+
+// Append-only.
+model AuditEvent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  actorId   String?  @db.ObjectId
+  action    String
+  object    String
+  objectId  String?
+  before    Json?
+  after     Json?
+  createdAt DateTime @default(now())
+
+  @@index([object, objectId])
+  @@index([actorId, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  event     String
+  channel   Channel
+  title     String
+  body      String
+  readAt    DateTime?
+  sentAt    DateTime?
+  dedupeKey String?   @unique
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+model Setting {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  key   String @unique
+  value Json
+}
+
+// Single-use tokenised guardian link (S-3). Token and code are stored hashed; link expires after 14 days.
+enum InviteState {
+  SENT
+  REMINDED
+  AUTHORIZED
+  DECLINED
+  LAPSED
+}
+
+model GuardianInvite {
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  participantId  String      @db.ObjectId
+  guardianName   String
+  guardianEmail  String
+  guardianMobile String
+  relationship   String
+  tokenHash      String      @unique
+  state          InviteState @default(SENT)
+  expiresAt      DateTime
+  remindedAt     DateTime?
+  usedAt         DateTime?
+  codeHash       String?
+  codeExpiresAt  DateTime?
+  codeAttempts   Int         @default(0)
+  lockedUntil    DateTime?
+  createdAt      DateTime    @default(now())
+
+  @@index([participantId, state])
+}
+
+// Step 4 village
+// Saved resources ("Save to my notes"). The notes page reads these through saveResource / listSavedResources in src/lib/village.ts.
+model SavedItem {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  resourceId String   @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, resourceId])
+  @@index([userId])
+}
+
+// "This helped me" on a resource. One per person; only the count is ever shown.
+model ResourceHelped {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  resourceId String   @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, resourceId])
+}
+
+// Optional display fields for an Event (Event itself has no description). Written by the events admin screen via upsertEventInfo.
+model EventInfo {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  eventId     String  @unique @db.ObjectId
+  description String?
+  audience    String? // e.g. "High school and college"
+  topicTag    String? // e.g. "Leadership"
+  formatLabel String? // e.g. "Webinar"; falls back to the event type
+  location    String? // shown as "Where"
+}
+
+// Volunteer slots on an event: "Panelist, 2 places".
+model EventVolunteerRole {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  eventId String @db.ObjectId
+  role    String
+  places  Int    @default(1)
+
+  @@index([eventId])
+}
+
+// A note to the team: volunteering for an event (kind EVENT), proposing a talk (TALK) or a participant offering to give back (GIVE_BACK).
+model VolunteerInterest {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  kind      String
+  eventId   String?  @db.ObjectId
+  role      String?
+  topics    String[]
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, kind])
+  @@index([eventId])
+}
+
+// Who moderated which Thanks / Post, and why. Append-only by convention.
+model VillageModeration {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  kind      String // THANKS | POST | RESOURCE
+  itemId    String          @db.ObjectId
+  state     ModerationState
+  actorId   String?         @db.ObjectId
+  note      String?
+  createdAt DateTime        @default(now())
+
+  @@index([kind, itemId])
+}
+
+// Step 4 insight
+// 30-day check-in after a held conversation. One per connection. Answers: TOOK_STEP | THINKING | NOT_REALLY.
+model CheckIn {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  connectionId  String    @unique @db.ObjectId
+  participantId String    @db.ObjectId
+  userId        String    @db.ObjectId
+  dueAt         DateTime
+  answer        String?
+  note          String?
+  answeredAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, answeredAt])
+}
+
+// One row each time a goal's progress changes, so "goals moved forward" can be counted per month.
+model GoalEvent {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  goalId    String       @db.ObjectId
+  userId    String       @db.ObjectId
+  progress  GoalProgress
+  createdAt DateTime     @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// How a contributed resource is credited: FULL (Kwame M.), FIRST (Kwame) or ANON.
+model ResourceCredit {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  resourceId String @unique @db.ObjectId
+  mode       String
+}
+
+// Step 5 user safety
+// Account deletion with a 30-day change-of-mind window. Personal fields are anonymised when purgeAfter passes (or at once on request by the team).
+model DeletionRequest {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @unique @db.ObjectId
+  requestedAt DateTime  @default(now())
+  purgeAfter  DateTime
+  cancelledAt DateTime?
+  completedAt DateTime?
+}
+
+// One row per export the person asked for. The file itself is rebuilt on download, only ever for this user.
+model DataExport {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  requestedAt DateTime @default(now())
+  expiresAt   DateTime
+
+  @@index([userId, requestedAt])
+}
+
+// Annual mentor safeguarding re-affirmation. Append-only by convention, like Attestation.
+model MentorReaffirmation {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String   @db.ObjectId
+  statementVersion String
+  typedLegalName   String
+  ipAddress        String
+  signedAt         DateTime @default(now())
+  nextDueAt        DateTime
+
+  @@index([userId, signedAt])
+}
+
+// Why a mentor is paused: LAPSED (re-affirmation overdue), DISCLOSURE (change in circumstances) or REMOVAL. Resolved when the mentor affirms or the team lifts it.
+model EligibilityHold {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @unique @db.ObjectId
+  kind       String
+  since      DateTime  @default(now())
+  resolvedAt DateTime?
+}
+
+// A teacher, counselor or coach recommending a young person. Only the guardian is contacted.
+model Recommendation {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  recommenderName  String
+  recommenderRole  String
+  recommenderEmail String
+  youngFirstName   String
+  guardianEmail    String
+  why              String?
+  createdAt        DateTime @default(now())
+
+  @@index([guardianEmail])
+}
+
+// Ongoing mentorship after a complete conversation. Never automatic: the guardian decides (THREE_MONTHS | ONE_MORE | NOT_NOW).
+model OngoingMentorship {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  askId     String    @unique @db.ObjectId
+  decision  String?
+  decidedBy String?   @db.ObjectId
+  decidedAt DateTime?
+  endsOn    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// A guardian's request for a copy of, or deletion of, a young person's data. The team handles these (A28).
+model GuardianDataRequest {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  guardianId    String   @db.ObjectId
+  participantId String   @db.ObjectId
+  kind          String
+  createdAt     DateTime @default(now())
+
+  @@index([guardianId])
+}
+
+// Step 5 admin 1
+// Timeline rows for an Incident (what happened, in order). Append-only by convention.
+model IncidentEvent {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  incidentId String   @db.ObjectId
+  kind       String
+  text       String
+  actorId    String?  @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  @@index([incidentId, createdAt])
+}
+
+// Team role label (Program lead, Reviewer, Volunteer reviewer, Safeguarding lead, Read-only). Console access itself still comes from User.roles.
+model TeamMember {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @unique @db.ObjectId
+  teamRole    String
+  note        String?
+  invitedById String?  @db.ObjectId
+  createdAt   DateTime @default(now())
+}
+
+// A suspension is a record, never a deletion. liftedAt is set when the person is reinstated.
+model AccountSuspension {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String    @db.ObjectId
+  kind              String
+  reason            String
+  note              String?
+  byId              String    @db.ObjectId
+  returnedAsks      Int       @default(0)
+  guardiansNotified Int       @default(0)
+  createdAt         DateTime  @default(now())
+  liftedAt          DateTime?
+  liftedById        String?   @db.ObjectId
+
+  @@index([userId, createdAt])
+}
+
+// Messages from the Contact the team form (A29).
+model HelpRequest {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  fromUserId   String?   @db.ObjectId
+  fromName     String?
+  fromRole     String
+  minor        Boolean   @default(false)
+  email        String?
+  about        String
+  message      String
+  status       String    @default("NEW")
+  reply        String?
+  repliedAt    DateTime?
+  repliedById  String?   @db.ObjectId
+  createdAt    DateTime  @default(now())
+
+  @@index([status, createdAt])
+}
+
+// Team handling state for export and deletion requests (A28). key is "del:<id>", "exp:<id>" or "gdr:<id>".
+model DataRequestStatus {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  key         String   @unique
+  state       String
+  note        String?
+  updatedById String?  @db.ObjectId
+  updatedAt   DateTime @default(now())
+}
+
+// STEP5 admin-ops
+// An announcement from the team (A17). recipientCount is what the sender confirmed; sent copies are in-app notifications.
+model Broadcast {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  audience       String // EVERYONE | MENTORS | PARTICIPANTS | GUARDIANS
+  subject        String
+  body           String
+  status         String    @default("DRAFT") // DRAFT | SCHEDULED | SENT
+  scheduledFor   DateTime?
+  recipientCount Int       @default(0)
+  sentAt         DateTime?
+  createdById    String    @db.ObjectId
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, scheduledFor])
+}
