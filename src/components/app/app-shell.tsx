@@ -6,7 +6,7 @@ import { SidebarNav, TabBar } from "@/components/dc/nav";
 import { GUARDIAN_NAV, GUARDIAN_TABS, MENTOR_NAV, MENTOR_TABS, PARTICIPANT_NAV, PARTICIPANT_TABS, withCounts, type NavItem, type TabBarItem } from "@/components/dc/nav-config";
 import { PhoneHeader } from "@/components/account/shells";
 import { initials } from "@/components/dc";
-import { IdleGuard } from "./idle-guard";
+import { NotificationBell } from "./notification-bell";
 
 export type ShellUser = { name: string; roleLabel: string; tone?: "blush" | "butter" | "mint" };
 const TONE = { blush: "bg-blush text-blush-ink", butter: "bg-butter text-butter-ink", mint: "bg-mint text-mint-ink" };
@@ -35,10 +35,7 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
             <input type="search" name="q" placeholder={search} aria-label={search} className="min-w-0 flex-1 bg-transparent text-ink placeholder:text-stone focus:outline-none" />
           </form>
           <div className="ml-auto flex shrink-0 items-center gap-[18px]">
-            <Link href="/notifications" aria-label={unread ? "Notifications, new" : "Notifications"} className="relative flex size-11 items-center justify-center rounded-full bg-sand">
-              <Icon name="bell" size={21} />
-              {unread && <span className="absolute right-[9px] top-2 size-2.5 rounded-full border-2 border-sand bg-clay" />}
-            </Link>
+            <NotificationBell initialUnread={unread} />
             <div className="flex items-center gap-2.5">
               <span className={`flex size-11 items-center justify-center rounded-full font-display text-[16px] font-bold ${tone}`} aria-hidden="true">{initials(user.name)}</span>
               <p className="whitespace-nowrap text-[14px] leading-[1.25]"><b>{user.name}</b><br /><span className="text-stone">{user.roleLabel}</span></p>
@@ -59,7 +56,6 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
         </div>
       </div>
       {tabs && <><div className="h-[86px] lg:hidden" aria-hidden="true" /><TabBar items={tabs} /></>}
-      <IdleGuard />
     </div>
   );
 }
@@ -105,9 +101,9 @@ export function MentorShell({ ctx, children, aside, phone, tabs = true, wide }: 
 }
 
 /** The settings pages (D21, N10, EX14, P2) are shared by every role: this picks the right frame for whoever is signed in. */
-export function RoleShell({ c, children, phone, tabs = false }: { c: { role: "PARTICIPANT" | "MENTOR" | "GUARDIAN"; name: string; openCount: number; unread: boolean; kids: string[]; needs: number }; children: ReactNode; phone?: { back?: string; title?: ReactNode; right?: ReactNode }; tabs?: boolean }) {
-  if (c.role === "PARTICIPANT") return <ParticipantShell ctx={{ name: c.name, openCount: c.openCount, unread: c.unread }} phone={phone} tabs={tabs}>{children}</ParticipantShell>;
-  if (c.role === "GUARDIAN") return <GuardianShell name={c.name} of={c.kids.join(" and ") || undefined} approvals={c.needs} unread={c.unread} phone={phone} tabs={tabs}>{children}</GuardianShell>;
+export function RoleShell({ c, children, phone, tabs = false, aside }: { c: { role: "PARTICIPANT" | "MENTOR" | "GUARDIAN"; name: string; openCount: number; unread: boolean; kids: string[]; needs: number }; children: ReactNode; phone?: { back?: string; title?: ReactNode; right?: ReactNode }; tabs?: boolean; aside?: ReactNode }) {
+  if (c.role === "PARTICIPANT") return <ParticipantShell ctx={{ name: c.name, openCount: c.openCount, unread: c.unread }} phone={phone} tabs={tabs} aside={aside}>{children}</ParticipantShell>;
+  if (c.role === "GUARDIAN") return <GuardianShell name={c.name} of={c.kids.join(" and ") || undefined} approvals={c.needs} unread={c.unread} phone={phone} tabs={tabs} aside={aside}>{children}</GuardianShell>;
   const p = c.name.trim().split(/\s+/); const short = p.length > 1 ? `${p[0]} ${p[p.length - 1]![0]!.toUpperCase()}.` : c.name;
-  return <MentorShell ctx={{ short, open: 0, unread: c.unread }} phone={phone} tabs={tabs}>{children}</MentorShell>;
+  return <MentorShell ctx={{ short, open: 0, unread: c.unread }} phone={phone} tabs={tabs} aside={aside}>{children}</MentorShell>;
 }

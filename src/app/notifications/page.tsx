@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Icon, type IconName } from "@/components/dc/icons";
-import { ParticipantShell } from "@/components/app/app-shell";
+import { RoleShell } from "@/components/app/app-shell";
+import { AdminShell } from "@/components/app/admin-shell";
 import { Card, PASTEL, type Pastel } from "@/components/app/feed";
-import { participantPage } from "@/lib/participant-ctx";
+import { settingsPage } from "@/lib/settings-ctx";
+import { adminPage } from "@/lib/admin-ctx";
+import { getSession } from "@/lib/auth";
 import { listNotifications } from "@/lib/notifications";
 import { APP_TZ } from "@/lib/domain/scheduling";
 import { db } from "@/lib/db";
@@ -38,11 +41,19 @@ function short(d: Date, now: Date) {
 }
 const dayKey = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: APP_TZ() }).format(d);
 
-/** NT1 Notifications: filters, grouped by day, tap to open. */
+/** NT1 Notifications, for every role: filters, grouped by day, and each one opens where it was sent from. Team members see it inside the console. */
 export default async function Notifications({ searchParams }: { searchParams: { f?: string } }) {
-  const r = await participantPage({ allowPaused: true });
-  if ("to" in r) redirect(r.to === "/login" ? "/login?next=/notifications" : r.to);
-  const all = await listNotifications(r.ctx.userId, 60);
+  const s = await getSession();
+  const team = !!s?.user?.roles.some((x) => x === "ADMIN" || x === "SAFEGUARDING_LEAD");
+  const member = !!s?.user?.roles.some((x) => x === "PARTICIPANT" || x === "MENTOR" || x === "GUARDIAN");
+  const t = team && !member ? await adminPage("/notifications", "overview") : null;
+  if (t && "to" in t) redirect(t.to);
+  const r = t ? null : await settingsPage();
+  if (r && "to" in r) redirect(r.to === "/login" ? "/login?next=/notifications" : r.to);
+  const userId = t && "ctx" in t ? t.ctx.userId : r && "ctx" in r ? r.ctx.userId : "";
+  const role = t ? "TEAM" : r && "ctx" in r ? r.ctx.role : "PARTICIPANT";
+  const home = role === "TEAM" ? "/admin" : role === "MENTOR" ? "/mentor" : role === "GUARDIAN" ? "/guardian" : "/home";
+  const all = await listNotifications(userId, 60);
   const now = new Date();
   const f = FILTERS.some(([k]) => k === searchParams.f) ? searchParams.f! : "all";
   const rows = all.filter((n) => f === "all" || KIND_OF(n.event) === f);
@@ -57,20 +68,20 @@ export default async function Notifications({ searchParams }: { searchParams: { 
     if (g && g[0] === label) g[1].push(n); else groups.push([label, [n]]);
   }
 
-  const guardian = r.ctx.minor ? await db.guardianLink.findFirst({ where: { active: true, participant: { userId: r.ctx.userId } }, include: { guardian: { include: { user: true } } } }) : null;
+  const guardian = r && "ctx" in r && r.ctx.role === "PARTICIPANT" && r.ctx.minor ? await db.guardianLink.findFirst({ where: { active: true, participant: { userId } }, include: { guardian: { include: { user: true } } } }) : null;
   const aside = (
     <>
       <Card className="p-5">
         <h2 className="font-display text-[19px] font-extrabold leading-[1.12] tracking-[-.01em]">What we send</h2>
-        <p className="mt-2 text-[14.5px] leading-normal text-bark">Only what you need: updates on your Ask, calls and a weekly tip. Never a message from a stranger.</p>
-        <Link href="/settings/notifications" className="mt-3 inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-line px-[13px] py-[7px] text-[13.5px] font-semibold"><Icon name="settings" size={16} />Change settings</Link>
+        <p className="mt-2 text-[14.5px] leading-normal text-bark">{role === "PARTICIPANT" ? "Only what you need: updates on your Ask, calls and a weekly tip. Never a message from a stranger." : role === "TEAM" ? "Queue alerts, incidents and anything waiting for a person on the team." : "Only what you need: updates on conversations and anything waiting for you."}</p>
+        {role !== "TEAM" && <Link href="/settings/notifications" className="mt-3 inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-line px-[13px] py-[7px] text-[13.5px] font-semibold"><Icon name="settings" size={16} />Change settings</Link>}
       </Card>
       {guardian && <div className="flex gap-3 rounded-[22px] bg-mint px-[18px] py-[15px] text-[13.5px] leading-[1.45] text-mint-ink"><Icon name="shieldCheck" size={22} className="shrink-0" /><p><b>Under 18?</b> {guardian.guardian.user.name.split(" ")[0]} also gets a note when a call is booked or changed.</p></div>}
     </>
   );
 
-  return (
-    <ParticipantShell ctx={{ name: r.ctx.name, openCount: r.ctx.openCount, unread: r.ctx.unread }} aside={aside} phone={{ back: "/home", title: "Notifications" }}>
+  const body = (
+    <>
       <div className="flex items-center justify-between max-lg:hidden">
         <h1 className="font-display text-[40px] font-extrabold leading-[1.12] tracking-[-.01em]">Notifications</h1>
         {unreadBy("all") > 0 && <form action={markAllReadAction}><button type="submit" className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-line px-[13px] py-[7px] text-[13.5px] font-semibold"><Icon name="check" size={16} />Mark all as read</button></form>}
@@ -85,7 +96,8 @@ export default async function Notifications({ searchParams }: { searchParams: { 
         <section key={label} className="flex flex-col gap-2.5 lg:gap-[18px]">
           <h2 className="mt-1.5 text-[12.5px] font-extrabold tracking-[.06em] text-stone lg:-mb-1.5 lg:text-[13px] lg:tracking-[.05em]">{label}</h2>
           {list.map((n) => {
-            const kind = KIND_OF(n.event); const [icon, tone, to] = special(n.event) ?? LOOK[kind];
+            const kind = KIND_OF(n.event); const [icon, tone, guess] = special(n.event) ?? LOOK[kind];
+            const to = n.link ?? (role === "PARTICIPANT" ? guess : home);
             return (
               <form key={n.id} action={openNotificationAction}>
                 <input type="hidden" name="id" value={n.id} /><input type="hidden" name="to" value={to} />
@@ -105,9 +117,13 @@ export default async function Notifications({ searchParams }: { searchParams: { 
         </section>
       ))}
       {rows.length ? <p className="py-1.5 text-center text-[13.5px] text-stone">You are all caught up. We keep 30 days of notifications.</p> : <Card className="flex flex-col items-center gap-2 p-6 text-center"><Icon name="bell" size={28} className="text-stone" /><p className="text-[15px] text-bark">Nothing here yet. Updates on your Asks, calls and events will show up here.</p></Card>}
-      <div className="rounded-card border border-line bg-card p-3.5 lg:hidden">
-        <div className="flex items-center gap-3"><Icon name="bell" size={22} className="text-stone" /><p className="flex-1 text-[13.5px] leading-[1.4]">Choose what we send you and how.</p><Link href="/settings/notifications" className="text-[13.5px] font-bold text-clay">Change</Link></div>
-      </div>
-    </ParticipantShell>
+      {role !== "TEAM" && (
+        <div className="rounded-card border border-line bg-card p-3.5 lg:hidden">
+          <div className="flex items-center gap-3"><Icon name="bell" size={22} className="text-stone" /><p className="flex-1 text-[13.5px] leading-[1.4]">Choose what we send you and how.</p><Link href="/settings/notifications" className="text-[13.5px] font-bold text-clay">Change</Link></div>
+        </div>
+      )}
+    </>
   );
+  if (t && "ctx" in t) return <AdminShell ctx={t.ctx} aside={aside} phone={{ back: "/admin", title: "Notifications" }}>{body}</AdminShell>;
+  return <RoleShell c={(r as { ctx: Parameters<typeof RoleShell>[0]["c"] }).ctx} aside={aside} phone={{ back: role === "PARTICIPANT" ? "/home" : home, title: "Notifications" }} tabs={role !== "MENTOR"}>{body}</RoleShell>;
 }

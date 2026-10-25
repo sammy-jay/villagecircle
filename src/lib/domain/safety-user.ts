@@ -68,7 +68,7 @@ export const REAFFIRM_MONTHS = 12;
 export const reaffirmDue = (lastSigned: Date) => new Date(Date.UTC(lastSigned.getUTCFullYear() + 1, lastSigned.getUTCMonth(), lastSigned.getUTCDate()));
 export const reaffirmLapsed = (nextDueAt: Date, now: Date = new Date()) => now.getTime() >= nextDueAt.getTime();
 
-/** Session timeout (EX16): warn at 28 minutes, sign out at 30. */
+/** Session timeout (EX16): warn at 28 minutes, sign out at 30. Not in use: the idle sign-out was turned off on request (25 Oct 2026). */
 export const IDLE_LIMIT_MS = 30 * 60_000;
 export const IDLE_WARN_MS = 28 * 60_000;
 export const fmtCountdown = (ms: number) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };

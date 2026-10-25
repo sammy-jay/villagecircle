@@ -12,7 +12,7 @@ export async function unreadCount(userId: string): Promise<number> {
 export async function listNotifications(userId: string, limit = 30) {
   const now = new Date();
   const rows = await db.notification.findMany({ where: { userId, channel: "IN_APP" }, orderBy: { createdAt: "desc" }, take: limit });
-  return rows.map((n) => ({ id: n.id, event: n.event, title: n.title, body: n.body, unread: !n.readAt, when: relativeTime(n.createdAt, now), createdAt: n.createdAt }));
+  return rows.map((n) => ({ id: n.id, event: n.event, title: n.title, body: n.body, link: n.link, unread: !n.readAt, when: relativeTime(n.createdAt, now), createdAt: n.createdAt }));
 }
 
 export async function markRead(userId: string, id: string) {

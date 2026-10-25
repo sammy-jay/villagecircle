@@ -151,7 +151,7 @@ export async function sendMonthlyDigests(now = new Date()) {
   if (!isFirstBusinessDay(now)) return 0;
   const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)); const key = monthKey(prev); let n = 0;
   for (const u of await db.user.findMany({ where: { status: "ACTIVE", participant: { isNot: null } }, select: { id: true } })) {
-    await notify(u.id, "review.monthly", `Your ${monthName(prev)}`, "What you asked, learned and did last month is ready.", { link: "/review", dedupeKey: `monthly:${u.id}:${key}` }); n++;
+    await notify(u.id, "review.monthly", `Your ${monthName(prev)}`, "What you asked, learned and did last month is ready.", { link: "/goals/check-in", dedupeKey: `monthly:${u.id}:${key}` }); n++;
   }
   const from = monthStartUtc(prev); const to = nextMonthStartUtc(prev);
   for (const m of await db.mentorProfile.findMany({ where: { verification: "APPROVED", user: { status: "ACTIVE" } } })) {

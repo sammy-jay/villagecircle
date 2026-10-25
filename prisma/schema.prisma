@@ -729,6 +729,7 @@ model Notification {
   channel   Channel
   title     String
   body      String
+  link      String? // where the notification opens in the app (the same link the email uses)
   readAt    DateTime?
   sentAt    DateTime?
   dedupeKey String?   @unique

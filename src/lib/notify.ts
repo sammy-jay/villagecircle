@@ -11,7 +11,7 @@ const MUTABLE: Record<string, string> = { "resource.new": "resources", "event.ne
 /** In-app notification, plus an email. Bodies must never carry the other party's contact details or full names (BR-10). */
 export async function notify(userId: string, event: string, title: string, body: string, o: { email?: boolean; link?: string; dedupeKey?: string; attachments?: { filename: string; content: string }[] } = {}) {
   try {
-    await db.notification.create({ data: { userId, event, channel: "IN_APP", title, body, sentAt: new Date(), dedupeKey: o.dedupeKey } });
+    await db.notification.create({ data: { userId, event, channel: "IN_APP", title, body, link: o.link?.startsWith("/") && !o.link.startsWith("//") ? o.link : null, sentAt: new Date(), dedupeKey: o.dedupeKey } });
   } catch { return; } // duplicate dedupeKey: already sent
   if (o.email === false) return;
   const mutable = MUTABLE[event];
