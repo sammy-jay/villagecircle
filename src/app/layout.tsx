@@ -6,6 +6,7 @@ import "@fontsource/caveat/600.css";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { CookieBanner } from "@/components/public/cookie-banner";
+import { MaintenanceNotice } from "@/components/public/maintenance-notice";
 
 export const metadata: Metadata = {
   title: { default: "The Village Circle", template: "%s · The Village Circle" },
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en-GB">
       <body>
         <a href="#main" className="dc-skip">Skip to content</a>
+        <MaintenanceNotice />
         <Providers>{children}</Providers>
         <CookieBanner />
       </body>

@@ -65,7 +65,11 @@
   }
 }
 
+@keyframes dc-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
 @layer components {
+  /* ST3 loading skeleton: a soft sweep over the block. Reduced motion stops it (see above). */
+  .dc-shimmer { background: linear-gradient(90deg, rgb(var(--sand)) 0%, rgb(var(--line)) 50%, rgb(var(--sand)) 100%); background-size: 200% 100%; animation: dc-shimmer 1.4s ease-in-out infinite; }
   .dc-skip { @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-paper; }
 
   /* §2 Type */
