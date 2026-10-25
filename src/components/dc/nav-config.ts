@@ -41,14 +41,16 @@ export const MENTOR_NAV: NavItem[] = [
 ];
 
 export const ADMIN_NAV: NavGroup[] = [
-  { label: "Overview", icon: "grid", href: "/admin" },
-  { label: "Applications", icon: "user", items: [
-    { href: "/admin/mentors", label: "Mentor applications", icon: "user" },
-    { href: "/admin/guardians", label: "Guardian queue", icon: "shield" },
+  { label: "Overview", icon: "home", href: "/admin" },
+  { label: "Applications", icon: "inbox", items: [
+    { href: "/admin/mentors", label: "Mentors", icon: "user" },
+    { href: "/admin/guardians", label: "Guardians", icon: "shield" },
   ] },
   { label: "Asks", icon: "message", items: [
-    { href: "/admin/asks", label: "Ask queue", icon: "message", exact: true },
+    { href: "/admin/asks", label: "Ask review", icon: "message" },
     { href: "/admin/asks/all", label: "All Asks", icon: "message" },
+    { href: "/admin/queue-health", label: "Queue health", icon: "chart" },
+    { href: "/admin/bulk", label: "Bulk actions", icon: "grid" },
   ] },
   { label: "Safety", icon: "shield", items: [
     { href: "/admin/incidents", label: "Incidents", icon: "alert" },
@@ -71,10 +73,8 @@ export const ADMIN_NAV: NavGroup[] = [
   { label: "Reports", icon: "chart", href: "/admin/reports" },
   { label: "Settings", icon: "settings", items: [
     { href: "/admin/config", label: "Configuration", icon: "settings" },
-    { href: "/admin/queue-health", label: "Queue health", icon: "chart" },
     { href: "/admin/playbook", label: "Reviewer playbook", icon: "book" },
     { href: "/admin/search", label: "Search", icon: "search" },
-    { href: "/admin/bulk", label: "Bulk actions", icon: "grid" },
   ] },
 ];
 

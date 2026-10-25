@@ -72,7 +72,7 @@ export function AdminMenu({ groups = ADMIN_NAV, onNavigate }: { groups?: NavGrou
         const expanded = open[g.label];
         return (
           <div key={g.label}>
-            <button type="button" aria-expanded={expanded} onClick={() => setOpen((o) => ({ ...o, [g.label]: !o[g.label] }))} className={cn(row, "font-semibold")}>
+            <button type="button" aria-expanded={expanded} onClick={() => setOpen((o) => ({ [g.label]: !o[g.label] }))} className={cn(row, "font-semibold")}>
               <Icon name={g.icon} size={24} />
               <span className="flex-1 text-left">{g.label}</span>
               {!expanded && !!g.count && <span className="dc-count">{g.count}</span>}

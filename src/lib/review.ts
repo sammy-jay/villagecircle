@@ -96,7 +96,8 @@ export async function buildShortlist(askId: string, o: { widen?: boolean; review
     const shared = m.languages.some((l) => u.languages.includes(l)) || (!!u.countryOfOrigin && u.countryOfOrigin === m.user.countryOfOrigin);
     return { mentorId: m.id, fit: exact, hoursRemaining: m.monthlyHours - m.hoursGivenThisMonth, monthlyHours: m.monthlyHours, asksThisMonth: counts.find((c) => c.mentorId === m.id)?._count ?? 0, maxAsksThisMonth: maxAsks, affinity: shared ? 1 : 0, responsiveness: m.responseRate ?? 0.5 };
   }).filter((i) => i.fit > 0);
-  const ranked = rankMentors(inputs, o.widen ? 8 : 6);
+  const { weights } = await (await import("./config")).getConfig();
+  const ranked = rankMentors(inputs, o.widen ? 8 : 6, weights);
   const round = (ask.shortlist.reduce((n, s) => Math.max(n, s.round), 0) || 0) + (o.widen && ask.shortlist.length ? 1 : ask.shortlist.length ? 0 : 1);
   const base = ask.shortlist.length;
   for (const r of ranked) await db.shortlistEntry.create({ data: { askId, mentorId: r.mentorId, rank: base + r.rank, score: r.score, round: round || 1 } });

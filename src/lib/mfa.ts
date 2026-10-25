@@ -10,6 +10,7 @@ export function newMfaSecret(email: string) {
   const secret = authenticator.generateSecret();
   return { secret, encrypted: encrypt(secret), otpauth: authenticator.keyuri(email, "The Village Circle", secret) };
 }
+export const otpauthFor = (email: string, secret: string) => authenticator.keyuri(email, "The Village Circle", secret);
 export const qrDataUrl = (otpauth: string) => QRCode.toDataURL(otpauth);
 export function verifyTotp(encryptedSecret: string, code: string): boolean {
   try { return authenticator.check(code.replace(/\s/g, ""), decrypt(encryptedSecret)); } catch { return false; }

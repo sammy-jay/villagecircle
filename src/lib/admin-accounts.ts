@@ -169,7 +169,8 @@ export async function changeTeamRole(actor: Actor, targetId: string, teamRole: s
   const adminCount = await db.user.count({ where: { roles: { has: "ADMIN" }, status: "ACTIVE" } });
   const c = checkRoleChange({ actorId: actor.id, targetId, adminCount, targetIsAdmin: t.roles.includes("ADMIN"), newRole: teamRole }); if (!c.ok) return fail(c.error);
   const before = await db.teamMember.findUnique({ where: { userId: targetId } });
-  const roles = rolesForTeamRole(teamRole);
+  // Keep any non-console roles (a team member can also be a mentor or a guardian); only the console roles change.
+  const roles = [...t.roles.filter((r) => r !== "ADMIN" && r !== "SAFEGUARDING_LEAD"), ...rolesForTeamRole(teamRole)];
   await db.user.update({ where: { id: targetId }, data: { roles } });
   await db.teamMember.upsert({ where: { userId: targetId }, update: { teamRole }, create: { userId: targetId, teamRole, invitedById: actor.id } });
   await audit(actor.id, "team.role.change", "User", targetId, { teamRole: before?.teamRole ?? defaultTeamRole(t.roles), roles: t.roles }, { teamRole, roles });

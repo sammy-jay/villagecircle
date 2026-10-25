@@ -15,9 +15,11 @@ const TONE = { blush: "bg-blush text-blush-ink", butter: "bg-butter text-butter-
  * Signed-in frame from the D-series boards: 68px top bar (logo, search, bell, person) and a 262px side menu.
  * On the phone it collapses to the 60px header; the tab bar is added by the section that owns it.
  */
-export function AppShell({ nav, cta, user, unread, search = "Search mentors, tips and events", phone, children, aside, wide, tabs }: {
-  nav: NavItem[]; cta?: { href: string; label: string }; user: ShellUser; unread?: boolean; search?: string;
+export function AppShell({ nav, cta, user, unread, search = "Search mentors, tips and events", searchAction = "/search", phone, children, aside, wide, tabs, sidebar, phoneSub }: {
+  nav: NavItem[]; cta?: { href: string; label: string }; user: ShellUser; unread?: boolean; search?: string; searchAction?: string;
   phone?: { back?: string; title?: ReactNode; right?: ReactNode }; children: ReactNode; aside?: ReactNode; wide?: boolean; tabs?: TabBarItem[];
+  /** The team console swaps the side menu for its nested menu, and adds the "Group › Page" bar under the phone header. */
+  sidebar?: ReactNode; phoneSub?: ReactNode;
 }) {
   const tone = TONE[user.tone ?? "blush"];
   return (
@@ -28,7 +30,7 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
           <Link href="/" aria-label="The Village Circle, home"><Image src="/brand/logo.png" alt="The Village Circle" width={51} height={46} priority /></Link>
         </div>
         <div className="flex min-w-0 flex-1 items-center gap-[18px] px-10">
-          <form action="/search" role="search" className={`flex h-11 w-full max-w-[460px] items-center gap-2.5 rounded-full bg-sand px-[18px] text-[15px] text-stone focus-within:ring-2 focus-within:ring-ink`}>
+          <form action={searchAction} role="search" className={`flex h-11 w-full max-w-[460px] items-center gap-2.5 rounded-full bg-sand px-[18px] text-[15px] text-stone focus-within:ring-2 focus-within:ring-ink`}>
             <Icon name="search" size={19} />
             <input type="search" name="q" placeholder={search} aria-label={search} className="min-w-0 flex-1 bg-transparent text-ink placeholder:text-stone focus:outline-none" />
           </form>
@@ -45,9 +47,10 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
         </div>
       </header>
       <PhoneHeader back={phone?.back} title={phone?.title} right={phone?.right ?? (phone?.back ? undefined : <PhoneIcons unread={unread} />)} />
+      {phoneSub && <div className="px-4 pb-1 pt-1 lg:hidden">{phoneSub}</div>}
       <div className="flex lg:min-h-[calc(100vh-68px)]">
         <div className="hidden w-[262px] flex-none border-r border-line bg-card px-3 py-5 lg:block">
-          <div className="sticky top-[88px]"><SidebarNav items={nav} cta={cta} /></div>
+          <div className="sticky top-[88px]">{sidebar ?? <SidebarNav items={nav} cta={cta} />}</div>
         </div>
         {/* Same gutter on every page: content starts a fixed distance from the side menu, whether or not there is an aside. */}
         <div className="flex min-w-0 flex-1 gap-8 px-5 lg:px-10">

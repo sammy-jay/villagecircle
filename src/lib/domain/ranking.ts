@@ -12,17 +12,20 @@ export interface RankInput {
 
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 
-export function scoreMentor(i: RankInput): number {
+export type Weights = { fit: number; capacity: number; spread: number; affinity: number; responsiveness: number };
+
+/** `w` comes from Configuration (A5); without it the BRD defaults apply. */
+export function scoreMentor(i: RankInput, w: Weights = WEIGHTS): number {
   const capacity = i.monthlyHours > 0 ? clamp(i.hoursRemaining / i.monthlyHours) : 0;
   const spread = 1 - clamp(i.maxAsksThisMonth > 0 ? i.asksThisMonth / i.maxAsksThisMonth : 0);
   return Math.round(
-    (clamp(i.fit) * WEIGHTS.fit + capacity * WEIGHTS.capacity + spread * WEIGHTS.spread +
-      clamp(i.affinity) * WEIGHTS.affinity + clamp(i.responsiveness) * WEIGHTS.responsiveness) * 10,
+    (clamp(i.fit) * w.fit + capacity * w.capacity + spread * w.spread +
+      clamp(i.affinity) * w.affinity + clamp(i.responsiveness) * w.responsiveness) * 10,
   ) / 10;
 }
 
-export function rankMentors(inputs: RankInput[], limit = 6) {
-  return inputs.map((i) => ({ mentorId: i.mentorId, score: scoreMentor(i) }))
+export function rankMentors(inputs: RankInput[], limit = 6, w: Weights = WEIGHTS) {
+  return inputs.map((i) => ({ mentorId: i.mentorId, score: scoreMentor(i, w) }))
     .sort((a, b) => b.score - a.score || a.mentorId.localeCompare(b.mentorId))
     .slice(0, limit).map((r, idx) => ({ ...r, rank: idx + 1 }));
 }

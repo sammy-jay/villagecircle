@@ -11,7 +11,7 @@ import { Icon, type IconName } from "@/components/dc/icons";
  */
 
 export type Pastel = "butter" | "mint" | "blush";
-const PANEL: Record<Pastel, string> = { butter: "bg-butter", mint: "bg-mint", blush: "bg-blush" };
+const PANEL: Record<Pastel | "sand", string> = { butter: "bg-butter", mint: "bg-mint", blush: "bg-blush", sand: "bg-[#F2E8DA]" };
 
 export function PhoneHeader({ back, title, right, mark }: { back?: string; title?: ReactNode; right?: ReactNode; mark?: boolean }) {
   return (
@@ -41,7 +41,7 @@ export function PhoneBar({ children, className }: { children: ReactNode; classNa
  * DK1, DK3, DK4, M19 to M22, P02: form column on the left (700 or 640 wide, 44/80 padding, logo on top),
  * pastel panel on the right with illustration cards. `center` vertically centres the column body.
  */
-export function SplitShell({ width = 640, panel, art, children, center, phone }: { width?: 640 | 700; panel: Pastel; art: ReactNode; children: ReactNode; center?: boolean; phone?: { back?: string; title?: ReactNode; right?: ReactNode; mark?: boolean } }) {
+export function SplitShell({ width = 640, panel, art, children, center, phone }: { width?: 640 | 700; panel: Pastel | "sand"; art: ReactNode; children: ReactNode; center?: boolean; phone?: { back?: string; title?: ReactNode; right?: ReactNode; mark?: boolean } }) {
   return (
     <div className="min-h-screen lg:flex">
       <PhoneHeader {...phone} />

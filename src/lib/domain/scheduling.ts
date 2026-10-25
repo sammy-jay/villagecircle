@@ -46,3 +46,15 @@ export const fmtWhen = (d: Date, tz = APP_TZ()) => `${fmtDay(d, tz)}, ${fmtTime(
 export const fmtRange = (d: Date, minutes: number, tz = APP_TZ()) => `${fmtTime(d, tz)} to ${fmtTime(callEndsAt(d, minutes), tz)}`;
 export const tzLabel = (d = new Date(), tz = APP_TZ()) => tzName(d, tz).replace(" Standard Time", " time").replace(" Daylight Time", " time");
 export const fmtDate = (d: Date) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(d);
+
+/** "2026-11-03T19:00" typed as a wall-clock time in `tz` (a datetime-local field) to the exact instant. */
+export function zonedToUtc(local: string, tz: string = APP_TZ()): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(local); if (!m) return new Date(NaN);
+  const guess = Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!, +m[4]!, +m[5]!);
+  const offset = (t: number) => {
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+    return Date.UTC(+p.year!, +p.month! - 1, +p.day!, +p.hour!, +p.minute!) - t;
+  };
+  const first = guess - offset(guess);
+  return new Date(guess - offset(first));
+}

@@ -15,6 +15,9 @@ const LATER = [["job-shadowing", "Job shadowing"], ["professional-introductions"
   const email = (process.env.SEED_ADMIN_EMAIL || "").toLowerCase(); const pw = process.env.SEED_ADMIN_PASSWORD;
   if (email && pw) {
     await db.user.upsert({ where: { email }, update: { roles: ["ADMIN", "SAFEGUARDING_LEAD"] }, create: { email, name: process.env.SEED_ADMIN_NAME || "Admin", passwordHash: await bcrypt.hash(pw, 12), roles: ["ADMIN", "SAFEGUARDING_LEAD"], emailVerified: new Date(), dateOfBirth: new Date("1990-01-01") } });
+    // The first admin is the program lead (team roles, configuration) and also holds the safeguarding-lead grant.
+    const admin = await db.user.findUniqueOrThrow({ where: { email } });
+    await db.teamMember.upsert({ where: { userId: admin.id }, update: { teamRole: "PROGRAM_LEAD" }, create: { userId: admin.id, teamRole: "PROGRAM_LEAD", note: "First admin" } });
     console.log(`Admin ready: ${email} (you'll set up two-step sign-in on first login)`);
   } else console.log("Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD to create the first admin.");
   console.log(`Topics seeded: ${TOPICS.length + LATER.length}`);
