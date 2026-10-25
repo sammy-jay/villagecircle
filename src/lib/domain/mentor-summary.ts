@@ -6,7 +6,7 @@ export interface MentorFacingAsk {
   topic: string;
   question: string;
   whatWouldHelp: string;
-  ageBand: "13-15" | "16-17" | "18+";
+  ageBand: "15" | "16-17" | "18+";
   sessionLength: 30 | 60;
 }
 

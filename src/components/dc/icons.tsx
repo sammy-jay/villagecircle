@@ -54,19 +54,19 @@ const paths = {
   bolt: "M13 2L4 14h7l-1 8 9-12h-7l1-8z",
   trend: "M3 17l6-6 4 4 8-8M15 7h6v6",
   sparkle: "M12 3l2.2 6.3L21 12l-6.8 2.7L12 21l-2.2-6.3L3 12l6.8-2.7L12 3z",
-  // App-only glyphs, same style, until their boards are built.
-  calendar: "M8 3v3M16 3v3M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z",
-  pause: "M10 6v12M14 6v12",
-  inbox: "M4 13l2-8h12l2 8v6H4v-6zM4 13h5l1 2h4l1-2h5",
+  // From the app boards (D1, M17, M24, P02); grid, more, chart, edit, wifiOff are still app-only.
+  calendar: "M4 6h16v14H4V6zM4 10h16M8 3v5M16 3v5",
+  pause: "M8 5v14M16 5v14",
+  inbox: "M3 13l3-8h12l3 8v6H3v-6zM3 13h6l1 3h4l1-3h6",
   chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   grid: "M4 4h7v7H4V4zM13 4h7v7h-7V4zM4 13h7v7H4v-7zM13 13h7v7h-7v-7z",
   more: "M5 12h.01M12 12h.01M19 12h.01",
-  target: "M12 21a9 9 0 100-18 9 9 0 000 18zM16 12a4 4 0 11-8 0 4 4 0 018 0zM12 12h.01",
-  settings: "M12 15a3 3 0 100-6 3 3 0 000 6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1",
-  bell: "M6 10a6 6 0 1112 0c0 6 2 7 2 7H4s2-1 2-7zM10 20a2 2 0 004 0",
+  target: "M12 21a9 9 0 100-18 9 9 0 000 18zM12 16a4 4 0 100-8 4 4 0 000 8z",
+  settings: "M12 15a3 3 0 100-6 3 3 0 000 6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2",
+  bell: "M6 17V11a6 6 0 1112 0v6l1.5 2h-15L6 17zM10 21h4",
   edit: "M4 20l1-4L16 5l3 3L8 19l-4 1z",
-  trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
-  logout: "M10 4H5v16h5M15 8l4 4-4 4M19 12H9",
+  trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13",
+  logout: "M10 4H4v16h6M16 8l4 4-4 4M20 12H9",
   wifiOff: "M2 2l20 20M8.5 16.5a5 5 0 017 0M5 13a10 10 0 015-2.7M12 20h.01M19 13a10 10 0 00-2.3-1.6M2 8.8a15 15 0 014.2-2.6M22 8.8A15 15 0 0010.7 5",
 } as const;
 

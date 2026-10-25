@@ -30,11 +30,12 @@ export async function findInvite(raw: string) { return db.guardianInvite.findUni
 /** Everything the authorization screen is allowed to show: first name, age, masked phone. Never the young person's other details. */
 export async function inviteView(raw: string) {
   const inv = await findInvite(raw); if (!inv) return { status: "INVALID" as const };
-  const check = checkInvite(inv);
-  if (!check.ok) return { status: check.reason, until: check.until };
   const p = await db.participantProfile.findUnique({ where: { id: inv.participantId }, include: { user: true } });
   if (!p) return { status: "INVALID" as const };
   const age = p.user.dateOfBirth ? Math.floor((Date.now() - p.user.dateOfBirth.getTime()) / 31557600000) : null;
+  const check = checkInvite(inv);
+  // M19 / M21 still show who the link was for and when it was sent; nothing more.
+  if (!check.ok) return { status: check.reason, until: check.until, firstName: p.user.name.split(" ")[0], age, sentAt: inv.createdAt, expiresAt: inv.expiresAt };
   const existing = await db.user.findUnique({ where: { email: inv.guardianEmail }, select: { id: true } });
   return { status: "OK" as const, firstName: p.user.name.split(" ")[0], age, topic: null as string | null, guardianName: inv.guardianName, phoneHint: maskPhone(inv.guardianMobile), hasAccount: !!existing, codeSent: !!inv.codeHash && !!inv.codeExpiresAt && inv.codeExpiresAt > new Date() };
 }
@@ -61,7 +62,41 @@ export async function sendCode(raw: string, channel: "sms" | "email" = "sms") {
   return { ok: true as const };
 }
 
-export type AuthorizeInput = { code: string; decision: "authorize" | "decline"; preference?: "ATTEND" | "REACHABLE"; confirm?: boolean; name?: string; password?: string };
+/** M20: check the code before the authorize step. Counts attempts and locks like decide(), but keeps the code for decide(). */
+export async function checkInviteCode(raw: string, code: string) {
+  const inv = await findInvite(raw); if (!inv) return { ok: false as const, error: "INVALID" as const };
+  const c = checkInvite(inv); if (!c.ok) return { ok: false as const, error: c.reason, until: c.until };
+  const r = checkCode(inv, code);
+  await db.guardianInvite.update({ where: { id: inv.id }, data: { codeAttempts: r.nextAttempts, lockedUntil: r.nextLockedUntil } });
+  if (!r.ok) return { ok: false as const, error: r.reason, attemptsLeft: r.attemptsLeft, until: r.lockedUntil };
+  return { ok: true as const };
+}
+
+/** M13 / DK6: the participant's current invitation, for the waiting screen. Guardian email is masked. */
+export async function participantInvite(userId: string) {
+  const u = await db.user.findUnique({ where: { id: userId }, include: { participant: true } });
+  if (!u?.participant) return null;
+  const inv = await db.guardianInvite.findFirst({ where: { participantId: u.participant.id }, orderBy: { createdAt: "desc" } });
+  if (!inv) return { first: u.name.split(" ")[0]!, status: u.status, invite: null };
+  const [local, domain] = inv.guardianEmail.split("@");
+  return {
+    first: u.name.split(" ")[0]!, status: u.status,
+    invite: { guardianFirst: inv.guardianName.split(" ")[0]!, guardianName: inv.guardianName, relationship: inv.relationship, emailMasked: `${local![0]}***@${domain}`, mobileHint: maskPhone(inv.guardianMobile), state: inv.state, sentAt: inv.createdAt, remindAt: new Date(inv.createdAt.getTime() + 7 * 86400_000), expiresAt: inv.expiresAt, authorized: inv.state === "AUTHORIZED" },
+  };
+}
+
+/** M13 "Resend": a fresh link to the same guardian, at most once a minute. */
+export async function resendParticipantInvite(userId: string) {
+  const u = await db.user.findUnique({ where: { id: userId }, include: { participant: true } });
+  if (!u?.participant || u.status !== "PENDING_GUARDIAN") return { ok: false as const, error: "Your account does not need a guardian invitation right now." };
+  const inv = await db.guardianInvite.findFirst({ where: { participantId: u.participant.id }, orderBy: { createdAt: "desc" } });
+  if (!inv) return { ok: false as const, error: "Add your guardian's details first." };
+  if (Date.now() - inv.createdAt.getTime() < 60_000) return { ok: false as const, error: "We just sent one. Try again in a minute." };
+  await createInvite(userId, { name: inv.guardianName, email: inv.guardianEmail, mobile: inv.guardianMobile, relationship: inv.relationship });
+  return { ok: true as const };
+}
+
+export type AuthorizeInput = { code: string; decision: "authorize" | "decline"; preference?: "ATTEND" | "REACHABLE"; confirm?: boolean; name?: string; password?: string; legalName?: string };
 
 export async function decide(raw: string, input: AuthorizeInput) {
   const inv = await findInvite(raw); if (!inv) return { ok: false as const, error: "INVALID" as const };
@@ -78,7 +113,7 @@ export async function decide(raw: string, input: AuthorizeInput) {
     await db.guardianInvite.update({ where: { id: inv.id }, data: { state: "DECLINED", usedAt: new Date() } });
     await db.user.update({ where: { id: p.userId }, data: { status: "CLOSED" } });
     await audit(null, "guardian.declined", "GuardianInvite", inv.id);
-    await sendEmail({ to: p.user.email, subject: "About your Village Circle account", html: "<p>Your parent or guardian chose not to authorize your account, so it has been closed. You are welcome to talk with them about it. If you are 13 or older you can start again with their support.</p>" }).catch(() => {});
+    await sendEmail({ to: p.user.email, subject: "About your Village Circle account", html: "<p>Your parent or guardian chose not to authorize your account, so it has been closed. You are welcome to talk with them about it. If you are 15 or older you can start again with their support.</p>" }).catch(() => {});
     return { ok: true as const, outcome: "DECLINED" as const };
   }
 
@@ -101,6 +136,6 @@ export async function decide(raw: string, input: AuthorizeInput) {
   await db.guardianInvite.update({ where: { id: inv.id }, data: { state: "AUTHORIZED", usedAt: new Date() } });
   // V-GUARD: queue for a spot check, then the team activates the account (within 2 business days).
   await db.application.create({ data: { applicantId: p.userId, type: "GUARDIAN", state: "SUBMITTED", submittedAt: new Date(), payload: { guardianUserId: gUser.id, relationship: inv.relationship, method: "SMS code to mobile", preference: input.preference } } });
-  await audit(gUser.id, "guardian.authorized", "GuardianInvite", inv.id, null, { participant: p.id, preference: input.preference, guidelines: GUIDELINES_VERSION });
+  await audit(gUser.id, "guardian.authorized", "GuardianInvite", inv.id, null, { participant: p.id, preference: input.preference, guidelines: GUIDELINES_VERSION, legalName: input.legalName?.trim() || null, signedAt: new Date().toISOString() });
   return { ok: true as const, outcome: "AUTHORIZED" as const, createdAccount: !input.password ? false : true };
 }

@@ -3,26 +3,28 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/dc/icons";
+import { CONSENT_KEY, OPEN_EVENT, parseConsent, readConsent, writeConsent, type Consent } from "@/lib/consent";
 
-export const CONSENT_COOKIE = "vc-consent";
-const readConsent = () => document.cookie.split("; ").find((c) => c.startsWith(CONSENT_COOKIE + "="))?.split("=")[1];
+/** A choice saved in localStorage, or the cookie copy when storage is blocked. */
+const saved = () => readConsent() ?? parseConsent(document.cookie.split("; ").find((c) => c.startsWith(CONSENT_KEY + "="))?.split("=")[1]);
 
 /**
  * HP5 cookie and privacy banner. Dims the page; a card on desktop, a bottom sheet on the phone.
- * Stores "all" (anonymous counts allowed) or "essential" in the vc-consent cookie for a year.
+ * Saves "analytics" or "needed" through lib/consent. Opens again on the vc-cookie-open event.
  */
 export function CookieBanner() {
   const [show, setShow] = useState(false);
   const [choosing, setChoosing] = useState(false);
   const [counts, setCounts] = useState(false);
-  useEffect(() => { if (!readConsent()) setShow(true); }, []);
+  useEffect(() => {
+    if (!saved()) setShow(true);
+    const open = () => { setCounts(saved() === "analytics"); setChoosing(true); setShow(true); };
+    window.addEventListener(OPEN_EVENT, open);
+    return () => window.removeEventListener(OPEN_EVENT, open);
+  }, []);
   if (!show) return null;
 
-  const save = (v: "all" | "essential") => {
-    document.cookie = `${CONSENT_COOKIE}=${v}; Max-Age=${60 * 60 * 24 * 365}; Path=/; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
-    window.dispatchEvent(new CustomEvent("vc-consent", { detail: v }));
-    setShow(false);
-  };
+  const save = (v: Consent) => { writeConsent(v); setShow(false); };
 
   return (
     <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-labelledby="cookie-title">
@@ -45,11 +47,11 @@ export function CookieBanner() {
         </div>
         <div className="mt-[18px] flex flex-col gap-2.5 lg:mt-0 lg:w-[250px] lg:flex-none">
           {choosing ? (
-            <button type="button" onClick={() => save(counts ? "all" : "essential")} className="dc-btn dc-btn-primary h-[54px] lg:h-[52px]">Save my choice</button>
+            <button type="button" onClick={() => save(counts ? "analytics" : "needed")} className="dc-btn dc-btn-primary h-[54px] lg:h-[52px]">Save my choice</button>
           ) : (
             <>
-              <button type="button" onClick={() => save("all")} className="dc-btn dc-btn-primary h-[54px] lg:h-[52px]">Accept anonymous counts</button>
-              <button type="button" onClick={() => save("essential")} className="dc-btn dc-btn-ghost h-[54px] lg:h-[52px]">Only what is needed</button>
+              <button type="button" onClick={() => save("analytics")} className="dc-btn dc-btn-primary h-[54px] lg:h-[52px]">Accept anonymous counts</button>
+              <button type="button" onClick={() => save("needed")} className="dc-btn dc-btn-ghost h-[54px] lg:h-[52px]">Only what is needed</button>
               <button type="button" onClick={() => setChoosing(true)} className="py-2.5 text-center text-[15px] font-bold text-bark underline lg:py-0 lg:text-[14.5px]">Choose</button>
             </>
           )}

@@ -22,6 +22,7 @@ const config: Config = {
       fontFamily: {
         display: ['"Bricolage Grotesque Variable"', '"Bricolage Grotesque"', "system-ui", "sans-serif"],
         sans: ['"Figtree Variable"', "Figtree", "system-ui", "sans-serif"],
+        hand: ["Caveat", "cursive"], // legal-name signatures (DK5, M7)
       },
       // DSF §2 Type scale: [size, { lineHeight, letterSpacing }]
       fontSize: {

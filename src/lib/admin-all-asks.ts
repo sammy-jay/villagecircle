@@ -4,7 +4,7 @@ import { isMinor } from "./domain/age";
 import { firstName } from "./domain/views";
 import { attentionReasons, isUpcoming, matchesFilter, STAGE_OF, type StageGroup, type TrackFilter } from "./domain/ask-tracking";
 
-const band = (b: string | null) => (b === "AGE_13_15" ? "Age 13 to 15" : b === "AGE_16_17" ? "Age 16 to 17" : "Adult");
+const band = (b: string | null) => (b === "AGE_13_15" ? "Age 15" : b === "AGE_16_17" ? "Age 16 to 17" : "Adult");
 
 /** Every Ask the team can see, from submission to close. Read-only. Drafts are excluded (the participant has not sent them). */
 export async function allAsks(filter: TrackFilter = "ALL", q = "") {

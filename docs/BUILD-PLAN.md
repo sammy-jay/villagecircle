@@ -1,6 +1,6 @@
 # Rebuild plan: screens after the public site
 
-Status on 25 October 2026: the token layer, the shared components and the public site (13 boards, desktop and phone) are rebuilt and match the boards. This plan covers everything else.
+Status on 25 October 2026: the token layer, the shared components, the public site (13 boards) and Section 1, Sign-up and account, are rebuilt. Section 1 still needs a screenshot pass against the boards for the states that need seeded data (expired and locked guardian links, the paused account). This plan covers everything else.
 
 ## Source of truth
 
@@ -19,25 +19,26 @@ Per board:
 | Tokens | `tailwind.config.ts`, `src/app/globals.css` | Colours, type scale, radii and dark theme from the DSF board. `.dc-*` classes for buttons, pills, tags, inputs, cards and banners. |
 | App components | `src/components/dc` | Button, Tag, AskTag, Field, Input, Select with Say more, CountedTextarea, CodeInput, Signature, Toggle, Checkbox, RadioCard, tabs, Modal/bottom sheet, toasts, Timeline, Avatar, StoryRing, Banner, EmptyState, SidebarNav, AdminMenu, AdminBreadcrumb, TabBar, icons. Route maps are in `nav-config.ts`. |
 | Public kit | `src/components/public` | Header and footer, Hero, CtaBand, LinkRows, StepTrail, ApprovalSample, accordion, the help and report forms, the cookie banner. |
-| Logic | `src/lib` | Untouched. Domain rules have 265 passing tests. |
+| Logic | `src/lib` | Section 1 added `register.ts` and extended `guardian.ts` (code check, participant invite, resend). Domain rules have 265 passing tests. |
 | Styleguide | `/styleguide` | Every component, for side-by-side checks against the DSF board. |
 
-## Before starting the next section
+## Settled before Section 1
 
-1. **Decide the minimum age.** The boards say 15 and up, including an "Under-15" screen (M2). The code enforces 13 (`MIN_AGE` in `src/lib/domain/age.ts`, BR-20). All public copy reads `MIN_AGE`, so once the right number is confirmed it changes in one place, along with its tests.
-2. **Rebuild the auth API routes first.** `src/app/api/auth/[...nextauth]` and the routes for verify email, forgot password, reset password and resend verify were all deleted with `src/app`. Nothing can sign in until they're back.
-3. **Fix `src/lib/report-page.tsx`.** It imports the deleted `components/dc/safety-user`. Rebuild it with the Sign-up section (M16), or delete it now that `/help/report` exists.
-4. **Put the project under git** before the next section, so each section can land as its own reviewable change.
+- Minimum age is 15 (`MIN_AGE` in `src/lib/domain/age.ts`). The `AGE_13_15` band name is kept for stored data.
+- Auth is back: `src/app/api/auth/[...nextauth]`, with verify, forgot, reset and resend as server actions in `src/app/account-actions.ts`.
+- `src/lib/report-page.tsx` is deleted; `/report` replaces it.
+- The project is under git.
 
 ## Order of work
 
 Each section needs two things: shells (the page frames for that role) and screens. Build the shell first, then the screens in the order listed, because later screens depend on earlier flows.
 
-### 1. Sign-up and account (49 boards)
+### 1. Sign-up and account (49 boards): built
 Shell: the public header, or a bare centred card (M-series boards).
 Screens: M1/DK1 Register, M2/DK2 Under-15, M9/DK3 Log in, M10/DK4 Verify email, M11 Forgot password (both states), M12 profile builder steps 1 to 3, M13/DK6 Waiting for guardian, M16 Report a concern (both states), M17 Turning 18, M18 Trusted adult, M19 Approval link expired, M20 Enter your code, M21 Too many tries, M22 Verify link expired, M23/EX9 Crisis support, M24 Pause connection (sheet and modal), M25 Account paused, P01 Recommend a young person (both states), P02 Signed out (both states).
 Logic: `auth.ts`, `password.ts`, `consent.ts`, `guardian.ts`, `domain/age.ts`, `domain/tokens.ts`, `safety-user.ts` (`recommend`, `confirmTurning18`).
 Done when: a minor can register, the guardian invite email goes out, the code check locks after 5 tries, and every expired or error state shows its board.
+Routes: `/register`, `/under-15`, `/login`, `/after-login`, `/check-email`, `/verify-email/[token]`, `/forgot`, `/reset/[token]`, `/onboarding?step=`, `/guardian-needed`, `/guardian/authorize/[token]` (DK5/M3, M20, M19, M21, used and closed links), `/report`, `/settings/turning-18`, `/recommend` (P01; M18 is the same form), `/crisis` (M23; `?from=ask` is EX9), `/guardian/asks/[id]/pause` (M24), `/paused` (M25), `/signed-out` (P02; `?reason=deleted&until=` is P02-D2). Shells: `src/components/account/shells.tsx` and `src/components/app/app-shell.tsx`.
 
 ### 2. Mentee, the participant app (105 boards)
 Shell: `SidebarNav` (desktop) and `TabBar` (phone) using `PARTICIPANT_NAV` and `PARTICIPANT_TABS`, built from D1 and N06.

@@ -212,7 +212,7 @@ export function CodeInput({ name = "code", length = 6, onComplete, invalid, auto
  * Legal-name signature card. The typed name is the signature; the date fills itself once signed.
  * Posts `legalName` and `attest` (names configurable).
  */
-export function Signature({ statement, nameField = "legalName", attestField = "attest", error, onChange, defaultName = "" }: { statement: ReactNode; nameField?: string; attestField?: string; error?: ReactNode; onChange?: (s: { name: string; attested: boolean }) => void; defaultName?: string }) {
+export function Signature({ statement, nameField = "legalName", attestField = "attest", error, onChange, defaultName = "", hint = "Your full legal name." }: { statement: ReactNode; nameField?: string; attestField?: string; error?: ReactNode; onChange?: (s: { name: string; attested: boolean }) => void; defaultName?: string; hint?: ReactNode }) {
   const [name, setName] = useState(defaultName);
   const [attested, setAttested] = useState(false);
   const id = useId();
@@ -220,23 +220,28 @@ export function Signature({ statement, nameField = "legalName", attestField = "a
   const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   useEffect(() => { onChange?.({ name, attested }); }, [name, attested, onChange]);
   return (
-    <div className="rounded-card border-2 border-line bg-card p-[22px]">
+    <div className="flex flex-col gap-3.5 rounded-[22px] border-2 border-line bg-card px-5 py-[18px]">
       <div className="flex items-center gap-2.5">
-        <Icon name="edit" size={22} className="text-clay" />
-        <h3 className="font-display text-[19px] font-extrabold">Sign with your legal name</h3>
+        <Icon name="signature" size={22} className="text-forest" />
+        <h3 className="font-display text-[19px] font-extrabold leading-[1.12]">Sign with your legal name</h3>
       </div>
-      <p className="mt-4 text-chip leading-[19px] text-bark">{statement}</p>
-      <div className="mt-4 border-b-2 border-ink/80 px-1">
+      <p className="text-[14px] leading-normal text-bark">{statement}</p>
+      <div className="flex min-h-[54px] items-end border-b-2 border-ink px-1 pb-1.5">
         <label htmlFor={id} className="sr-only">Type your full legal name</label>
         <input id={id} name={nameField} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="Type your full legal name" aria-invalid={!!error || undefined}
-          className={cn("h-[60px] w-full bg-transparent text-ink placeholder:font-sans placeholder:text-field placeholder:font-normal placeholder:text-stone focus:outline-none", signed ? "font-display text-[30px] font-extrabold" : "text-field")} />
+          className={cn("w-full bg-transparent text-ink placeholder:font-sans placeholder:text-field placeholder:font-normal placeholder:text-stone focus:outline-none", signed ? "font-hand text-[38px] font-semibold leading-none" : "text-field")} />
       </div>
-      <div className="mt-3.5 flex flex-wrap justify-between gap-2 text-caption text-stone">
-        <span>{error ? <span className="font-semibold text-clay">{error}</span> : "Type your full legal name exactly as it appears on your ID."}</span>
+      <div className="flex flex-wrap justify-between gap-2 text-caption text-stone">
+        <span>{error ? <span className="font-semibold text-clay">{error}</span> : hint}</span>
         <span>{signed ? `Signed ${today}` : "Signed today, automatically"}</span>
       </div>
-      <Checkbox className="mt-4" name={attestField} value="yes" checked={attested} onChange={(e) => setAttested(e.target.checked)}
-        label="I understand this is a legally binding attestation and is stored with a time stamp." />
+      <label className="flex cursor-pointer items-start gap-3 text-[15px] leading-[1.45]">
+        <span className="relative mt-px size-[26px] shrink-0">
+          <input type="checkbox" name={attestField} value="yes" checked={attested} onChange={(e) => setAttested(e.target.checked)} className="peer absolute inset-0 cursor-pointer appearance-none rounded-check border-2 border-line bg-card checked:border-forest checked:bg-forest focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-gold" />
+          <Icon name="check" size={16} strokeWidth={3} className="pointer-events-none absolute left-[5px] top-[5px] hidden text-forest-ink peer-checked:block" />
+        </span>
+        I understand this is a legally binding attestation and is stored with a time stamp.
+      </label>
     </div>
   );
 }

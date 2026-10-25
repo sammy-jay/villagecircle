@@ -23,6 +23,14 @@ export const PARTICIPANT_NAV: NavItem[] = [
   { href: "/settings", label: "Settings", icon: "settings" },
 ];
 
+export const GUARDIAN_NAV: NavItem[] = [
+  { href: "/guardian", label: "Overview", icon: "home", exact: true },
+  { href: "/guardian/approvals", label: "Approvals", icon: "check" },
+  { href: "/guardian/recordings", label: "Calls and recordings", icon: "video" },
+  { href: "/guardian/authorizations", label: "Authorizations", icon: "shieldCheck" },
+  { href: "/settings", label: "Settings", icon: "settings" },
+];
+
 export const MENTOR_NAV: NavItem[] = [
   { href: "/mentor", label: "Inbox", icon: "inbox", exact: true },
   { href: "/mentor/availability", label: "Hours", icon: "clock" },

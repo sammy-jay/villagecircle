@@ -1,6 +1,6 @@
 import type { AgeBand } from "@prisma/client";
 
-export const MIN_AGE = 13; // BR-20
+export const MIN_AGE = 15; // BR-20 (designs: "for ages 15 and up")
 export const ADULT_AGE = 18; // BR-19
 
 export function ageOn(dob: Date, on: Date = new Date()): number {
@@ -12,13 +12,13 @@ export function ageOn(dob: Date, on: Date = new Date()): number {
 
 export type AgeGate =
   | { ok: true; band: AgeBand; minor: boolean; age: number }
-  | { ok: false; reason: "UNDER_13" | "INVALID_DOB" };
+  | { ok: false; reason: "UNDER_15" | "INVALID_DOB" };
 
-/** BR-20: participants under 13 are never admitted. */
+/** BR-20: participants under 15 are never admitted. The AGE_13_15 band name is kept for stored data; it now only holds 15-year-olds. */
 export function ageGate(dob: Date, now: Date = new Date()): AgeGate {
   if (Number.isNaN(dob.getTime()) || dob > now || ageOn(dob, now) > 120) return { ok: false, reason: "INVALID_DOB" };
   const age = ageOn(dob, now);
-  if (age < MIN_AGE) return { ok: false, reason: "UNDER_13" };
+  if (age < MIN_AGE) return { ok: false, reason: "UNDER_15" };
   if (age < 16) return { ok: true, band: "AGE_13_15", minor: true, age };
   if (age < ADULT_AGE) return { ok: true, band: "AGE_16_17", minor: true, age };
   return { ok: true, band: "ADULT", minor: false, age };

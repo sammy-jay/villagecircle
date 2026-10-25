@@ -25,7 +25,7 @@ export function toParticipantCard(p: { name: string; age: number; isMinor: boole
   return { firstName: firstName(p.name), ageLabel: p.isMinor ? `${p.age}` : "adult", guardianWillAttend: p.isMinor && guardianAttends };
 }
 
-export const ageBandLabel = (b: "AGE_13_15" | "AGE_16_17" | "ADULT" | null | undefined): MentorFacingAsk["ageBand"] => (b === "AGE_13_15" ? "13-15" : b === "AGE_16_17" ? "16-17" : "18+");
+export const ageBandLabel = (b: "AGE_13_15" | "AGE_16_17" | "ADULT" | null | undefined): MentorFacingAsk["ageBand"] => (b === "AGE_13_15" ? "15" : b === "AGE_16_17" ? "16-17" : "18+");
 
 /** The one object a mentor sees before stepping forward (BR-09). */
 export function mentorInboxItem(s: MentorFacingAsk, guardianAttends: boolean, releasedAt: Date | null) {

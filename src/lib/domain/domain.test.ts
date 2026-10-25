@@ -13,8 +13,8 @@ const d = (s: string) => new Date(s + "T00:00:00Z");
 
 describe("age gate (BR-19, BR-20)", () => {
   const now = d("2026-10-10");
-  it("blocks under 13 always", () => { expect(ageGate(d("2013-10-11"), now)).toEqual({ ok: false, reason: "UNDER_13" }); });
-  it("admits exactly 13 as a minor", () => { const g = ageGate(d("2013-10-10"), now); expect(g.ok && g.minor && g.band).toBe("AGE_13_15"); });
+  it("blocks under 15 always", () => { expect(ageGate(d("2011-10-11"), now)).toEqual({ ok: false, reason: "UNDER_15" }); });
+  it("admits exactly 15 as a minor", () => { const g = ageGate(d("2011-10-10"), now); expect(g.ok && g.minor && g.band).toBe("AGE_13_15"); });
   it("16-17 band", () => { const g = ageGate(d("2009-01-01"), now); expect(g.ok && g.band).toBe("AGE_16_17"); });
   it("adult", () => { const g = ageGate(d("2000-01-01"), now); expect(g.ok && !g.minor).toBe(true); });
   it("rejects future / absurd DOB", () => { expect(ageGate(d("2030-01-01"), now).ok).toBe(false); expect(ageGate(d("1800-01-01"), now).ok).toBe(false); });

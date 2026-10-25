@@ -27,18 +27,18 @@ export function SidebarNav({ items, cta, label = "Main" }: { items: NavItem[]; c
   const path = usePathname() ?? "";
   const on = activeHref(path, items);
   return (
-    <nav aria-label={label} className="flex flex-col gap-1">
+    <nav aria-label={label} className="flex flex-col gap-1.5">
       {items.map((i) => (
         <Link key={i.href} href={i.href} aria-current={on === i.href ? "page" : undefined}
-          className={cn("flex h-11 items-center gap-3 rounded-tile px-3 text-[15px] text-ink hover:bg-sand", on === i.href ? "bg-sand font-bold" : "font-medium")}>
-          <Icon name={i.icon} size={20} />
+          className={cn("flex h-[50px] items-center gap-3.5 rounded-field px-4 text-[17px] text-ink hover:bg-sand", on === i.href ? "bg-sand font-extrabold" : "font-semibold")}>
+          <Icon name={i.icon} size={24} strokeWidth={on === i.href ? 2.2 : 1.9} />
           <span className="flex-1">{i.label}</span>
-          {!!i.count && <span className="dc-count">{i.count}</span>}
+          {!!i.count && <span className="rounded-[10px] bg-clay px-2 py-0.5 text-[12px] font-normal text-clay-ink">{i.count}</span>}
         </Link>
       ))}
       {cta && (
-        <Link href={cta.href} className="dc-btn dc-btn-soft mt-4 h-11 text-[14px]">
-          <Icon name="plus" size={16} />{cta.label}
+        <Link href={cta.href} className="dc-btn dc-btn-soft mt-3 h-[54px] w-full">
+          <Icon name="plus" size={18} />{cta.label}
         </Link>
       )}
     </nav>

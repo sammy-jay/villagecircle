@@ -2,7 +2,7 @@
 export type Aud = "young" | "parents" | "mentors" | "safety";
 export type Topic = "start" | "asks" | "mentors" | "privacy";
 export const FAQ: { q: string; a: string; aud: Aud[]; topic: Topic }[] = [
-  { q: "Who can join?", a: "Young people aged 13 and over, and adults at any stage. Under-18s join with a parent or guardian, who authorizes every step.", aud: ["young", "parents"], topic: "start" },
+  { q: "Who can join?", a: "Young people aged 15 and over, and adults at any stage. Under-18s join with a parent or guardian, who authorizes every step.", aud: ["young", "parents"], topic: "start" },
   { q: "Who are the mentors?", a: "Professionals from African communities: doctors, teachers, founders and tradespeople. Every mentor is verified, accepts our code of conduct and completes an orientation before any Ask reaches them. Mentors who work with under-18s also pass enhanced screening.", aud: ["young", "parents", "mentors"], topic: "mentors" },
   { q: "Does it cost anything?", a: "No. No money changes hands on The Village Circle, between families, mentors or us.", aud: ["young", "parents", "mentors"], topic: "start" },
   { q: "Can a mentor contact me directly?", a: "No. Nobody can contact anyone directly, and no phone numbers or emails are ever exchanged. Every connection runs through us, and conversations happen on the platform at a time the family approved.", aud: ["young", "parents", "safety"], topic: "asks" },

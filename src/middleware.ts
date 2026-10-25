@@ -4,7 +4,7 @@ import { maintenanceDecision, maintenanceOn } from "@/lib/maintenance";
 
 const PROTECTED = ["/home", "/asks", "/goals", "/mentor", "/guardian", "/admin", "/settings", "/village", "/onboarding", "/guardian-needed", "/paused", "/call", "/report", "/mentor/reaffirm"];
 /** Open to everyone, including signed-out visitors. */
-const PUBLIC = ["/recommend", "/signed-out", "/about", "/faq", "/help", "/families", "/become-a-mentor", "/policies", "/maintenance"];
+const PUBLIC = ["/recommend", "/signed-out", "/crisis", "/register", "/login", "/under-15", "/check-email", "/verify-email", "/forgot", "/reset", "/about", "/faq", "/help", "/families", "/become-a-mentor", "/policies", "/maintenance"];
 const isUnder = (p: string, list: string[]) => list.some((x) => p === x || p.startsWith(x + "/"));
 
 export async function middleware(req: NextRequest) {

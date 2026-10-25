@@ -231,6 +231,11 @@ model User {
   countryOfResidence String?
   phone            String? // mentor mobile, used only by the team for verification
   languages        String[]
+  region           String? // state or region, for anonymous counts only (M1, M12)
+  town             String? // optional town or city note
+  heardFrom        String? // "How did you hear about us?" (M1), counts only
+  heardFromMore    String?
+  marketingOptIn   Boolean       @default(false) // "Email me tips and events"
   status           AccountStatus @default(ACTIVE)
   mfaSecret        String? // encrypted TOTP secret (admins / safeguarding leads)
   mfaEnabled       Boolean       @default(false)
@@ -313,6 +318,7 @@ model ParticipantProfile {
   goalsText  String[]
   communityBackground String? // optional: country of origin and languages, only ever used to offer a closer match
   visibility String   @default("PRIVATE")
+  onboardedAt DateTime? // set when the M12 profile builder is finished or skipped
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
