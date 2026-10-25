@@ -33,10 +33,10 @@ export function mentorInboxItem(s: MentorFacingAsk, guardianAttends: boolean, re
 }
 
 /** Participant view of an Ask: their own words and status. Never shortlist, scores, passes, reviewer notes or flags. */
-export interface ParticipantAskSource { id: string; state: string; topicName: string; answers: { q1: string; q2: string; q3: string; sessionLength: number; timeBound: boolean; preferredMentorName?: string }; completeness: number; submittedAt: Date | null; updatedAt: Date; teamNote?: string | null; returnedForDetail: boolean; redirectLinks?: unknown }
+export interface ParticipantAskSource { id: string; state: string; topicName: string; answers: { q1: string; q2: string; q3: string; sessionLength: number; timeBound: boolean; preferredMentorName?: string; stage?: string; soon?: string; soonMore?: string; mentorType?: string; mentorTypeMore?: string; bestDays?: string; bestDaysMore?: string }; completeness: number; submittedAt: Date | null; updatedAt: Date; teamNote?: string | null; returnedForDetail: boolean; redirectLinks?: unknown }
 export function toParticipantAsk(a: ParticipantAskSource) {
   return {
-    id: a.id, state: a.state, topic: a.topicName, answers: { q1: a.answers.q1, q2: a.answers.q2, q3: a.answers.q3, sessionLength: a.answers.sessionLength, timeBound: a.answers.timeBound, preferredMentorName: a.answers.preferredMentorName },
+    id: a.id, state: a.state, topic: a.topicName, answers: { q1: a.answers.q1, q2: a.answers.q2, q3: a.answers.q3, sessionLength: a.answers.sessionLength, timeBound: a.answers.timeBound, preferredMentorName: a.answers.preferredMentorName, stage: a.answers.stage, soon: a.answers.soon, soonMore: a.answers.soonMore, mentorType: a.answers.mentorType, mentorTypeMore: a.answers.mentorTypeMore, bestDays: a.answers.bestDays, bestDaysMore: a.answers.bestDaysMore },
     completeness: a.completeness, submittedAt: a.submittedAt, updatedAt: a.updatedAt, teamNote: a.teamNote ?? null, returnedForDetail: a.returnedForDetail, redirectLinks: Array.isArray(a.redirectLinks) ? a.redirectLinks : [],
   };
 }

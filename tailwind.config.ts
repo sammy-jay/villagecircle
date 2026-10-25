@@ -5,6 +5,8 @@ const v = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
+  // Components build these names from a prop (dc-tag-${tone}), so Tailwind cannot see them in the source.
+  safelist: [{ pattern: /^dc-(tag|btn|moment)-(mint|butter|blush|grey|outline|primary|forest|ghost|soft|sm|lg|clay)$/ }],
   darkMode: ["variant", '&:is([data-theme="dark"] *)'],
   theme: {
     extend: {

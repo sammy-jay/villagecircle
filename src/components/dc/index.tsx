@@ -185,19 +185,19 @@ export function Avatar({ name, size = "md", tone, className }: { name: string; s
   return <span className={cn("inline-flex shrink-0 items-center justify-center rounded-full font-extrabold", AV_SIZE[size], t, className)} aria-hidden="true">{initials(name)}</span>;
 }
 
-/** 68px story ring: 3px ring (gold, or clay for "Your Ask"), 3px paper gap, 56px avatar, caption under. */
-export function StoryRing({ name, caption, ring = "gold", href }: { name: string; caption: string; ring?: "gold" | "clay" | "none"; href?: string }) {
+/** D1 story ring: 3px clay-to-gold ring, 3px paper gap, 58px avatar, caption under. `ring="none"` keeps the spacing without the ring. */
+export function StoryRing({ name, caption, ring = "gold", href, tone }: { name: string; caption: string; ring?: "gold" | "clay" | "none"; href?: string; tone?: "blush" | "mint" | "butter" }) {
+  const t = tone ? { blush: AVATAR_TONES[0], mint: AVATAR_TONES[1], butter: AVATAR_TONES[2] }[tone] : toneFor(name);
+  const face = <span className={cn("flex size-[58px] items-center justify-center rounded-full font-display text-[21px] font-bold", t)}>{initials(name)}</span>;
   const body = (
     <>
-      <span className={cn("flex size-[68px] items-center justify-center rounded-full", ring === "gold" && "bg-gold", ring === "clay" && "bg-clay")}>
-        <span className="flex size-[62px] items-center justify-center rounded-full bg-paper">
-          <span className={cn("flex size-14 items-center justify-center rounded-full text-[20px] font-extrabold", toneFor(name))}>{initials(name)}</span>
-        </span>
-      </span>
-      <span className="mt-1 max-w-[76px] truncate text-caption font-semibold text-bark">{caption}</span>
+      {ring === "none" ? <span className="p-1.5">{face}</span> : (
+        <span className="rounded-full bg-[linear-gradient(135deg,rgb(var(--clay)),#C99A2E)] p-[3px]"><span className="block rounded-full bg-paper p-[3px]">{face}</span></span>
+      )}
+      <span className="max-w-[72px] truncate text-[12px] font-semibold text-bark">{caption}</span>
     </>
   );
-  const cls = "flex w-[76px] shrink-0 flex-col items-center";
+  const cls = "flex w-[72px] shrink-0 flex-col items-center gap-[5px]";
   return href ? <Link href={href} className={cls}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 

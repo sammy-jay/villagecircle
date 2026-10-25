@@ -228,7 +228,13 @@ export async function mentorImpact(userId: string, now = new Date()) {
   const agg = aggregateImpact(conns, thanks.length, resources, now);
   const authors = thanks.length ? await db.user.findMany({ where: { id: { in: thanks.slice(0, 5).map((t) => t.authorId) } }, select: { id: true, ageBand: true, roles: true } }) : [];
   const quotes = thanks.slice(0, 5).map((t) => { const a = authors.find((x) => x.id === t.authorId); return { id: t.id, body: t.body, from: thanksAttribution({ ageBand: a?.ageBand ?? null, isGuardian: !!a?.roles.includes("GUARDIAN") }) }; });
-  return { ...agg, quotes, month: monthName(now), nextMonth: monthName(nextMonthStartUtc(now)) };
+  // D25 "Hours by month": the last five calendar months, counted hours only.
+  const byMonth = [4, 3, 2, 1, 0].map((back) => {
+    const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, 1)); const to = nextMonthStartUtc(from);
+    const mins = conns.filter((c) => c.hoursCounted && c.status === "HELD" && c.endedAt && c.endedAt >= from && c.endedAt < to).reduce((n, c) => n + c.durationMinutes, 0);
+    return { label: MONTHS[from.getUTCMonth()]!.slice(0, 3), hours: Math.round(mins / 6) / 10 };
+  });
+  return { ...agg, quotes, byMonth, month: monthName(now), nextMonth: monthName(nextMonthStartUtc(now)) };
 }
 
 // ───────── D24 Contribute a resource ─────────

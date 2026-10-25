@@ -65,3 +65,14 @@ export async function sweepReaffirmations(now: Date = new Date()): Promise<{ pau
   }
   return { paused, reminded };
 }
+
+/** EX11 "Tell us now": a change in circumstances pauses new Asks at once and goes to the safeguarding lead in confidence. */
+export async function discloseChange(userId: string, note: string): Promise<R> {
+  const m = await db.mentorProfile.findUnique({ where: { userId } }); if (!m) return fail("Not allowed.");
+  const text = note.trim(); if (text.length < 10) return fail("Tell us in a sentence or two. A person will follow up.");
+  await holdMentor(userId, "DISCLOSURE", userId);
+  await db.setting.upsert({ where: { key: `disclosure:${userId}` }, update: { value: { note: text.slice(0, 2000), at: new Date().toISOString() } }, create: { key: `disclosure:${userId}`, value: { note: text.slice(0, 2000), at: new Date().toISOString() } } });
+  const { notifySafeguarding } = await import("./notify");
+  await notifySafeguarding("mentor.disclosure", "A mentor disclosed a change in circumstances", "New Asks are paused. Please contact them directly.", "/admin/incidents").catch(() => {});
+  return { ok: true };
+}

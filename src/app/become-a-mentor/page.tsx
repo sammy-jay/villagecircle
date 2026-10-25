@@ -38,7 +38,7 @@ function Challenge({ className }: { className?: string }) {
 export default function BecomeAMentor() {
   return (
     <>
-      <PublicHeader phoneJoin={false} />
+      <PublicHeader />
       <main id="main">
         <Gutter className="flex flex-col gap-4 lg:gap-0">
           <section className="flex flex-col gap-10 rounded-[32px] bg-mint p-6 text-mint-ink lg:mt-10 lg:flex-row lg:items-center lg:rounded-[40px] lg:p-14">

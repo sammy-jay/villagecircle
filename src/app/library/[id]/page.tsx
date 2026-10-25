@@ -17,7 +17,7 @@ export default async function Resource({ params }: { params: { id: string } }) {
   if (!r) notFound();
   return (
     <>
-      <PublicHeader phoneJoin={false} />
+      <PublicHeader />
       <main id="main">
         <Gutter className="flex flex-col gap-4 lg:max-w-[920px] lg:gap-5">
           <Link href="/library" className="inline-flex items-center gap-1.5 pt-3 text-[14px] font-bold text-clay lg:pt-12"><Icon name="arrowLeft" size={16} />Public library</Link>

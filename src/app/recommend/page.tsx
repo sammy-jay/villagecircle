@@ -1,6 +1,5 @@
 import { PublicHeader } from "@/components/public/header";
 import { PublicFooter } from "@/components/public/footer";
-import { PhoneHeader } from "@/components/account/shells";
 import { cn } from "@/lib/cn";
 import { RecommendForm } from "./recommend-form";
 
@@ -16,9 +15,8 @@ const STEPS: [string, string, string, string][] = [
 export default function Recommend() {
   return (
     <>
-      <div className="max-lg:hidden"><PublicHeader /></div>
-      <PhoneHeader back="/" title="Recommend" />
-      <main id="main" className="flex flex-col gap-3.5 px-4 pb-[18px] pt-1 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-20 lg:pb-16 lg:pt-11">
+      <PublicHeader />
+      <main id="main" className="flex flex-col gap-3.5 px-4 pb-[18px] pt-5 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-20 lg:pb-16 lg:pt-11">
         <div className="flex flex-col gap-3.5 lg:w-[440px] lg:flex-none lg:gap-[18px] lg:pt-1.5">
           <p className="text-[13px] font-extrabold tracking-[.04em] text-clay max-lg:hidden">FOR TEACHERS, COACHES AND COMMUNITY LEADERS</p>
           <h1 className="font-display text-[31px] font-extrabold leading-[1.02] tracking-[-.02em] lg:text-[54px]">Recommend a young person</h1>

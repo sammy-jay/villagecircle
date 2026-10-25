@@ -22,7 +22,7 @@ export default function Policy({ params }: { params: { slug: string } }) {
 
   return (
     <>
-      <PublicHeader phoneJoin={false} />
+      <PublicHeader />
       <main id="main">
         <Gutter className="flex flex-col gap-3.5 pt-3 lg:flex-row lg:items-start lg:gap-10 lg:pt-12">
           <nav aria-label="Policies" className="flex w-[290px] flex-none flex-col gap-1.5 max-lg:hidden lg:sticky lg:top-5">

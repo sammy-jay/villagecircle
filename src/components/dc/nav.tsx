@@ -129,25 +129,25 @@ export function TabBar({ items }: { items: TabBarItem[] }) {
   const path = usePathname() ?? "";
   const on = activeHref(path, items.filter((i): i is NavItem => !("ask" in i)));
   return (
-    <nav aria-label="Tabs" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card pb-[env(safe-area-inset-bottom)] sm:hidden">
-      <ul className="mx-auto flex h-[86px] max-w-[480px] items-start justify-around px-2 pt-[11px]">
+    <nav aria-label="Tabs" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <ul className="mx-auto flex h-[86px] max-w-[480px] items-start px-1.5 pt-2.5">
         {items.map((i) => {
           if ("ask" in i) {
             return (
-              <li key={i.href} className="-mt-5">
-                <Link href={i.href} aria-label={i.label} className="flex size-[62px] -rotate-[8deg] items-center justify-center rounded-[20px] bg-clay text-clay-ink shadow-raised">
-                  <Icon name="plus" size={30} />
+              <li key={i.href} className="-mt-[22px] flex flex-1 justify-center">
+                <Link href={i.href} aria-label={i.label} className="flex size-[58px] -rotate-[4deg] items-center justify-center rounded-[20px] bg-clay text-clay-ink shadow-raised">
+                  <Icon name="plus" size={28} strokeWidth={2.6} />
                 </Link>
               </li>
             );
           }
           const active = on === i.href;
           return (
-            <li key={i.href}>
-              <Link href={i.href} aria-current={active ? "page" : undefined} className={cn("flex w-16 flex-col items-center gap-[3px] text-[11.5px]", active ? "font-bold text-ink" : "font-medium text-stone")}>
-                <span className="relative"><Icon name={i.icon} size={24} />{!!i.count && <span className="absolute -right-2 -top-1 size-2.5 rounded-full bg-clay" />}</span>
+            <li key={i.href} className="flex flex-1 justify-center">
+              <Link href={i.href} aria-current={active ? "page" : undefined} className={cn("flex flex-col items-center gap-[3px] text-[11.5px]", active ? "font-bold text-ink" : "font-medium text-stone")}>
+                <span className="relative"><Icon name={i.icon} size={24} strokeWidth={active ? 2.2 : 1.9} />{!!i.count && <span className="absolute -right-2 -top-1 size-2.5 rounded-full bg-clay" />}</span>
                 {i.label}
-                <span className={cn("mt-0.5 size-[5px] rounded-full", active ? "bg-ink" : "bg-transparent")} aria-hidden="true" />
+                <span className={cn("size-[5px] rounded-full", active ? "bg-clay" : "bg-transparent")} aria-hidden="true" />
               </Link>
             </li>
           );

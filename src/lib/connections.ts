@@ -272,13 +272,14 @@ export async function afterParticipantView(userId: string, askId: string) {
   const thanks = await db.thanks.findFirst({ where: { connectionId: r.conn.id, authorId: userId } });
   return { askId, state: r.ask.state, mentorFirst: firstName(r.conn.mentor.user.name), mentorShort: shortName(r.conn.mentor.user.name), minor: isMinorAsk(r.ask), guardianFirst: gUser ? firstName(gUser.name) : null, endedAt: r.conn.endedAt, outcome: r.conn.participantOutcome, thanked: !!thanks, helped: r.conn.helpedNextStep, nextSteps: r.conn.nextSteps ? r.conn.nextSteps.split("\n").filter(Boolean) : [], followUp: r.ask.state === "FOLLOW_UP_REQUESTED" };
 }
-export async function submitThanks(userId: string, askId: string, d: { body: string; share: boolean; helped?: "YES" | "LITTLE" | "NOT_REALLY" }): Promise<R> {
+export async function submitThanks(userId: string, askId: string, d: { body: string; share: boolean; helped?: "YES" | "LITTLE" | "NOT_REALLY"; tags?: string[] }): Promise<R> {
   const r = await roleIn(userId, askId); if (!r || r.role !== "PARTICIPANT" || !r.conn) return fail("Not available.");
   if (!["HELD", "COMPLETE"].includes(r.ask.state)) return fail("You can say thanks after the conversation.");
   if (d.helped) await db.connection.update({ where: { id: r.conn.id }, data: { helpedNextStep: d.helped } });
   const body = d.body.trim().slice(0, 600);
-  if (body) { // BR-17: no star ratings; thanks are text, moderated before they appear anywhere public
-    await db.thanks.create({ data: { connectionId: r.conn.id, authorId: userId, body, sharePublicly: d.share } });
+  const tags = (d.tags ?? []).map((t) => t.trim().slice(0, 40)).filter(Boolean).slice(0, 3);
+  if (body || tags.length) { // BR-17: no star ratings; thanks are text, moderated before they appear anywhere public
+    await db.thanks.create({ data: { connectionId: r.conn.id, authorId: userId, body, tags, sharePublicly: d.share && !!body } });
     await notify(r.conn.mentor.userId, "thanks.received", "Someone said thanks", "You'll see it in your impact page once the team has read it.", { link: "/mentor" });
   }
   return { ok: true };
@@ -301,16 +302,20 @@ export async function mentorAfterView(userId: string, askId: string) {
   return { state: r.ask.state, notes: r.conn.notes ?? "", nextSteps: r.conn.nextSteps ?? "", hours: r.conn.durationMinutes / 60, topic: r.ask.topic.name, thanks: thanks && thanks.sharePublicly !== undefined ? { from: `${participantFirst}${isMinorAsk(r.ask) ? "" : ""}`, body: thanks.body, share: thanks.sharePublicly } : null, minor: isMinorAsk(r.ask) };
 }
 /** One click: logs the hour and closes the Ask. Contact details are never accepted in the notes. */
-export async function completeConversation(userId: string, askId: string, d: { notes?: string; nextSteps?: string; feedback?: number }): Promise<R> {
+export async function completeConversation(userId: string, askId: string, d: { notes?: string; nextSteps?: string; feedback?: number; minutes?: number; next?: "END" | "FOLLOW_UP" | "ONGOING" }): Promise<R> {
   const r = await roleIn(userId, askId); if (!r || r.role !== "MENTOR" || !r.conn) return fail("Not available.");
   const { detectContactDetails } = await import("./domain/contact-detect");
   const notes = (d.notes ?? "").trim().slice(0, 2000); const next = (d.nextSteps ?? "").trim().slice(0, 1000);
   if (detectContactDetails(`${notes}\n${next}`).length) return fail("Please remove contact details from your notes. Everything stays on the platform.");
   if (r.ask.state === "SCHEDULED") { const h = await moveAsk(askId, "HELD", "SYSTEM", { note: "Completed by the mentor" }); if (!h.ok) return h; }
   const m = await moveAsk(askId, "COMPLETE", "MENTOR", { actorId: userId }); if (!m.ok) return m;
-  await db.connection.update({ where: { id: r.conn.id }, data: { notes, nextSteps: next, mentorOutcome: "HAPPENED", endedAt: r.conn.endedAt ?? new Date(), hoursCounted: true, status: "HELD", mentorFeedback: d.feedback && d.feedback >= 1 && d.feedback <= 5 ? d.feedback : null, attendance: r.conn.attendance === "UNKNOWN" ? "BOTH" : r.conn.attendance } });
-  await db.mentorProfile.update({ where: { id: r.conn.mentorId }, data: { hoursGivenThisMonth: { increment: r.conn.durationMinutes / 60 } } });
+  // D8 "Time to log": the mentor can correct the length if the call ran shorter or longer (15 to 120 minutes).
+  const minutes = d.minutes && Number.isFinite(d.minutes) ? Math.min(120, Math.max(15, Math.round(d.minutes))) : r.conn.durationMinutes;
+  await db.connection.update({ where: { id: r.conn.id }, data: { durationMinutes: minutes, notes, nextSteps: next, mentorOutcome: "HAPPENED", endedAt: r.conn.endedAt ?? new Date(), hoursCounted: true, status: "HELD", mentorFeedback: d.feedback && d.feedback >= 1 && d.feedback <= 5 ? d.feedback : null, attendance: r.conn.attendance === "UNKNOWN" ? "BOTH" : r.conn.attendance } });
+  await db.mentorProfile.update({ where: { id: r.conn.mentorId }, data: { hoursGivenThisMonth: { increment: minutes / 60 } } });
   await (await import("./insight")).afterHoursLogged(r.conn.mentorId);
+  // A follow-up or ongoing mentorship is only ever an offer: the team arranges it, and a guardian approves for a minor.
+  if (d.next === "FOLLOW_UP" || d.next === "ONGOING") await notifyTeam(askId, d.next === "FOLLOW_UP" ? "A mentor is open to one follow-up" : "A mentor is open to ongoing mentorship", "Check with the participant (and guardian for a minor) before arranging anything.");
   await notify(r.ask.participant.userId, "conversation.complete", "How did it go?", "Three small things, all optional except the first.", { link: `/asks/${askId}/after` });
   for (const g of await guardiansOf(r.conn.participantId)) await notify(g.userId, "conversation.complete", "The conversation is complete", "Notes were shared with your young person and you.", { link: "/guardian" });
   return { ok: true };

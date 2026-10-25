@@ -1,6 +1,6 @@
 # Rebuild plan: screens after the public site
 
-Status on 25 October 2026: the token layer, the shared components, the public site (13 boards) and Section 1, Sign-up and account, are rebuilt. Section 1 still needs a screenshot pass against the boards for the states that need seeded data (expired and locked guardian links, the paused account). This plan covers everything else.
+Status on 25 October 2026: the token layer, the shared components, the public site (13 boards), Section 1 (Sign-up and account), Section 2 (the participant app), Section 3 (Guardian) and Section 4 (Mentor) are built. Signed-in screens are checked by typecheck, lint and a compile pass of every route; they have not been compared visually against the boards, because there is no demo data to sign in with. This plan covers everything else.
 
 ## Source of truth
 
@@ -40,7 +40,7 @@ Logic: `auth.ts`, `password.ts`, `consent.ts`, `guardian.ts`, `domain/age.ts`, `
 Done when: a minor can register, the guardian invite email goes out, the code check locks after 5 tries, and every expired or error state shows its board.
 Routes: `/register`, `/under-15`, `/login`, `/after-login`, `/check-email`, `/verify-email/[token]`, `/forgot`, `/reset/[token]`, `/onboarding?step=`, `/guardian-needed`, `/guardian/authorize/[token]` (DK5/M3, M20, M19, M21, used and closed links), `/report`, `/settings/turning-18`, `/recommend` (P01; M18 is the same form), `/crisis` (M23; `?from=ask` is EX9), `/guardian/asks/[id]/pause` (M24), `/paused` (M25), `/signed-out` (P02; `?reason=deleted&until=` is P02-D2). Shells: `src/components/account/shells.tsx` and `src/components/app/app-shell.tsx`.
 
-### 2. Mentee, the participant app (105 boards)
+### 2. Mentee, the participant app (105 boards): built
 Shell: `SidebarNav` (desktop) and `TabBar` (phone) using `PARTICIPANT_NAV` and `PARTICIPANT_TABS`, built from D1 and N06.
 Screens, in this order:
 1. Home: N09 Welcome, D1 Home (light and dark), NT1 Notifications.
@@ -51,17 +51,22 @@ Screens, in this order:
 6. Exceptions: EX1 Reschedule, EX3 Missed, EX4 Connection trouble, EX5 Returned for detail, EX6 Hand matching, EX7 Redirected, EX8 Closed, EX14 Export, EX15 Delete, EX16 Timeout, EX17 Give back.
 Logic: `asks.ts`, `participant-ctx.ts`, `village.ts`, `village-ctx.ts`, `insight.ts`, `connections.ts`, `call-extra.ts`, `safety-user.ts`, `domain/ask-state.ts`.
 Done when: a minor's Ask goes Draft, Awaiting guardian, Team review, Stepped forward, Scheduled, Complete, with every exit state reachable and matching its board.
+Routes: `/home` (N09 until the first Ask, then D1), `/notifications`, `/me` (N06), `/asks/new` (D2a over Home), `/asks/[id]/edit?step=topic|tell|read|send` (D10, D2, D11, D12; `/asks/start/edit` starts at the topic), `/asks/[id]/sent` (N05, `?withdraw=1`), `/asks` (D13, `?tab=closed` uses EX8 cards), `/asks/[id]` (D3, or EX5 to EX8), `/asks/[id]/thread` (N08), `/asks/[id]/time` (D14), `/asks/[id]/call` (CL1), `/asks/[id]/room` (CL2), `/asks/[id]/after` (D16), `/asks/[id]/thanks` (N04), `/asks/[id]/offer` (EX18), `/asks/[id]/reschedule` (EX1), `/asks/[id]/missed` (EX3), `/asks/[id]/trouble` (EX4), `/village/directory` (D4, N12 at `?filters=1`), `/village/directory/[id]` (D18), `/search` (N03), `/village/community` (D9), `/village/saved` (N01), `/village/events` (N02), `/village/events/[id]` (D20), `/village/library` (LIB), `/village/library/[id]` (D19), `/goals` (D17 with P06), `/goals/check-in` (D22), `/settings` (D21), `/settings/profile` (N07), `/settings/notifications` (N10), `/settings/contact` (N11), `/settings/data` (EX14), `/settings/delete` (EX15), `/give-back` (EX17). EX16 is the idle guard in the app shell.
+New logic: `participant-home.ts`, `participant-profile.ts`, `ask-thread.ts` with the `AskMessage` model, `Thanks.tags`, optional wizard details on the Ask answers, and `mentorProfileFor` now returns tips and similar mentors.
 
-### 3. Guardian (20 boards)
+### 3. Guardian (20 boards): built
 Shell: `guardian-shell` from G1.
 Screens: DK5/M3 Authorization (public token link), G1 Overview, G2 Approvals, G3 Conversations and recordings, G4 Withdraw consent, G6 Ongoing mentorship, P07 Before you join, CL3 and P07 In the call and Paused (dark).
 Logic: `guardian.ts`, `consent.ts`, `safety-user.ts` (`guardianOverview`, `guardianRecordings`, `withdrawConsent`, `decideOngoing`).
 Done when: the per-Ask and per-mentor/time approvals from the minor's flow (section 2) can be completed here.
+Routes: `/guardian` (G1), `/guardian/approvals` and `/guardian/approvals/[askId]` (G2), `/guardian/recordings` and `/guardian/recordings/[id]` (G3; playback needs `RECORDINGS_BASE_URL`), `/guardian/withdraw` (G4, `?done=1`), `/guardian/ongoing/[askId]` (G6), `/guardian/asks/[id]/call` (P07), `/guardian/asks/[id]/room` (CL3, P07-D3 at `?paused=1`), `/guardian/authorizations` (no board). DK5/M3 is `/guardian/authorize/[token]` from Section 1. New logic: `guardian-ctx.ts`, `guardian-app.ts` (attendance, family default, authorization history).
 
-### 4. Mentor (60 boards)
-Shell: `SidebarNav` and `TabBar` with `MENTOR_NAV`.
+### 4. Mentor (60 boards): built
+Shell: `MentorShell` in `app-shell.tsx`: `SidebarNav` with `MENTOR_NAV` (Inbox, Hours, My impact, Resources, Community, Profile and privacy, plus Share something) and `TabBar` with `MENTOR_TABS` (Inbox, Hours, Impact, Resources, Me). Before a mentor is active, `JoinShell` in `src/app/mentor/mentor-kit.tsx` frames the apply, status and orientation screens.
 Screens: M5 to M8 and DK7 to DK10 Apply (including the signature), M14/DK11 Application status, M15/DK12 Orientation, EX10 Declined and appeal, D5 Inbox, D6 Ask summary, EX13 Return Ask, D7 Hours (both states), D23 Availability, EX12 Hours reached, D8 Close-out, EX2 Change time, CL4 Pre-join (including too early), D24 and P03 Contribute and Resources (including empty), D25 Impact, D26 Volunteer, D27 Responses, D28 Profile, P04 and EX11 Annual re-affirmation (all states).
 Logic: `mentor.ts`, `mentor-asks.ts`, `mentor-extra.ts`, `mentor-profile.ts`, `mentor-resources.ts`, `reaffirm.ts`, `domain/mentor-application.ts`.
+Routes: `/mentor` (D5; sends the mentor to their stage first), `/mentor/apply?step=1..4` (M5 to M8, DK7 to DK10), `/mentor/application` (M14/DK11, and EX10 when declined), `/mentor/orientation` (M15/DK12), `/mentor/asks/[id]` (D6), `/mentor/asks/[id]/step` (D27 step forward with times), `/mentor/asks/[id]/return` (EX13), `/mentor/responses` (D27), `/mentor/conversations/[askId]` (CL4 before the end of the call, then D8; `?after=1` from the room), `/mentor/conversations/[askId]/change` (EX2), `/mentor/conversations/[askId]/room` (in the call), `/mentor/conversations/[askId]/ics`, `/mentor/availability` (D23, EX12 when the month is given), `/mentor/settings` (D7, both re-affirmation states), `/mentor/reaffirm` (P04 and EX11, all states), `/mentor/impact` (D25), `/mentor/volunteer` (D26), `/mentor/profile` (D28), `/mentor/contribute` (D24), `/mentor/resources` (P03, with the empty state). `/settings`, `/settings/notifications`, `/settings/data` and `/settings/delete` now use the frame of whoever is signed in (`RoleShell`).
+New logic: `mentor-ctx.ts` (guard) and `domain/mentor-gate.ts` (apply, status, orientation, active), info-request reply, one appeal, orientation request, signature on the draft (`mentor.ts`), response history and window times (`mentor-extra.ts`), disclosure (`reaffirm.ts`), the return reason on a referral, logged minutes and the follow-up offer on close-out (`connections.ts`), hours by month (`insight.ts`), and optional board fields on the application schemas.
 
 ### 5. Team admin console (71 boards)
 Shell: `AdminMenu` (desktop) and `AdminBreadcrumb` (phone) with `ADMIN_NAV`. Also A18 Team sign-in and A25 MFA setup.

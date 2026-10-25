@@ -9,3 +9,11 @@ export const GOALS = ["Choose a course or university", "Get my first job", "Find
 export const BACKGROUNDS = ["First in my family to go to college", "Rural or small town", "Single-parent home", "Migrant or relocated", "Neurodivergent", "Disability", "Refugee background", "Prefer not to say", "Other"];
 export const LANGUAGES = ["English", "Yoruba", "Igbo", "Hausa", "Pidgin", "French", "Other"];
 export const opts = (xs: string[]) => xs.map((x) => ({ value: x, label: x }));
+
+/* Mentor sign-up (DK7 / DK8, M5 / M6) */
+export const MENTOR_AREAS = ["Careers", "School and exams", "Money", "Starting something", "Wellbeing", "Life after school", "Tech", "Health", "Law", "Arts"];
+export const SENIORITY = ["Early career", "Mid-career", "Senior professional", "Leader or executive", "Business owner", "Retired"];
+export const EXPERIENCE_YEARS = ["Under 3 years", "3 to 5 years", "5 to 10 years", "10 to 15 years", "Over 15 years"];
+export const TIME_ZONES = ["West Africa Time (WAT), UTC+1", "Greenwich Mean Time (GMT), UTC+0", "Central Africa Time (CAT), UTC+2", "East Africa Time (EAT), UTC+3", "UK time (GMT/BST)", "Central European Time, UTC+1", "Eastern Time (US), UTC-5", "Central Time (US), UTC-6", "Pacific Time (US), UTC-8", "Other"];
+export const MENTOR_HEARD = ["A friend or colleague", "My employer", "A professional body", "Social media", "An event", "A young person I know", "Other"];
+export const MONTHLY_HOURS = [["1", "1 hour (One Hour Challenge)"], ["2", "2 hours"], ["3", "3 hours"], ["4", "4 hours"], ["6", "6 hours"], ["8", "8 hours"]] as const;

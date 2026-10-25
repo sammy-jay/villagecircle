@@ -33,10 +33,11 @@ export const GUARDIAN_NAV: NavItem[] = [
 
 export const MENTOR_NAV: NavItem[] = [
   { href: "/mentor", label: "Inbox", icon: "inbox", exact: true },
-  { href: "/mentor/availability", label: "Hours", icon: "clock" },
-  { href: "/mentor/impact", label: "Impact", icon: "chart" },
-  { href: "/mentor/contribute", label: "Resources", icon: "book" },
-  { href: "/mentor/settings", label: "Me", icon: "user" },
+  { href: "/mentor/availability", label: "Hours", icon: "calendar" },
+  { href: "/mentor/impact", label: "My impact", icon: "chart" },
+  { href: "/mentor/resources", label: "Resources", icon: "book" },
+  { href: "/mentor/volunteer", label: "Community", icon: "users" },
+  { href: "/mentor/profile", label: "Profile and privacy", icon: "user" },
 ];
 
 export const ADMIN_NAV: NavGroup[] = [
@@ -97,7 +98,19 @@ export const PARTICIPANT_TABS: TabBarItem[] = [
   { href: "/asks", label: "My Asks", icon: "message" },
   { href: "/me", label: "Me", icon: "user" },
 ];
-export const MENTOR_TABS: TabBarItem[] = MENTOR_NAV;
+export const MENTOR_TABS: TabBarItem[] = [
+  { href: "/mentor", label: "Inbox", icon: "inbox", exact: true },
+  { href: "/mentor/availability", label: "Hours", icon: "calendar" },
+  { href: "/mentor/impact", label: "Impact", icon: "chart" },
+  { href: "/mentor/resources", label: "Resources", icon: "book" },
+  { href: "/mentor/settings", label: "Me", icon: "user" },
+];
+export const GUARDIAN_TABS: TabBarItem[] = [
+  { href: "/guardian", label: "Home", icon: "home", exact: true },
+  { href: "/guardian/approvals", label: "Approvals", icon: "check" },
+  { href: "/guardian/recordings", label: "Calls", icon: "video" },
+  { href: "/settings", label: "Me", icon: "user" },
+];
 export const ADMIN_TABS: TabBarItem[] = [
   { href: "/admin", label: "Overview", icon: "grid", exact: true },
   { href: "/admin/asks", label: "Asks", icon: "message" },

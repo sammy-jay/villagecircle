@@ -58,8 +58,17 @@ export async function mentorProfileFor(userId: string, mentorId: string) {
   const m = (await listedMentors({ minor: p.minor })).find((x) => x.id === mentorId); if (!m) return null;
   const mp = await db.mentorProfile.findUnique({ where: { id: mentorId }, select: { userId: true } });
   const thanks = (await thanksWall(50, mentorId)).filter((t) => t.mentorUserId !== undefined);
-  void mp;
-  return { card: toDirectoryCard(m, expertiseLabel), thanks: thanks.map(({ id, quote, who, tag }) => ({ id, quote, who, tag })) };
+  // D18 "Tips by": approved library items this mentor contributed, with how many people found each helpful.
+  const tipRows = mp ? (await visibleResources("MEMBER")).filter((r) => r.contributorId === mp.userId).slice(0, 6) : [];
+  const tips = await toCards(tipRows);
+  const helped = tips.length ? await db.resourceHelped.groupBy({ by: ["resourceId"], where: { resourceId: { in: tips.map((t) => t.id) } }, _count: true }) : [];
+  const similar = (await listedMentors({ minor: p.minor })).filter((x) => x.id !== mentorId && x.primaryExpertise === m.primaryExpertise).slice(0, 2).map((x) => toDirectoryCard(x, expertiseLabel));
+  return {
+    card: toDirectoryCard(m, expertiseLabel), minor: p.minor,
+    thanks: thanks.map(({ id, quote, who, tag }) => ({ id, quote, who, tag })),
+    tips: tips.map((t) => ({ ...t, helped: helped.find((h) => h.resourceId === t.id)?._count ?? 0 })),
+    similar: similar.map((x) => ({ id: x.id, name: x.name, initials: x.initials, role: x.role, country: x.country })),
+  };
 }
 
 /** D4 "Name in an Ask": starts a draft on the mentor's topic and records the preferred mentor as a short name only. The team still decides routing. */

@@ -9,6 +9,14 @@ export const askAnswersSchema = z.object({
   sessionLength: z.union([z.literal(30), z.literal(60)]).default(60),
   preferredMentorName: z.string().max(80).optional(),
   timeBound: z.boolean().default(false),
+  // D2 "A few quick details": optional, counted as totals only. The Ask itself stays in q1 to q3.
+  stage: z.string().max(60).optional(),
+  soon: z.enum(["week", "month", "term", "flexible"]).optional(),
+  soonMore: z.string().max(200).optional(),
+  mentorType: z.string().max(80).optional(),
+  mentorTypeMore: z.string().max(200).optional(),
+  bestDays: z.string().max(80).optional(),
+  bestDaysMore: z.string().max(200).optional(),
 });
 export type AskAnswers = z.infer<typeof askAnswersSchema>;
 export const parseAnswers = (v: unknown): AskAnswers => askAnswersSchema.parse(v && typeof v === "object" ? v : {});

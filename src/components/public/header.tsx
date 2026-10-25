@@ -7,32 +7,25 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Icon } from "@/components/dc/icons";
 
-const SITE_NAV = [
-  { href: "/become-a-mentor", label: "Mentors" },
-  { href: "/library", label: "Library" },
-  { href: "/#events", label: "Events" },
-  { href: "/faq", label: "FAQ" },
-];
-const HOME_NAV = [
+/** One set of links on every public page, so the bar never changes as people move around the site. */
+const NAV = [
   { href: "/#how", label: "How it works" },
   { href: "/about", label: "About" },
   { href: "/become-a-mentor", label: "For mentors" },
   { href: "/families", label: "For families" },
+  { href: "/library", label: "Library" },
   { href: "/faq", label: "FAQ" },
-  { href: "/help", label: "Help" },
 ];
 const MENU_EXTRA = [
   { href: "/about", label: "About us" },
   { href: "/families", label: "For families" },
   { href: "/help", label: "Help centre" },
+  { href: "/#events", label: "Events" },
   { href: "/help/report", label: "Report a concern" },
 ];
 
-/**
- * Public header. `home` is the landing variant: sticky, translucent, six links and a forest "Join the Village".
- * `phoneJoin` shows the clay Join free pill on the phone bar (some boards leave it out).
- */
-export function PublicHeader({ home, phoneJoin = true }: { home?: boolean; phoneJoin?: boolean }) {
+/** Public header, the same on every public page: sticky, six links, Log in and Join free. */
+export function PublicHeader() {
   const path = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [path]);
@@ -44,35 +37,35 @@ export function PublicHeader({ home, phoneJoin = true }: { home?: boolean; phone
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
   }, [open]);
 
-  const nav = home ? HOME_NAV : SITE_NAV;
+  const nav = NAV;
   const active = (href: string) => !href.includes("#") && (path === href || path.startsWith(href + "/"));
 
   return (
-    <header className={cn("z-30 border-b border-line", home ? "sticky top-0 bg-card/[.97] lg:bg-card/[.96]" : "bg-card max-lg:border-0 max-lg:bg-transparent")}>
+    <header className="sticky top-0 z-30 border-b border-line bg-card/[.97]">
       {/* Desktop */}
-      <div className={cn("mx-auto hidden h-[76px] max-w-[1280px] items-center px-14 lg:flex", home ? "gap-[30px]" : "gap-8")}>
+      <div className="mx-auto hidden h-[76px] max-w-[1280px] items-center gap-[30px] px-14 lg:flex">
         <Link href="/" aria-label="The Village Circle, home"><Image src="/brand/logo.png" alt="The Village Circle" width={56} height={50} priority /></Link>
-        <nav aria-label="Main" className={cn("flex flex-1", home ? "gap-[26px]" : "gap-7")}>
+        <nav aria-label="Main" className="flex flex-1 gap-[26px]">
           {nav.map((n) => (
             <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} className={cn("text-[15.5px] hover:text-clay", active(n.href) ? "font-extrabold" : "font-semibold")}>{n.label}</Link>
           ))}
         </nav>
         <div className="flex gap-2.5">
           <Link href="/login" className="dc-btn dc-btn-soft h-11">Log in</Link>
-          {home ? <Link href="/register" className="dc-btn dc-btn-forest h-11">Join the Village</Link> : <Link href="/register" className="dc-btn dc-btn-primary h-11">Join free</Link>}
+          <Link href="/register" className="dc-btn dc-btn-primary h-11">Join free</Link>
         </div>
       </div>
 
       {/* Phone */}
-      <div className={cn("flex items-center gap-2 lg:hidden", home ? "h-16 px-3.5" : "h-[60px] px-4")}>
-        <Link href="/" aria-label="The Village Circle, home" className={cn("flex min-w-0 flex-1 items-center", home ? "gap-3" : "gap-[18px]")}>
+      <div className="flex h-16 items-center gap-2 px-4 lg:hidden">
+        <Link href="/" aria-label="The Village Circle, home" className="flex min-w-0 flex-1 items-center gap-3">
           <Image src="/brand/mark.png" alt="" width={38} height={37} priority />
-          <span className={cn("truncate font-display font-extrabold tracking-[-.01em]", home ? "text-[19px]" : "text-[20px]")}>{home ? "Village Circle" : "Village"}</span>
+          <span className="truncate font-display text-[19px] font-extrabold tracking-[-.01em]">Village Circle</span>
         </Link>
-        {phoneJoin && <Link href="/register" className={cn("dc-btn px-[18px]", home ? "dc-btn-forest h-[42px]" : "dc-btn-primary h-10 px-[22px]")}>Join free</Link>}
+        <Link href="/register" className="dc-btn dc-btn-primary h-[42px] px-[18px]">Join free</Link>
         <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}
-          className={cn("flex items-center justify-center rounded-full bg-sand text-ink", home ? "size-11" : "size-10")}>
-          <Icon name="menu" size={home ? 22 : 20} />
+          className="flex size-11 items-center justify-center rounded-full bg-sand text-ink">
+          <Icon name="menu" size={22} />
         </button>
       </div>
 

@@ -50,7 +50,7 @@ export async function mentorAskDetail(userId: string, askId: string) {
   return { summary: s, response: e.response, minor, guardianAttends: !!guardian && guardian.attendancePref === "ATTEND", hoursGiven: m.hoursGivenThisMonth, monthlyHours: m.monthlyHours, hasCapacity, whyThought: [`Profession match: ${expertiseLabel(m.primaryExpertise)}`, `Topic experience: ${e.ask.topic.name.toLowerCase()}`, ...(minor && m.clearedForMinors ? ["Cleared for minors"] : [])], answerable: e.ask.state === "OPEN_TO_MENTORS" && e.response === "NONE", offered: e.offeredTimes };
 }
 
-export type MentorResponse = { action: "STEP_FORWARD"; times: string[] } | { action: "PASS" } | { action: "REFER_ON"; note: string; colleague?: string };
+export type MentorResponse = { action: "STEP_FORWARD"; times: string[] } | { action: "PASS" } | { action: "REFER_ON"; note: string; colleague?: string; reason?: string };
 
 export async function mentorRespond(userId: string, askId: string, r: MentorResponse): Promise<R> {
   const m = await mentorFor(userId); if (!m) return fail("Not allowed.");
@@ -70,7 +70,7 @@ export async function mentorRespond(userId: string, askId: string, r: MentorResp
     return { ok: true };
   }
   // Passing is never shown to the participant and never lowers standing: only the response flag changes (BR-12).
-  await db.shortlistEntry.update({ where: { id: e.id }, data: r.action === "PASS" ? { response: "PASSED", respondedAt: now } : { response: "REFERRED_ON", respondedAt: now, note: r.note.trim().slice(0, 500), suggestedColleague: r.colleague?.trim().slice(0, 120) } });
+  await db.shortlistEntry.update({ where: { id: e.id }, data: r.action === "PASS" ? { response: "PASSED", respondedAt: now } : { response: "REFERRED_ON", respondedAt: now, note: r.note.trim().slice(0, 500), suggestedColleague: r.colleague?.trim().slice(0, 120), reason: r.reason?.trim().slice(0, 80) } });
   await returnIfNobodyLeft(askId);
   return { ok: true };
 }

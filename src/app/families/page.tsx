@@ -32,7 +32,7 @@ export default function Families() {
   );
   return (
     <>
-      <PublicHeader phoneJoin={false} />
+      <PublicHeader />
       <main id="main">
         <Gutter className="flex flex-col gap-4 lg:gap-0">
           <section className="flex items-center gap-12 pt-3 lg:pb-5 lg:pt-[70px]">

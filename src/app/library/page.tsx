@@ -37,7 +37,7 @@ export default async function Library({ searchParams }: { searchParams: { q?: st
 
   return (
     <>
-      <PublicHeader phoneJoin={false} />
+      <PublicHeader />
       <main id="main">
         <Gutter className="flex flex-col gap-3.5 lg:gap-0">
           <section className="pt-3 lg:pb-5 lg:pt-16">

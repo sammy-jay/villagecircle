@@ -14,6 +14,13 @@ export const step1 = z.object({
   country: z.string().trim().min(2, "Tell us where you live").max(60),
   countryOfOrigin: z.string().trim().max(60).optional(),
   languages: z.array(z.string().trim().min(2)).max(8).default([]), // optional, never inferred
+  // Board fields (DK7 / M5) kept with the application for matching and counts only.
+  region: z.string().trim().max(60).optional(),
+  languagesMore: z.string().trim().max(200).optional(),
+  timeZone: z.string().trim().max(60).optional(),
+  experience: z.string().trim().max(40).optional(),
+  heard: z.string().trim().max(60).optional(),
+  heardMore: z.string().trim().max(200).optional(),
 });
 
 export const step2 = z.object({
@@ -25,6 +32,9 @@ export const step2 = z.object({
   monthlyHours: z.number().int().min(1).max(20),
   conversationLength: z.union([z.literal(30), z.literal(60)]),
   optedForMinors: z.boolean(),
+  // DK8 / M6: the help areas young people pick from, and seniority. Counts and matching only.
+  areas: z.array(z.string().trim().min(2).max(40)).max(3, "Pick up to three areas").default([]),
+  seniority: z.string().trim().max(60).optional(),
 }).superRefine((v, ctx) => {
   if (v.extraExpertise.includes(v.primaryExpertise)) ctx.addIssue({ code: "custom", path: ["extraExpertise"], message: "Pick different areas from your main one" });
   if (new Set(v.extraExpertise).size !== v.extraExpertise.length) ctx.addIssue({ code: "custom", path: ["extraExpertise"], message: "Each area once" });

@@ -609,6 +609,18 @@ model Connection {
   thanks      Thanks[]
 }
 
+/// N08 Ask thread between the young person and their mentor. Contact details are refused before a row is written; the team can read every thread.
+model AskMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  askId     String   @db.ObjectId
+  authorId  String   @db.ObjectId
+  role      String // PARTICIPANT | MENTOR | TEAM
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([askId, createdAt])
+}
+
 model Goal {
   id            String       @id @default(auto()) @map("_id") @db.ObjectId
   participantId String       @db.ObjectId
@@ -656,6 +668,7 @@ model Thanks {
   authorId     String          @db.ObjectId
   body         String
   sharePublicly Boolean         @default(false)
+  tags         String[] // N04 "What stood out" chips, up to 3
   moderation   ModerationState @default(PENDING)
   publishedAt  DateTime?
   createdAt    DateTime        @default(now())
