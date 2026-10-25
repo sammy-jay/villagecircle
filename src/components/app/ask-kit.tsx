@@ -1,29 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Icon, type IconName } from "@/components/dc/icons";
+import { Icon } from "@/components/dc/icons";
 import { cn } from "@/lib/cn";
+export { topicLook } from "./topic-look";
 
 /* Shared pieces of the Ask wizard (D2a, D2, D10 to D12). */
-
-/** Icon and one-line blurb per topic slug. Unknown topics fall back by keyword, then to a chat bubble. */
-const LOOKS: [RegExp, IconName, string][] = [
-  [/school|exam|college|universit|jamb/, "graduation", "Subjects, applications, study habits"],
-  [/career|industry|shadow/, "briefcase", "Choosing a path, first job"],
-  [/money|scholar|financ/, "coin", "Saving, scholarships, side income"],
-  [/entrepreneur|start|business/, "rocket", "Ideas, business, projects"],
-  [/wellbeing|stress|health/, "heart", "Stress, confidence, balance"],
-  [/life|after|leader/, "users", "Moving, work, independence"],
-  [/resume|cv|r[eé]sum/, "doc", "A CV that gets read"],
-  [/interview/, "message", "Practice and what to expect"],
-  [/intern/, "briefcase", "Finding and making the most of one"],
-  [/network|introduc/, "users", "Meeting people in your field"],
-];
-export function topicLook(slug: string, name = ""): { icon: IconName; blurb: string } {
-  const key = `${slug} ${name}`.toLowerCase();
-  const hit = LOOKS.find(([re]) => re.test(key));
-  return hit ? { icon: hit[1], blurb: hit[2] } : { icon: "message", blurb: "Ask the team to find the right fit" };
-}
 
 export const ASK_STEPS = ["1. Topic", "2. Tell us", "3. Read first", "4. Send"];
 /** 8px progress bars with labels. Steps up to `current` are filled. */

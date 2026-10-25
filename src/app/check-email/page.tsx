@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Icon } from "@/components/dc/icons";
 import { NextStep, SplitShell, TiltTile } from "@/components/account/shells";
-import { ResendVerify, inboxUrl } from "@/components/account/resend";
+import { ResendVerify } from "@/components/account/resend";
+import { inboxUrl } from "@/components/account/inbox";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "Check your email" };

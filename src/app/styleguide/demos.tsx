@@ -111,4 +111,5 @@ function Feedback() {
   );
 }
 
-export const Demos = { Chips, Inputs, Signatures, Code, Tabs, Toggles, TabBars, Feedback };
+// Named exports only: a server page can render client components from a client file, but not reach into an object of them.
+export { Chips as DemoChips, Inputs as DemoInputs, Signatures as DemoSignatures, Code as DemoCode, Tabs as DemoTabs, Toggles as DemoToggles, TabBars as DemoTabBars, Feedback as DemoFeedback };

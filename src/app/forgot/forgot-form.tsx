@@ -7,7 +7,8 @@ import { cn } from "@/lib/cn";
 import { Icon } from "@/components/dc/icons";
 import { FieldWrap, Note, SubmitButton, TextField } from "@/components/forms/fields";
 import { TiltTile } from "@/components/account/shells";
-import { inboxUrl, useCooldown } from "@/components/account/resend";
+import { useCooldown } from "@/components/account/resend";
+import { inboxUrl } from "@/components/account/inbox";
 import { forgotAction, type ActionState } from "@/app/account-actions";
 
 function StepHead({ n, tone, title, tag }: { n: number; tone: string; title: string; tag: string }) {

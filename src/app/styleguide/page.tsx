@@ -3,7 +3,7 @@ import {
   AdminBreadcrumb, AdminMenu, AskTag, Avatar, AvatarStack, Banner, Button, Card, Count, EmptyState, Field, Icon, Input,
   Moment, PageHead, SearchInput, StoryRing, Tag, Timeline, withCounts, ADMIN_NAV, type AskTagKey,
 } from "@/components/dc";
-import { Demos } from "./demos";
+import { DemoChips, DemoCode, DemoFeedback, DemoInputs, DemoSignatures, DemoTabBars, DemoTabs, DemoToggles } from "./demos";
 
 export const metadata = { title: "Styleguide" };
 
@@ -84,7 +84,7 @@ export default function Styleguide() {
 
       <Section n={4} title="Pills, status tags and counts" sub="Chips, status and badges.">
         <div className="dc-panel space-y-5 p-[22px]">
-          <div><p className="dc-kicker mb-2">Filters and choices</p><Demos.Chips /></div>
+          <div><p className="dc-kicker mb-2">Filters and choices</p><DemoChips /></div>
           <div>
             <p className="dc-kicker mb-2">Tone and status</p>
             <div className="flex flex-wrap gap-2">
@@ -107,10 +107,10 @@ export default function Styleguide() {
             <Field label="Email" htmlFor="sg-email" hint="Add the part after the @ sign"><Input id="sg-email" icon="mail" defaultValue="amara@example" aria-invalid /></Field>
             <SearchInput placeholder="Search mentors, tips and events" aria-label="Search" />
           </div>
-          <Demos.Inputs />
+          <DemoInputs />
         </div>
-        <Demos.Signatures />
-        <div className="dc-panel mt-3.5 p-[22px]"><p className="dc-kicker mb-3">Code entry</p><Demos.Code /></div>
+        <DemoSignatures />
+        <div className="dc-panel mt-3.5 p-[22px]"><p className="dc-kicker mb-3">Code entry</p><DemoCode /></div>
       </Section>
 
       <Section n={6} title="Cards" sub="White 24px cards on paper. Pastel blocks for the big moments.">
@@ -130,8 +130,8 @@ export default function Styleguide() {
 
       <Section n={7} title="Tabs, toggles and avatars" sub="Chips for tabs, forest for on, rings for stories.">
         <div className="grid gap-4 md:grid-cols-3">
-          <Demos.Tabs />
-          <Demos.Toggles />
+          <DemoTabs />
+          <DemoToggles />
           <div className="dc-panel p-[22px]">
             <p className="dc-kicker mb-3">Avatars and story rings</p>
             <div className="flex items-center gap-3.5"><Avatar name="Amara O" size="xs" /><Avatar name="Bisi O" size="lg" /><Avatar name="Sam E" size="xl" /></div>
@@ -176,14 +176,14 @@ export default function Styleguide() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="dc-panel p-4"><p className="dc-kicker mb-3">Admin side menu (desktop)</p><AdminMenu groups={withCounts(ADMIN_NAV, { "/admin/mentors": 7, "/admin/asks": 12, "/admin/incidents": 1, "/admin/moderation": 4, "/admin/help": 2 })} /></div>
           <div className="dc-panel p-4"><p className="dc-kicker mb-3">Admin breadcrumb (phone)</p><AdminBreadcrumb /></div>
-          <Demos.TabBars />
+          <DemoTabBars />
         </div>
       </Section>
 
       <Section n={10} title="Empty states, toasts, modals and sheets" sub="Quiet feedback first. A modal asks one question. On the phone it becomes a bottom sheet.">
         <div className="grid gap-4 md:grid-cols-2">
           <Card><EmptyState title="You haven't asked the village anything yet" action={<Button variant="primary" icon="plus">Start an Ask</Button>}>An Ask is a short question about school, work or life. The team reads it first.</EmptyState></Card>
-          <Demos.Feedback />
+          <DemoFeedback />
         </div>
       </Section>
 
@@ -193,7 +193,7 @@ export default function Styleguide() {
           <div className="grid gap-3.5 md:grid-cols-3">
             <Card className="p-4"><div className="flex items-center gap-2.5"><Avatar name="Bisi O" /><p className="text-support font-semibold">Dr Bisi O. shared a tip</p></div><Button variant="primary" icon="plus" className="mt-3 w-full">Ask the village</Button></Card>
             <Moment title="Dr Bisi stepped forward for your Ask" sub="Pick a time that works." />
-            <Card className="p-4"><Demos.Chips /><Banner tone="mint" className="mt-3">Your guardian approved this time.</Banner></Card>
+            <Card className="p-4"><DemoChips /><Banner tone="mint" className="mt-3">Your guardian approved this time.</Banner></Card>
           </div>
         </div>
       </Section>
