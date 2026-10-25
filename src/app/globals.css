@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Village Square foundations v2 (Figma: 02-DSF-Design-system-foundations-v2).
+ * Values are RGB channels so Tailwind's opacity modifiers work: bg-clay/10.
+ * Dark values marked (inferred) are not on the board; everything else is.
+ */
+@layer base {
+  :root {
+    --paper: 247 245 240;      /* #F7F5F0 page background */
+    --card: 255 255 255;
+    --sand: 238 234 225;       /* #EEEAE1 chips, quiet fills */
+    --line: 228 223 213;       /* #E4DFD5 1px borders */
+    --ink: 29 25 20;           /* #1D1914 text and headings */
+    --bark: 74 65 55;          /* #4A4137 supporting copy, labels */
+    --stone: 110 101 90;       /* #6E655A captions, hints */
+    --clay: 168 71 43;         /* #A8472B the one action colour */
+    --on-clay: 255 255 255;
+    --forest: 74 126 98;       /* #4A7E62 selected, done, checks */
+    --on-forest: 255 255 255;
+    --gold: 201 154 46;        /* #C99A2E story ring accent */
+    --mint: 213 235 217;       /* #D5EBD9 calm, safe, approved */
+    --mint-ink: 31 71 51;      /* #1F4733 */
+    --butter: 247 228 168;     /* #F7E4A8 your turn, highlight */
+    --butter-ink: 75 58 8;     /* #4B3A08 */
+    --blush: 248 217 203;      /* #F8D9CB thanks, warm, caution */
+    --blush-ink: 110 42 20;    /* #6E2A14 */
+    color-scheme: light;
+  }
+
+  /* Dark theme: "Same shapes, softer colours." Applies to any subtree, e.g. the in-call screens. */
+  [data-theme="dark"] {
+    --paper: 20 17 13;         /* Night #14110D */
+    --card: 32 27 22;          /* Cocoa #201B16 */
+    --line: 53 46 38;          /* Dark line #352E26 */
+    --ink: 244 239 229;        /* Cream #F4EFE5 */
+    --sand: 43 37 31;          /* (inferred) */
+    --bark: 214 206 192;       /* (inferred) */
+    --stone: 163 154 141;      /* (inferred) */
+    --clay: 240 144 107;       /* Ember #F0906B */
+    --on-clay: 20 17 13;       /* (inferred) */
+    --forest: 143 208 163;     /* Moss #8FD0A3 */
+    --on-forest: 20 17 13;     /* (inferred) */
+    --gold: 232 199 119;       /* Honey #E8C777 */
+    --butter: 74 58 18;        /* Dusk butter #4A3A12 */
+    --butter-ink: 247 228 168; /* (inferred) */
+    --mint: 29 58 42;          /* Dusk mint #1D3A2A */
+    --mint-ink: 213 235 217;   /* (inferred) */
+    --blush: 74 37 23;         /* Dusk blush #4A2517 */
+    --blush-ink: 248 217 203;  /* (inferred) */
+    color-scheme: dark;
+  }
+
+  html { -webkit-text-size-adjust: 100%; }
+  /* Boards leave line-height at the browser default unless a block sets it. */
+  body { @apply bg-paper font-sans text-ink antialiased; font-size: 16px; line-height: normal; }
+  [data-theme="dark"] { @apply bg-paper text-ink; }
+  h1, h2, h3, h4 { @apply font-display font-extrabold; }
+
+  :focus-visible { outline: 3px solid rgb(var(--gold)); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+}
+
+@layer components {
+  .dc-skip { @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-paper; }
+
+  /* §2 Type */
+  .dc-display { @apply font-display text-display font-extrabold; }
+  .dc-h1 { @apply font-display text-h1 font-extrabold; }
+  .dc-h2 { @apply font-display text-h2 font-extrabold; }
+  .dc-h3 { @apply font-display text-h3 font-extrabold; }
+  .dc-body { @apply text-body; }
+  .dc-support { @apply text-support text-bark; }
+  .dc-caption { @apply text-caption text-stone; }
+  .dc-eyebrow { @apply text-eyebrow font-extrabold uppercase text-clay; }
+  .dc-kicker { @apply text-eyebrow font-extrabold uppercase text-stone; }
+
+  /* §3 Buttons: fully rounded, 50px, bold. One clay button per view. */
+  .dc-btn { @apply inline-flex h-[50px] min-w-target select-none items-center justify-center gap-2 whitespace-nowrap rounded-full border-2 border-transparent px-[22px] text-btn font-bold transition-colors disabled:pointer-events-none aria-disabled:pointer-events-none; }
+  .dc-btn > svg { @apply size-[18px] shrink-0; }
+  .dc-btn-primary { @apply border-clay bg-clay text-clay-ink hover:brightness-95; }
+  .dc-btn-forest { @apply border-forest bg-forest text-forest-ink hover:brightness-95; }
+  .dc-btn-ghost { @apply border-line bg-transparent text-ink hover:bg-sand; }
+  .dc-btn-soft { @apply bg-sand text-ink hover:border-line; }
+  /* Outline in the surrounding ink, for buttons sitting on pastel blocks. */
+  .dc-btn-outline { @apply border-current bg-transparent hover:bg-card/40; }
+  .dc-btn:disabled, .dc-btn[aria-disabled="true"] { @apply border-transparent bg-sand text-stone opacity-70; }
+  .dc-btn-sm { @apply h-10 px-[22px]; }
+  .dc-btn-lg { @apply h-14 w-full; }
+  .dc-link { @apply font-bold text-clay underline-offset-2 hover:underline; }
+
+  /* §4 Pills, status tags and counts */
+  .dc-chip { @apply inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-sand px-3.5 text-chip font-semibold text-ink transition-colors; }
+  .dc-chip > svg { @apply size-4 shrink-0; }
+  .dc-chip[aria-pressed="true"], .dc-chip[aria-selected="true"], .dc-chip[data-on="true"] { @apply bg-forest text-forest-ink; }
+  .dc-tag { @apply inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-caption font-semibold; }
+  .dc-tag > svg { @apply size-4 shrink-0; }
+  .dc-tag-mint { @apply bg-mint text-mint-ink; }
+  .dc-tag-butter { @apply bg-butter text-butter-ink; }
+  .dc-tag-blush { @apply bg-blush text-blush-ink; }
+  .dc-tag-grey { @apply bg-sand text-ink; }
+  .dc-tag-outline { @apply border border-line bg-transparent px-[13px] text-chip text-ink; }
+  /* Board pills are padded rather than fixed-height. */
+  .dc-pill { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] border-transparent px-[13px] py-[7px] text-chip font-semibold; }
+  .dc-pill > svg { @apply size-4 shrink-0; }
+  .dc-otag { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] border-current px-3 py-1.5 text-caption font-bold; }
+  .dc-count { @apply inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[10px] bg-clay px-2 text-eyebrow font-extrabold tracking-normal text-clay-ink; }
+
+  /* §5 Inputs */
+  .dc-label { @apply mb-2 block text-label font-bold text-bark; }
+  .dc-hint { @apply mt-2 block text-caption text-stone; }
+  .dc-error { @apply mt-2 block text-caption font-semibold text-clay; }
+  .dc-input { @apply h-[58px] w-full rounded-field border-2 border-line bg-card px-4 text-field text-ink placeholder:text-stone focus:border-ink focus:outline-none aria-[invalid=true]:border-clay; }
+  .dc-textarea { @apply min-h-24 w-full resize-y rounded-field border-2 border-line bg-card px-4 py-4 text-field leading-6 text-ink placeholder:text-stone focus:border-ink focus:outline-none aria-[invalid=true]:border-clay; }
+  .dc-search { @apply h-12 w-full rounded-full border-2 border-line bg-card pl-[47px] pr-4 text-[15px] text-ink placeholder:text-stone focus:border-ink focus:outline-none; }
+  .dc-saymore { @apply h-[46px] w-full rounded-saymore border-2 border-dashed border-line bg-card px-4 text-support text-ink placeholder:text-stone focus:border-solid focus:border-ink focus:outline-none; }
+  .dc-menu { @apply overflow-hidden rounded-menu border-2 border-line bg-card shadow-menu; }
+  .dc-option { @apply flex h-[43px] w-full items-center gap-2.5 pl-4 pr-4 text-left text-btn font-medium text-ink hover:bg-sand; }
+  .dc-option[aria-selected="true"] { @apply bg-mint font-bold text-mint-ink; }
+
+  /* §6 Cards: white 24px cards on paper; pastel blocks for big moments */
+  .dc-card { @apply rounded-card border border-line bg-card; }
+  .dc-panel { @apply rounded-panel border border-line bg-card; }
+  .dc-moment { @apply rounded-panel p-5; }
+  .dc-moment-butter { @apply bg-butter text-butter-ink; }
+  .dc-moment-mint { @apply bg-mint text-mint-ink; }
+  .dc-moment-blush { @apply bg-blush text-blush-ink; }
+  .dc-progress { @apply h-2 overflow-hidden rounded-lg bg-sand; }
+
+  /* §8 Banners and tables */
+  .dc-banner { @apply flex min-h-14 items-center gap-3 rounded-field px-[18px] py-4 text-[15px] font-semibold; }
+  .dc-banner > svg { @apply size-6 shrink-0; }
+  .dc-th { @apply h-[42px] bg-paper px-5 text-left text-eyebrow font-extrabold uppercase text-stone; }
+  .dc-td { @apply h-[55px] border-t border-line px-5 text-[15px] text-ink; }
+}

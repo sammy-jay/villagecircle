@@ -1,7 +1,9 @@
 import { requireRole } from "./auth";
 import { db } from "./db";
-import { participantPage } from "./participant-ctx";
-import type { VViewer } from "@/components/dc/village";
+import { participantPage, type PCtx } from "./participant-ctx";
+
+/** Who is looking at a village page: a participant (with their context) or a mentor. */
+export type VViewer = { kind: "participant"; ctx: PCtx } | { kind: "mentor"; name: string; both: boolean };
 
 /** Guard for village pages. Participants get the participant shell; mentors (who are not participants) the mentor shell. */
 export async function villageViewer(o: { mentors?: boolean } = {}): Promise<{ to: string } | { viewer: VViewer; userId: string }> {
