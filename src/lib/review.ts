@@ -200,7 +200,11 @@ export async function confirmMentor(askId: string, reviewerId: string, mentorId:
   }
   const pu = ask.participant.userId;
   await notify(pu, "ask.mentor_found", "A mentor will talk with you", minor ? "Your guardian will approve the mentor and the time." : "Pick a time that works for you.", { link: `/asks/${askId}/time` });
-  if (minor && guardian) await notify(guardian.userId, "ask.approve_mentor", "Approve the mentor and the time", "A mentor stepped forward for your young person's Ask.", { link: `/guardian/approvals/${askId}` });
+  if (minor && guardian) {
+    await notify(guardian.userId, "ask.approve_mentor", "Approve the mentor and the time", "A mentor stepped forward for your young person's Ask.", { link: `/guardian/approvals/${askId}` });
+    const gu = await db.user.findUnique({ where: { id: guardian.userId }, select: { phone: true } });
+    if (gu?.phone) { const { sendTemplated } = await import("./templates"); await sendTemplated("sms.guardian_approval", gu.phone, { participant_first_name: ask.participant.user.name }); } // NT2 "Guardian approval needed"
+  }
   await audit(reviewerId, "ask.mentor_confirmed", "Ask", askId, undefined, { mentorId });
   return { ok: true, connectionId: c.id };
 }

@@ -56,7 +56,12 @@ export async function submitConcern(userId: string, d: { askId?: string; kind: C
     if (askId) await db.ask.update({ where: { id: askId }, data: { reasonCode: "R_CONCERN" } });
   }
   await audit(userId, "concern.reported", "Incident", inc.id, null, { category: plan.category, severity: plan.severity });
-  await notifySafeguarding("incident.new", "A concern was reported", `${plan.severity === "HIGH" ? "High priority. " : ""}Respond within ${plan.hours} hours.`, "/admin");
+  await notifySafeguarding("incident.new", "A concern was reported", `${plan.severity === "HIGH" ? "High priority. " : ""}Respond within ${plan.hours} hours.`, `/admin/incidents/${inc.id}`);
+  if (connectionId) { // NT2 "Safeguarding concern" text to each lead with a mobile number
+    const leads = await db.user.findMany({ where: { roles: { has: "SAFEGUARDING_LEAD" }, phone: { not: null } }, select: { phone: true } });
+    const { sendTemplated } = await import("./templates");
+    for (const l of leads) await sendTemplated("sms.safeguarding_concern", l.phone!, { connection_ref: connectionId.slice(-4).toUpperCase() });
+  }
   return { ok: true, incidentId: inc.id };
 }
 

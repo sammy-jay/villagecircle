@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { audit } from "./audit";
 import { sendEmail } from "./integrations/email";
-import { sendSms } from "./integrations/sms";
+import { sendTemplated } from "./templates";
 import { newToken, newCode, sha, checkInvite, checkCode, inviteExpiry, CODE_MINUTES, maskPhone } from "./domain/tokens";
 import { eighteenthBirthday } from "./domain/age";
 import { hashPassword, passwordSchema } from "./password";
@@ -18,9 +18,8 @@ export async function createInvite(participantUserId: string, g: { name: string;
   await db.guardianInvite.updateMany({ where: { participantId: user.participant.id, state: { in: ["SENT", "REMINDED"] } }, data: { state: "LAPSED" } });
   const t = newToken();
   const inv = await db.guardianInvite.create({ data: { participantId: user.participant.id, guardianName: g.name, guardianEmail: g.email.toLowerCase(), guardianMobile: g.mobile, relationship: g.relationship, tokenHash: t.hash, expiresAt: inviteExpiry() } });
-  const first = esc(user.name.split(" ")[0]);
-  await sendEmail({ to: inv.guardianEmail, subject: `${user.name.split(" ")[0]} would like your authorization`, html:
-    `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#1D1914"><h2 style="font-family:Georgia,serif">Guardian authorization</h2><p>${first} would like to join The Village Circle to speak with a professional in the community. Before we connect them with anyone, we need your authorization as their parent or guardian.</p><p><a href="${APP()}/guardian/authorize/${t.raw}" style="background:#1F4D36;color:#fff;padding:12px 18px;border-radius:8px;text-decoration:none;display:inline-block">Review and authorize</a></p><p style="color:#6E655A;font-size:13px">This link works once and expires in 14 days.</p></div>` });
+  // NT2 "Guardian authorization request", as edited on P05.
+  await sendTemplated("email.guardian_authorize", inv.guardianEmail, { guardian_first_name: g.name, participant_first_name: user.name, topic: "school, work or life" }, { link: `${APP()}/guardian/authorize/${t.raw}` });
   await audit(participantUserId, "guardian.invite.sent", "GuardianInvite", inv.id);
   return inv;
 }
@@ -58,7 +57,10 @@ export async function sendCode(raw: string, channel: "sms" | "email" = "sms") {
   await db.guardianInvite.update({ where: { id: inv.id }, data: { codeHash: code.hash, codeExpiresAt: new Date(Date.now() + CODE_MINUTES * 60_000), codeAttempts: 0 } });
   const text = `Your Village Circle code is ${code.raw}. It expires in ${CODE_MINUTES} minutes. We will never ask you to share it.`;
   if (channel === "email") await sendEmail({ to: inv.guardianEmail, subject: "Your Village Circle code", html: `<p>${text}</p>` });
-  else await sendSms(inv.guardianMobile, text);
+  else { // NT2 "Guardian code"
+    const p = await db.participantProfile.findUnique({ where: { id: inv.participantId }, include: { user: { select: { name: true } } } });
+    await sendTemplated("sms.guardian_code", inv.guardianMobile, { code: code.raw, participant_first_name: p?.user.name ?? "" });
+  }
   return { ok: true as const };
 }
 

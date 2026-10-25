@@ -141,7 +141,13 @@ export async function createDueCheckIns(now = new Date()) {
   for (const c of conns) {
     if (!checkInDue({ endedAt: c.endedAt, status: c.status, participantOutcome: c.participantOutcome, hasCheckIn: have.has(c.id) }, now)) continue;
     try { await db.checkIn.create({ data: { connectionId: c.id, participantId: c.participantId, userId: c.participant.userId, dueAt: checkInDueAt(c.endedAt!) } }); } catch { continue; }
-    await notify(c.participant.userId, "checkin.due", "A quick check-in", `A month ago you spoke with ${firstName(c.mentor.user.name)}. Did anything change?`, { link: "/review/check-in", dedupeKey: `checkin:${c.id}` });
+    await notify(c.participant.userId, "checkin.due", "A quick check-in", `A month ago you spoke with ${firstName(c.mentor.user.name)}. Did anything change?`, { link: "/goals/check-in", dedupeKey: `checkin:${c.id}`, email: false });
+    { // NT2 "One month check-in", as edited on P05.
+      const pu = await db.user.findUnique({ where: { id: c.participant.userId }, select: { email: true, name: true } });
+      const ask = await db.ask.findUnique({ where: { id: c.askId }, include: { topic: true } });
+      const { sendTemplated } = await import("./templates");
+      if (pu) await sendTemplated("email.one_month_checkin", pu.email, { participant_first_name: pu.name, topic: ask?.topic.name.toLowerCase() ?? "your question" }, { link: `${process.env.APP_URL ?? ""}/goals/check-in` });
+    }
     n++;
   }
   return n;

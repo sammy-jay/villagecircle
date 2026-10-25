@@ -33,3 +33,19 @@ export async function resetTemplate(key: string, actorId: string) {
   await db.setting.deleteMany({ where: { key: skey(key) } }); await audit(actorId, "template.reset", "Template", key); return { ok: true as const };
 }
 export { TEMPLATES };
+
+const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+/**
+ * Sends one of the NT2 templates as edited on P05 (or the code default): an email with the pastel header, one button and the footer,
+ * or a text message. Placeholder values are cut to first names and refused if they hold contact details (safeVar).
+ */
+export async function sendTemplated(key: string, to: string, vars: Record<string, string>, o: { link?: string; attachments?: { filename: string; content: string }[] } = {}) {
+  const def = TEMPLATES.find((t) => t.key === key); if (!def || !to) return;
+  const t = await renderTemplate(key, vars);
+  if (def.channel === "SMS") { const { sendSms } = await import("./integrations/sms"); await sendSms(to, t.body).catch(() => undefined); return; }
+  const { sendEmail } = await import("./integrations/email");
+  const btn = t.cta && o.link ? `<p style="margin:22px 0"><a href="${escHtml(o.link)}" style="background:#A8472B;color:#fff;padding:13px 22px;border-radius:999px;text-decoration:none;display:inline-block;font-weight:700">${escHtml(t.cta)}</a></p>` : "";
+  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1D1914">${t.preheader ? `<div style="display:none;max-height:0;overflow:hidden">${escHtml(t.preheader)}</div>` : ""}<div style="background:#F7E4A8;border-radius:20px;padding:18px 22px;font-weight:800;color:#4B3A08">The Village Circle</div><div style="padding:18px 4px">${escHtml(t.body).replace(/\n/g, "<br>")}${btn}</div>${t.footer ? `<p style="color:#6E655A;font-size:12px;padding:0 4px">${escHtml(t.footer)}</p>` : ""}</div>`;
+  await sendEmail({ to, subject: t.subject ?? def.label, html, text: t.body, attachments: o.attachments }).catch(() => undefined);
+}

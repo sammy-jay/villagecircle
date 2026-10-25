@@ -108,7 +108,14 @@ export async function schedule(connectionId: string): Promise<R> {
     const ics = buildIcs({ uid: `${conn.id}@villagecircle`, title, startsAt: conn.scheduledAt!, minutes: conn.durationMinutes, description: `Conversation with ${who}. Join from your dashboard: ${appUrl("/")}`, organizerEmail: "noreply@villagecircle.org" });
     await notify(userId, "connection.confirmed", "Your conversation is confirmed", `${fmtWhen(conn.scheduledAt!)}. The link opens 10 minutes before. This conversation is recorded when the participant is under 18.`, { link: "/", attachments: [{ filename: "conversation.ics", content: ics }] });
   };
-  await send(conn.ask.participant.userId, shortName(conn.mentor.user.name));
+  // NT2 "Conversation confirmed" goes to the participant (with the calendar file); the in-app note stays as it was.
+  {
+    const p = conn.ask.participant.user; const g = (await guardiansOf(conn.participantId)).length > 0;
+    const ics = buildIcs({ uid: `${conn.id}@villagecircle`, title, startsAt: conn.scheduledAt!, minutes: conn.durationMinutes, description: `Conversation with ${shortName(conn.mentor.user.name)}. Join from your dashboard: ${appUrl("/")}`, organizerEmail: "noreply@villagecircle.org" });
+    await notify(p.id, "connection.confirmed", "Your conversation is confirmed", `${fmtWhen(conn.scheduledAt!)}. The link opens 10 minutes before.`, { link: `/asks/${conn.askId}`, email: false });
+    const { sendTemplated } = await import("./templates");
+    await sendTemplated("email.session_confirmed", p.email, { participant_first_name: p.name, mentor_first_name: conn.mentor.user.name, when: fmtWhen(conn.scheduledAt!), topic: conn.ask.topic.name.toLowerCase(), minutes: String(conn.durationMinutes), guardian_sentence: minor && g && conn.guardianAttends ? "Your guardian will attend." : "" }, { link: appUrl(`/asks/${conn.askId}`), attachments: [{ filename: "conversation.ics", content: ics }] });
+  }
   await send(conn.mentor.userId, "a participant");
   for (const g of await guardiansOf(conn.participantId)) await send(g.userId, shortName(conn.mentor.user.name));
   return { ok: true };
