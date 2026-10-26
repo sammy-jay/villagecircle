@@ -26,7 +26,7 @@ export function Wordmark({ className }: { className?: string }) {
  * row: height of a top-level item. gap: space between top-level items.
  * subRow: height of a page inside an open admin group. subGap: space between those pages. subPad: space above and below the open group.
  */
-const MENU = { row: "h-11", gap: "gap-1", subRow: "h-9", subGap: "gap-0.5", subPad: "py-1.5" };
+const MENU = { row: "h-11", gap: "gap-3", subRow: "h-9", subGap: "gap-1.5", subPad: "py-1.5" };
 
 /* ───────── Desktop side menu (participant, mentor, guardian) ───────── */
 
