@@ -21,16 +21,23 @@ export function Wordmark({ className }: { className?: string }) {
   );
 }
 
-/* ───────── Desktop side menu (participant, mentor) ───────── */
+/* ───────── Side menu spacing ─────────
+ * Change the up-and-down spacing of every dashboard side menu here (participant, mentor, guardian and the team console).
+ * row: height of a top-level item. gap: space between top-level items.
+ * subRow: height of a page inside an open admin group. subGap: space between those pages. subPad: space above and below the open group.
+ */
+const MENU = { row: "h-11", gap: "gap-1", subRow: "h-9", subGap: "gap-0.5", subPad: "py-1.5" };
+
+/* ───────── Desktop side menu (participant, mentor, guardian) ───────── */
 
 export function SidebarNav({ items, cta, label = "Main" }: { items: NavItem[]; cta?: { href: string; label: string }; label?: string }) {
   const path = usePathname() ?? "";
   const on = activeHref(path, items);
   return (
-    <nav aria-label={label} className="flex flex-col gap-1.5">
+    <nav aria-label={label} className={cn("flex flex-col", MENU.gap)}>
       {items.map((i) => (
         <Link key={i.href} href={i.href} aria-current={on === i.href ? "page" : undefined}
-          className={cn("flex h-[50px] items-center gap-3.5 rounded-field px-4 text-[17px] text-ink hover:bg-sand", on === i.href ? "bg-sand font-extrabold" : "font-semibold")}>
+          className={cn("flex items-center gap-3.5 rounded-field", MENU.row, "px-4 text-[17px] text-ink hover:bg-sand", on === i.href ? "bg-sand font-extrabold" : "font-semibold")}>
           <Icon name={i.icon} size={24} strokeWidth={on === i.href ? 2.2 : 1.9} />
           <span className="flex-1">{i.label}</span>
           {!!i.count && <span className="rounded-[10px] bg-clay px-2 py-0.5 text-[12px] font-normal text-clay-ink">{i.count}</span>}
@@ -58,10 +65,10 @@ export function AdminMenu({ groups = ADMIN_NAV, onNavigate }: { groups?: NavGrou
   const allItems = groups.flatMap((g) => g.items ?? []);
   const on = activeHref(path, allItems);
   return (
-    <nav aria-label="Admin" className="flex flex-col">
+    <nav aria-label="Admin" className={cn("flex flex-col", MENU.gap)}>
       {groups.map((g) => {
         const here = groupHas(path, g);
-        const row = "flex h-[50px] w-full items-center gap-3.5 rounded-tile px-4 text-[16.5px] text-ink hover:bg-sand";
+        const row = cn("flex w-full items-center", MENU.row, "gap-3.5 rounded-tile px-4 text-[16.5px] text-ink hover:bg-sand");
         if (g.href) {
           return (
             <Link key={g.label} href={g.href} onClick={onNavigate} aria-current={here ? "page" : undefined} className={cn(row, here ? "bg-butter font-bold text-butter-ink" : "font-semibold")}>
@@ -79,14 +86,14 @@ export function AdminMenu({ groups = ADMIN_NAV, onNavigate }: { groups?: NavGrou
               <Icon name="chevronDown" size={16} className={cn("text-stone transition-transform", expanded && "rotate-180")} />
             </button>
             {expanded && (
-              <ul className="mb-2 ml-[30px] border-l-2 border-line py-1">
+              <ul className={cn("mb-1 ml-[30px] flex flex-col border-l-2 border-line", MENU.subGap, MENU.subPad)}>
                 {g.items!.map((i) => {
                   const active = on === i.href;
                   return (
                     <li key={i.href} className="relative pl-[17px]">
                       <span className="absolute left-0 top-1/2 h-0.5 w-[13px] bg-line" aria-hidden="true" />
                       <Link href={i.href} onClick={onNavigate} aria-current={active ? "page" : undefined}
-                        className={cn("flex h-[42px] items-center gap-2.5 rounded-tile px-3.5 text-btn", active ? "bg-butter font-bold text-butter-ink" : "font-medium text-ink hover:bg-sand")}>
+                        className={cn("flex items-center gap-2.5 rounded-tile", MENU.subRow, "px-3.5 text-btn", active ? "bg-butter font-bold text-butter-ink" : "font-medium text-ink hover:bg-sand")}>
                         <span className={cn("size-[7px] shrink-0 rounded-full", active ? "bg-clay" : "bg-line")} aria-hidden="true" />
                         <span className="flex-1">{i.label}</span>
                         {!!i.count && <span className="text-eyebrow font-extrabold tracking-normal">{i.count}</span>}
