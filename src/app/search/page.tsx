@@ -2,9 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Fragment } from "react";
 import { Icon } from "@/components/dc/icons";
-import { ParticipantShell } from "@/components/app/app-shell";
+import { ParticipantShell, RoleShell } from "@/components/app/app-shell";
 import { Card, DateTile, PASTEL, pastelAt } from "@/components/app/feed";
 import { participantPage } from "@/lib/participant-ctx";
+import { settingsPage } from "@/lib/settings-ctx";
+import { getSession } from "@/lib/auth";
+import { guardianSearch, mentorSearch } from "@/lib/search";
+import { matchesAll } from "@/lib/domain/search";
 import { directoryFor, filterDirectory, libraryFor, upcomingEvents } from "@/lib/village";
 import { cn } from "@/lib/cn";
 
@@ -21,17 +25,69 @@ function Hit({ text, q }: { text: string; q: string }) {
 
 const TYPES = [["all", "All"], ["mentors", "Mentors"], ["tips", "Tips"], ["events", "Events"]] as const;
 
-/** N03 Search: mentor names and topics, the Library and events. Never Asks. */
+/**
+ * The search box in every top bar and the phone search icon land here. Participants get N03 (mentors, the Library, events; never Asks).
+ * Mentors and guardians search what they can already see. Team-only accounts use the console search.
+ */
 export default async function Search({ searchParams }: { searchParams: { q?: string; type?: string } }) {
+  const session = await getSession();
+  if (!session?.user?.id) redirect(`/login?next=${encodeURIComponent(`/search${searchParams.q ? `?q=${searchParams.q}` : ""}`)}`);
+  const roles = session.user.roles;
+  const team = roles.includes("ADMIN") || roles.includes("SAFEGUARDING_LEAD");
+  if (!roles.includes("PARTICIPANT")) {
+    if (team && !roles.includes("MENTOR") && !roles.includes("GUARDIAN")) redirect(`/admin/search${searchParams.q ? `?q=${encodeURIComponent(searchParams.q)}` : ""}`);
+    return <MemberSearch q={(searchParams.q ?? "").trim().slice(0, 80)} />;
+  }
+  return <ParticipantSearch searchParams={searchParams} />;
+}
+
+/** Mentor and guardian search: grouped results, each linking to the page where that thing lives. */
+async function MemberSearch({ q }: { q: string }) {
+  const r = await settingsPage();
+  if ("to" in r) redirect(r.to === "/login" ? "/login?next=/search" : r.to);
+  const c = r.ctx;
+  const groups = q.length >= 2 ? (c.role === "MENTOR" ? await mentorSearch(c.userId, q) : await guardianSearch(c.userId, q)) : [];
+  const total = groups.reduce((n, g) => n + g.hits.length, 0);
+  const placeholder = c.role === "MENTOR" ? "Search your conversations and resources" : "Search approvals and calls";
+  return (
+    <RoleShell c={c} phone={{ back: c.role === "MENTOR" ? "/mentor" : "/guardian", title: "Search" }} tabs={c.role !== "MENTOR"}
+      aside={<Card className="p-[18px] text-[13px] text-stone">{c.role === "MENTOR" ? "Search looks at Asks the team released to you, your own conversations, what you shared and the Library. Participants appear by first name only." : "Search looks at your young person's Asks and calls, and the Library."}</Card>}>
+      <form action="/search" role="search" className="flex h-[54px] items-center gap-2.5 rounded-full border-2 border-ink bg-card px-[18px]">
+        <Icon name="search" size={20} className="text-stone" />
+        <input name="q" defaultValue={q} autoFocus placeholder={placeholder} aria-label="Search" className="min-w-0 flex-1 bg-transparent text-[16px] placeholder:text-stone focus:outline-none" />
+      </form>
+      {q.length >= 2 ? (
+        <>
+          <div className="max-lg:hidden"><p className="text-[13px] font-extrabold tracking-[.04em] text-clay">SEARCH RESULTS</p><h1 className="font-display text-[36px] font-extrabold leading-[1.12] tracking-[-.01em]">{q}</h1></div>
+          <p className="text-[14px] text-bark">{total} result{total === 1 ? "" : "s"}</p>
+          {groups.map((g) => (
+            <section key={g.label} className="flex flex-col gap-2.5">
+              <h2 className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">{g.label}</h2>
+              {g.hits.slice(0, 20).map((h) => (
+                <Link key={h.key} href={h.href} className="flex flex-col gap-0.5 rounded-card border border-line bg-card p-4">
+                  <span className="text-[16px] font-bold"><Hit text={h.title} q={q} /></span>
+                  <span className="text-[13px] text-stone"><Hit text={h.sub} q={q} /></span>
+                </Link>
+              ))}
+            </section>
+          ))}
+          {total === 0 && <Card className="p-5"><h2 className="font-display text-[20px] font-extrabold">Nothing for &ldquo;{q}&rdquo;</h2><p className="mt-1 text-[14.5px] text-bark">Try fewer words, or a topic.</p></Card>}
+        </>
+      ) : <Card className="p-5 text-[14.5px] text-bark">{q ? "Type at least two letters." : "Type a topic, a first name or a title."}</Card>}
+    </RoleShell>
+  );
+}
+
+/** N03 Search for participants: mentor names and topics, the Library and events. Never Asks. */
+async function ParticipantSearch({ searchParams }: { searchParams: { q?: string; type?: string } }) {
   const r = await participantPage({ allowPaused: true });
   if ("to" in r) redirect(r.to === "/login" ? "/login?next=/search" : r.to);
   const q = (searchParams.q ?? "").trim().slice(0, 80);
   const type = TYPES.some(([k]) => k === searchParams.type) ? searchParams.type! : "all";
   const [dir, lib, evs] = await Promise.all([directoryFor(r.ctx.userId), libraryFor(r.ctx.userId), upcomingEvents(r.ctx.userId, 30)]);
-  const term = q.toLowerCase();
   const mentors = q ? filterDirectory(dir?.cards ?? [], { q }) : [];
-  const tips = q ? (lib?.cards ?? []).filter((c) => `${c.title} ${c.topic} ${c.credit}`.toLowerCase().includes(term)) : [];
-  const events = q ? evs.filter((e) => `${e.title} ${e.meta}`.toLowerCase().includes(term)) : [];
+  const tips = q ? (lib?.cards ?? []).filter((c) => matchesAll(`${c.title} ${c.topic} ${c.credit}`, q)) : [];
+  const events = q ? evs.filter((e) => matchesAll(`${e.title} ${e.meta}`, q)) : [];
   const counts = { all: mentors.length + tips.length + events.length, mentors: mentors.length, tips: tips.length, events: events.length };
   const show = (k: string) => type === "all" || type === k;
   const topics = ["Careers", "School and exams", "Money", "Studying abroad"];

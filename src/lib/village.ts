@@ -108,6 +108,9 @@ async function visibleResources(audience: Audience, q?: string) {
   const term = (q ?? "").trim().toLowerCase();
   return rs.filter((r) => resourceVisible(r, audience) && (!term || `${r.title} ${r.topics.join(" ")}`.toLowerCase().includes(term)));
 }
+/** Library cards any signed-in member can read, for search by mentors and guardians too. */
+export async function memberLibraryCards() { return toCards(await visibleResources("MEMBER")); }
+
 export async function libraryFor(userId: string) {
   const p = await participantFor(userId); if (!p) return null;
   const saved = await db.savedItem.findMany({ where: { userId } });

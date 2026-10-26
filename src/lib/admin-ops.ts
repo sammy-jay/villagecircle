@@ -1,5 +1,5 @@
 /** Step 5 admin group 2 server functions: taxonomy, broadcast, queue health, search, bulk actions, playbook. Every mutation writes an AuditEvent. */
-import type { AskState, Role } from "@prisma/client";
+import type { AskState, Prisma, Role } from "@prisma/client";
 import { db } from "./db";
 import { audit } from "./audit";
 import { notify } from "./notify";
@@ -143,16 +143,22 @@ export async function queueHealth(now: Date = new Date()) {
 
 /* ───────── Search (A21) ───────── */
 export async function globalSearch(actor: { id: string; roles: Role[] }, q: string, scope: SearchScope) {
-  const contains = { contains: q, mode: "insensitive" as const };
+  // Every word must match somewhere (A21), so "Okafor Amara" finds Amara Okafor.
+  const words = q.split(/s+/).filter((w) => w.length > 1).slice(0, 6);
+  const has = (w: string) => ({ contains: w, mode: "insensitive" as const });
+  const ws = words.length ? words : [q];
+  const userWhere: Prisma.UserWhereInput = { AND: ws.map((w) => ({ OR: [{ name: has(w) }, { email: has(w) }] })) };
+  const askWhere: Prisma.AskWhereInput = { AND: ws.map((w) => ({ OR: [{ topic: { name: has(w) } }, { participant: { user: { name: has(w) } } }] })) };
+  const incidentWhere: Prisma.IncidentWhereInput = { AND: ws.map((w) => ({ description: has(w) })) };
   const people = showScope(scope, "people") || showScope(scope, "mentors") || showScope(scope, "guardians")
     ? await db.user.findMany({
-      where: { OR: [{ name: contains }, { email: contains }], ...(scope === "mentors" ? { roles: { has: "MENTOR" as const } } : scope === "guardians" ? { roles: { has: "GUARDIAN" as const } } : {}) }, take: 10,
+      where: { ...userWhere, ...(scope === "mentors" ? { roles: { has: "MENTOR" as const } } : scope === "guardians" ? { roles: { has: "GUARDIAN" as const } } : {}) }, take: 10,
       include: { guardian: { include: { links: { where: { active: true }, include: { participant: { include: { user: { select: { name: true } } } } } } } } },
     }) : [];
   const asks = showScope(scope, "asks")
-    ? await db.ask.findMany({ where: { OR: [{ topic: { name: contains } }, { participant: { user: { name: contains } } }] }, take: 10, orderBy: { updatedAt: "desc" }, include: { topic: true, participant: { include: { user: { select: { name: true } } } } } }) : [];
+    ? await db.ask.findMany({ where: askWhere, take: 10, orderBy: { updatedAt: "desc" }, include: { topic: true, participant: { include: { user: { select: { name: true } } } } } }) : [];
   const incidents = showScope(scope, "incidents") && canSeeIncidentDetail(actor.roles)
-    ? await db.incident.findMany({ where: { description: contains }, take: 10, orderBy: { createdAt: "desc" } }).catch(() => []) : [];
+    ? await db.incident.findMany({ where: incidentWhere, take: 10, orderBy: { createdAt: "desc" } }).catch(() => []) : [];
   const out = {
     people: people.map((u) => {
       const minor = !!u.dateOfBirth && isMinor(u.dateOfBirth); const age = u.dateOfBirth ? ageOn(u.dateOfBirth) : null;

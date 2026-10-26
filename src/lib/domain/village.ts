@@ -1,3 +1,4 @@
+import { matchesAll } from "./search";
 /**
  * Step 4 village: what the community may see (directory, library, thanks wall, events).
  * Pure functions only, so the safeguarding rules are easy to test:
@@ -48,7 +49,7 @@ export interface DirectoryFilter { q?: string; profession?: string; language?: s
 export function filterDirectory(cards: DirectoryCard[], f: DirectoryFilter): DirectoryCard[] {
   const q = (f.q ?? "").trim().toLowerCase();
   return cards.filter((c) =>
-    (!q || [c.name, c.role, c.bio, ...c.expertise].join(" ").toLowerCase().includes(q)) &&
+    (!q || matchesAll([c.name, c.role, c.bio, ...c.expertise].join(" "), q)) &&
     (!f.profession || c.professions.includes(f.profession)) &&
     (!f.language || c.languages.some((l) => l.toLowerCase() === f.language!.toLowerCase())) &&
     (!f.country || c.country.toLowerCase() === f.country.toLowerCase()));
