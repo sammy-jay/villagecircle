@@ -7,10 +7,10 @@ import { Toggle } from "@/components/dc/client";
 import { Icon } from "@/components/dc/icons";
 import { ChipPicker, FieldWrap, SelectField, SubmitButton } from "@/components/forms/fields";
 import { PhoneBar } from "@/components/account/shells";
-import { BACKGROUNDS, GOALS, INTERESTS, NG_STATES, STAGES, opts } from "@/components/account/options";
+import { BACKGROUNDS, GOALS, INTERESTS, STAGES, opts, regionsFor } from "@/components/account/options";
 import { profileAction, type SelfState } from "@/app/self-actions";
 
-type P = { first: string; band: string; cohort: string | null; region: string | null; interests: string[]; goal: string; goalMore: string; background: string; show: Record<string, boolean>; updatedAt: string };
+type P = { first: string; band: string; cohort: string | null; country: string | null; region: string | null; interests: string[]; goal: string; goalMore: string; background: string; show: Record<string, boolean>; updatedAt: string };
 
 /** N07 My profile and privacy: the form, the switches, and a live preview of what a mentor sees. */
 export function ProfileForm({ p, minor }: { p: P; minor: boolean }) {
@@ -18,6 +18,7 @@ export function ProfileForm({ p, minor }: { p: P; minor: boolean }) {
   const [show, setShow] = useState(p.show);
   const [cohort, setCohort] = useState(p.cohort ?? "");
   const [region, setRegion] = useState(p.region ?? "");
+  const regions = regionsFor(p.country ?? "Nigeria");
   const [interests, setInterests] = useState(p.interests);
   const [goal, setGoal] = useState(p.goal);
   const stage = STAGES.find(([v]) => v === cohort)?.[1];
@@ -27,7 +28,7 @@ export function ProfileForm({ p, minor }: { p: P; minor: boolean }) {
     ["stage", "Show my stage", stage ?? "Not set"],
     ["interests", "Show what I am curious about", "Your interest chips"],
     ["goal", "Show my goal", goal ? `"${goal}"` : "Not set"],
-    ["state", "Show my state", region ? `${region} State. Your town and school are never shown` : "Not set"],
+    ["state", "Show my state", region ? `${region}. Your town and school are never shown` : "Not set"],
   ];
   const preview = (
     <section className="flex flex-col gap-3 rounded-card bg-butter p-5 text-butter-ink">
@@ -35,7 +36,7 @@ export function ProfileForm({ p, minor }: { p: P; minor: boolean }) {
       <div className="flex items-center gap-3"><span className="flex size-12 items-center justify-center rounded-full bg-card font-display text-[17px] font-bold">{p.first.charAt(0)}</span><div><p className="text-[17px] font-bold">{p.first}</p><p className="text-[13px]">{[show.ageBand && `Age ${p.band}`, show.stage && stage].filter(Boolean).join(" · ") || "No details shown"}</p></div></div>
       {show.goal && goal && <div><p className="text-[11.5px] font-extrabold tracking-[.05em] opacity-80">GOAL</p><p className="text-[14.5px] font-semibold">{goal}</p></div>}
       {show.interests && interests.length > 0 && <div><p className="text-[11.5px] font-extrabold tracking-[.05em] opacity-80">CURIOUS ABOUT</p><div className="mt-1 flex flex-wrap gap-1.5">{interests.map((i) => <span key={i} className="rounded-full bg-card px-3 py-1 text-[12.5px] font-semibold text-ink">{i}</span>)}</div></div>}
-      <p className="text-[12.5px]">{show.state && region ? `${region} State` : "State hidden"} · Never shown to mentors: last name, school, contact details, community background.</p>
+      <p className="text-[12.5px]">{show.state && region ? region : "State hidden"} · Never shown to mentors: last name, school, contact details, community background.</p>
     </section>
   );
 
@@ -47,7 +48,7 @@ export function ProfileForm({ p, minor }: { p: P; minor: boolean }) {
           <FieldWrap label="First name" hint="Only your first name is ever shown."><p className="flex h-[54px] items-center rounded-field border-2 border-line bg-sand px-4 text-[16px]">{p.first}</p></FieldWrap>
           <FieldWrap label="Age band" hint="We show a band, never your birthday."><p className="flex h-[54px] items-center rounded-field border-2 border-line bg-sand px-4 text-[16px]">{p.band}</p></FieldWrap>
           <FieldWrap label="Where are you right now?" htmlFor="pf-stage"><SelectField id="pf-stage" name="cohort" options={STAGES.map(([value, label]) => ({ value, label }))} value={cohort} onChange={setCohort} placeholder="Choose one" /></FieldWrap>
-          <FieldWrap label="State" htmlFor="pf-state" hint="Not your town or school."><SelectField id="pf-state" name="region" options={opts(NG_STATES)} value={region} onChange={setRegion} placeholder="Choose one" /></FieldWrap>
+          <FieldWrap label="State or region" htmlFor="pf-state" hint="Not your town or school.">{regions ? <SelectField id="pf-state" name="region" options={opts(regions)} value={region} onChange={setRegion} placeholder="Choose one" /> : <input id="pf-state" name="region" maxLength={60} value={region} onChange={(e) => setRegion(e.target.value)} className="dc-input" />}</FieldWrap>
         </div>
         <FieldWrap label="What are you curious about? Pick any"><ChipPicker name="interests" options={[...new Set([...INTERESTS, ...p.interests])]} defaultValue={p.interests} max={8} onChange={setInterests} /></FieldWrap>
         <FieldWrap label="Your goal" htmlFor="pf-goal"><SelectField id="pf-goal" name="goal" options={opts([...new Set([...(p.goal ? [p.goal] : []), ...GOALS])])} value={goal} onChange={setGoal} placeholder="Choose one" sayMore={{ name: "goalMore", defaultValue: p.goalMore, placeholder: "Say more (optional). For example: medicine or engineering?", show: "always" }} /></FieldWrap>

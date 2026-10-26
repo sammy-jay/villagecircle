@@ -18,7 +18,7 @@ export async function profileView(userId: string) {
   const show = Object.fromEntries(SHOW_KEYS.map((k) => [k, v[k] !== false])) as Record<ShowKey, boolean>;
   const goal = u.participant.goalsText;
   return {
-    first: u.name.split(" ")[0] ?? "", band: u.dateOfBirth && isMinor(u.dateOfBirth) ? "15 to 17" : "18 and over", cohort: u.participant.cohort, region: u.region, town: u.town,
+    first: u.name.split(" ")[0] ?? "", band: u.dateOfBirth && isMinor(u.dateOfBirth) ? "15 to 17" : "18 and over", cohort: u.participant.cohort, country: u.countryOfResidence, region: u.region, town: u.town,
     interests: u.participant.interests, goal: goal[0] ?? "", goalMore: goal[1] ?? "", background: u.participant.communityBackground ?? "", languages: u.languages,
     show, updatedAt: u.participant.updatedAt,
   };

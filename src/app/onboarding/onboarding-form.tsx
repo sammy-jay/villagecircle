@@ -4,15 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { useFormState } from "react-dom";
 import { Icon } from "@/components/dc/icons";
-import { ChipPicker, FieldError, FieldWrap, SelectField, SubmitButton, sayMoreClass } from "@/components/forms/fields";
+import { ChipPicker, FieldError, FieldWrap, SelectField, SubmitButton, TextField, sayMoreClass } from "@/components/forms/fields";
 import { StepBars } from "@/components/account/shells";
 import { RingAvatar } from "@/components/public/kit";
 import { initials } from "@/components/dc";
-import { BACKGROUNDS, GOALS, INTERESTS, LANGUAGES, NG_STATES, STAGES, opts } from "@/components/account/options";
+import { BACKGROUNDS, GOALS, INTERESTS, LANGUAGES, STAGES, opts, regionsFor } from "@/components/account/options";
 import { onboardingAction, type ActionState } from "@/app/account-actions";
 import { cn } from "@/lib/cn";
 
-export type OnboardingData = { first: string; band: string; cohort?: string | null; region?: string | null; town?: string | null; interests: string[]; goal?: string; goalMore?: string; background?: string; languages: string[] };
+export type OnboardingData = { first: string; band: string; cohort?: string | null; country?: string | null; region?: string | null; town?: string | null; interests: string[]; goal?: string; goalMore?: string; background?: string; languages: string[] };
 
 const HEAD: Record<number, { eyebrow: (f: string) => string; title: string; sub: string; subPhone: string }> = {
   1: { eyebrow: () => "STEP 1 OF 3", title: "Tell us a little about you", sub: "Only your name and age are needed. Everything else helps us find the right person and is up to you.", subPhone: "Only your name and age are needed. The rest is up to you." },
@@ -29,6 +29,7 @@ export function OnboardingStep({ step, data }: { step: 1 | 2 | 3; data: Onboardi
   const stage = STAGES.find(([v]) => v === cohort)?.[1].replace(/ \(.*\)$/, "");
   const h = HEAD[step]!;
   const lock = <Icon name="lock" size={18} />;
+  const regions = regionsFor(data.country ?? "Nigeria"); // accounts from before the country picker were all Nigeria
 
   return (
     <div className="flex flex-col gap-11 lg:flex-row lg:items-start">
@@ -46,8 +47,8 @@ export function OnboardingStep({ step, data }: { step: 1 | 2 | 3; data: Onboardi
             <>
               <FieldWrap label="Where are you right now?" htmlFor="o-stage" hint="Pick the one closest to you."><SelectField id="o-stage" name="cohort" options={STAGES.map(([value, label]) => ({ value, label }))} value={cohort} onChange={setCohort} /></FieldWrap>
               <FieldWrap label="Which state are you in?" htmlFor="o-state" hint="Used for anonymous counts only. Mentors never see it.">
-                <SelectField id="o-state" name="region" options={opts(NG_STATES)} defaultValue={data.region ?? undefined} />
-                <input name="town" defaultValue={data.town ?? ""} placeholder="Say more (optional), for example your city, or your country if you are outside Nigeria" aria-label="Say more about where you are (optional)" className={sayMoreClass} />
+                {regions ? <SelectField id="o-state" name="region" options={opts(regions)} defaultValue={data.region ?? undefined} /> : <TextField id="o-state" name="region" maxLength={60} defaultValue={data.region ?? ""} placeholder="Country and state or region" />}
+                <input name="town" defaultValue={data.town ?? ""} placeholder="Say more (optional), for example your city" aria-label="Say more about where you are (optional)" className={sayMoreClass} />
               </FieldWrap>
               <div className="flex items-start gap-2.5 rounded-field bg-mint px-3.5 py-3 text-[13.5px] leading-[1.45] text-mint-ink">{lock}<p>We never ask for your school, address or last name.</p></div>
             </>

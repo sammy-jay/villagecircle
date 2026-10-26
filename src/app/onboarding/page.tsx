@@ -26,7 +26,7 @@ export default async function Onboarding({ searchParams }: { searchParams: { ste
         right={<span>Welcome, {first}. <Link href={finishLater} className="font-bold text-clay">Save and finish later</Link></span>}
         phone={{ back: step > 1 ? `/onboarding?step=${step - 1}` : undefined, title: `Step ${step} of 3`, right: <Link href={finishLater} className="text-[13.5px] font-bold text-clay">Finish later</Link> }}>
         <div className="px-1 pt-2 lg:px-0 lg:pt-0">
-          <OnboardingStep step={step} data={{ first, band, cohort: u.participant.cohort, region: u.region, town: u.town, interests: u.participant.interests, goal: u.participant.goalsText[0], goalMore: u.participant.goalsText[1], background: bg || undefined, languages: u.languages }} />
+          <OnboardingStep step={step} data={{ first, band, cohort: u.participant.cohort, country: u.countryOfResidence, region: u.region, town: u.town, interests: u.participant.interests, goal: u.participant.goalsText[0], goalMore: u.participant.goalsText[1], background: bg || undefined, languages: u.languages }} />
         </div>
       </BarShell>
       <PhoneBar><OnboardingPhoneBar step={step} /></PhoneBar>
