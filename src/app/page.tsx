@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Accordion } from "@/components/public/accordion";
-import { HomeFooter } from "@/components/public/footer";
+import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
 import { BuiltForSafety, FinalCta, HOME_X, HomeHero, HowItWorks, SectionHead, ThanksWall, TrustStrip, WhoItIsFor, type WallCard } from "@/components/public/home";
 import { MIN_AGE } from "@/lib/domain/age";
@@ -57,7 +57,7 @@ export default async function Home() {
         </section>
         <FinalCta />
       </main>
-      <HomeFooter />
+      <PublicFooter className="mt-0" />
     </>
   );
 }
