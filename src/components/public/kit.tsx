@@ -19,6 +19,14 @@ export const TONE: Record<Tone, { bg: string; ink: string; border: string }> = {
 export const cycle = (i: number): Tone => (["butter", "mint", "blush"] as const)[i % 3]!;
 
 /** Page gutter: 16px on the phone, 56px on desktop, centred at the board width. */
+/**
+ * Vertical rhythm for public pages, matching the landing (HOME_Y in public/home.tsx).
+ * PAGE_STACK goes on the Gutter that holds a page's sections: the gap is the space between sections, the padding sits under the last one.
+ * SECTION_STACK goes on a section with a heading: the gap is the space between its heading and its content.
+ */
+export const PAGE_STACK = "flex flex-col gap-16 pb-12 lg:gap-32 lg:pb-24";
+export const SECTION_STACK = "flex flex-col gap-7 lg:gap-12";
+
 export function Gutter({ className, children }: { className?: string; children: ReactNode }) {
   return <div className={cn("mx-auto w-full max-w-[1280px] px-4 lg:px-14", className)}>{children}</div>;
 }
@@ -193,7 +201,7 @@ export function CtaBand({ tone, title, sub, children, className }: { tone: Tone;
     <section className={cn("flex flex-col gap-4 rounded-panel p-6 lg:flex-row lg:items-center lg:gap-[30px] lg:rounded-[36px] lg:px-11 lg:py-10", TONE[tone].bg, TONE[tone].ink, className)}>
       <div className="min-w-0 flex-1">
         <H className="text-[26px] lg:text-[38px] lg:[text-wrap:balance]">{title}</H>
-        {sub && <p className="mt-2 text-[16.5px] leading-normal opacity-90 max-lg:hidden">{sub}</p>}
+        {sub && <p className="mt-3 text-[16.5px] leading-relaxed opacity-90 max-lg:hidden">{sub}</p>}
       </div>
       <div className="flex flex-col gap-2.5 lg:flex-row lg:gap-[30px]">{children}</div>
     </section>
@@ -203,13 +211,13 @@ export function CtaBand({ tone, title, sub, children, className }: { tone: Tone;
 /** Page heading: eyebrow or tag, title, sub. Sizes are [phone, desktop] px. */
 export function Hero({ eyebrow, tag, title, sub, size = [40, 66], subSize = [16, 19], center, className, aside }: { eyebrow?: string; tag?: ReactNode; title: ReactNode; sub?: ReactNode; size?: [number, number]; subSize?: [number, number]; center?: boolean; className?: string; aside?: ReactNode }) {
   return (
-    <section className={cn("flex flex-col gap-10 pt-3 lg:flex-row lg:items-center lg:pb-7 lg:pt-16", center && "items-center text-center", className)}>
+    <section className={cn("flex flex-col gap-10 pt-8 lg:flex-row lg:items-center lg:pt-14", center && "items-center text-center", className)}>
       <div className="min-w-0 flex-1">
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
         {tag}
         <h1 className={cn("mt-2.5 font-display font-extrabold leading-[1.12] tracking-[-.02em] lg:mt-3 lg:max-w-[1060px] lg:leading-[1.02] lg:tracking-[-.025em]")}
           style={{ fontSize: `clamp(${size[0]}px, ${size[0]}px + (100vw - 390px) * ${(size[1] - size[0]) / 890}, ${size[1]}px)` }}>{title}</h1>
-        {sub && <p className={cn("mt-2.5 leading-normal text-bark lg:mt-4 lg:max-w-[700px]", center && "mx-auto")} style={{ fontSize: `clamp(${subSize[0]}px, ${subSize[0]}px + (100vw - 390px) * ${(subSize[1] - subSize[0]) / 890}, ${subSize[1]}px)` }}>{sub}</p>}
+        {sub && <p className={cn("mt-4 leading-relaxed text-bark lg:mt-5 lg:max-w-[700px]", center && "mx-auto")} style={{ fontSize: `clamp(${subSize[0]}px, ${subSize[0]}px + (100vw - 390px) * ${(subSize[1] - subSize[0]) / 890}, ${subSize[1]}px)` }}>{sub}</p>}
       </div>
       {aside}
     </section>

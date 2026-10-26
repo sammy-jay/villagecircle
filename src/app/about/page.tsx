@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/dc/icons";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { CtaBand, Gutter, H, Hero, NumberDot, RingAvatar, StatCard, TONE, cycle, type Tone } from "@/components/public/kit";
+import { CtaBand, Gutter, H, Hero, NumberDot, RingAvatar, StatCard, TONE, cycle, type Tone, PAGE_STACK, SECTION_STACK } from "@/components/public/kit";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "About us" };
@@ -26,7 +26,7 @@ export default function About() {
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:gap-0">
+        <Gutter className={PAGE_STACK}>
           <Hero eyebrow="About us" title="A village is how young people have always grown up." size={[40, 66]}
             sub="The Village Circle connects people who have walked a road with people about to start it. One hour at a time, with a team reading every question and a guardian beside every young person."
             aside={
@@ -37,7 +37,7 @@ export default function About() {
               </div>
             } />
 
-          <section className="flex flex-col gap-4 lg:gap-5 lg:pt-7">
+          <section className={SECTION_STACK}>
             <H className="text-[26px] lg:text-[40px]">What we believe</H>
             <div className="flex flex-col gap-4 lg:flex-row lg:gap-[18px]">
               {BELIEFS.map((b, i) => {
@@ -58,13 +58,13 @@ export default function About() {
             </div>
           </section>
 
-          <section className="flex flex-col gap-4 lg:pt-14">
+          <section className={SECTION_STACK}>
             <H className="text-[26px] lg:text-[40px]">How we are different</H>
             <div className="dc-card p-5 text-[15.5px] leading-[1.55] text-bark lg:hidden">
               <p>Most mentoring sites let you message strangers. We do not. Nobody can contact anyone directly, and no phone numbers or emails are ever exchanged. Every connection runs through us.</p>
               <p className="mt-6">We are small on purpose. A team member reads every Ask and every application. That is slower than software, and it is the point.</p>
             </div>
-            <p className="max-w-[760px] text-[18px] leading-normal text-bark max-lg:hidden">Most mentoring sites let you message strangers. We do not. Every connection runs through us. We are small on purpose, and that is slower than software. It is the point.</p>
+            <p className="max-w-[760px] text-[18px] leading-relaxed text-bark max-lg:hidden">Most mentoring sites let you message strangers. We do not. Every connection runs through us. We are small on purpose, and that is slower than software. It is the point.</p>
             <div className="flex gap-6 max-lg:hidden">
               <div className="dc-card flex-1 p-7">
                 <p className="text-[13px] font-bold text-bark">MOST MENTORING SITES</p>
@@ -77,7 +77,7 @@ export default function About() {
             </div>
           </section>
 
-          <section className="flex flex-col gap-4 lg:gap-5 lg:pb-10 lg:pt-14">
+          <section className={SECTION_STACK}>
             <H className="text-[26px] lg:text-[40px]">The people behind it</H>
             <div className="dc-card px-5 py-0.5 lg:hidden">
               {PEOPLE.map((p, i) => (

@@ -24,7 +24,7 @@ export default function Policy({ params }: { params: { slug: string } }) {
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-3.5 pt-3 lg:flex-row lg:items-start lg:gap-10 lg:pt-12">
+        <Gutter className="flex flex-col gap-5 pb-12 pt-8 lg:flex-row lg:items-start lg:gap-12 lg:pb-24 lg:pt-14">
           <nav aria-label="Policies" className="flex w-[290px] flex-none flex-col gap-1.5 max-lg:hidden lg:sticky lg:top-5">
             <H className="px-4 pb-2.5 text-[24px]">Policies</H>
             {POLICIES.map((x) => {

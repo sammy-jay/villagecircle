@@ -3,7 +3,7 @@ import { Icon } from "@/components/dc/icons";
 import { FaqBrowser } from "@/components/public/accordion";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { Gutter, H, Hero, IconTile, LinkRows } from "@/components/public/kit";
+import { Gutter, H, Hero, IconTile, LinkRows, PAGE_STACK } from "@/components/public/kit";
 import { FAQ } from "@/lib/public-content";
 
 export const metadata = { title: "FAQ" };
@@ -14,7 +14,7 @@ export default function Faq({ searchParams }: { searchParams: { q?: string; topi
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:gap-0">
+        <Gutter className={PAGE_STACK}>
           <Hero eyebrow="FAQ" title="Questions, answered plainly." size={[40, 64]} sub="Cannot find yours? Contact the team. A person replies within two business days." />
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-10 lg:pt-3">
             <div className="min-w-0 flex-1"><FaqBrowser items={FAQ} initialQ={searchParams.q ?? ""} topic={searchParams.topic} /></div>

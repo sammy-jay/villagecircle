@@ -1,7 +1,7 @@
 import { PublicFooter } from "@/components/public/footer";
 import { ReportArea } from "@/components/public/forms";
 import { PublicHeader } from "@/components/public/header";
-import { Eyebrow, Gutter, H, NumberDot, OTag } from "@/components/public/kit";
+import { Eyebrow, Gutter, H, NumberDot, OTag, PAGE_STACK } from "@/components/public/kit";
 
 export const metadata = { title: "Report a concern" };
 
@@ -31,8 +31,8 @@ export default function Report({ searchParams }: { searchParams: { ask?: string 
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:gap-0">
-          <section className="pt-3 lg:pb-7 lg:pt-16">
+        <Gutter className={PAGE_STACK}>
+          <section className="pt-8 lg:pt-14">
             <Eyebrow className="max-lg:hidden">Report a concern</Eyebrow>
             <OTag icon="lock" className="text-mint-ink lg:hidden">Private</OTag>
             <h1 className="mt-3 font-display text-[38px] font-extrabold leading-[1.12] tracking-[-.02em] lg:max-w-[1060px] lg:text-[60px] lg:leading-[1.02] lg:tracking-[-.025em]">Report a concern. It takes one step.</h1>

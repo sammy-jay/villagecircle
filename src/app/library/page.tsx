@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/dc/icons";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { Eyebrow, Gutter, H, IconTile, OTag, Pill, TONE, cycle } from "@/components/public/kit";
+import { Eyebrow, Gutter, H, IconTile, OTag, Pill, TONE, cycle, PAGE_STACK } from "@/components/public/kit";
 import { MIN_AGE } from "@/lib/domain/age";
 import { publicLibrary, type ResourceCard } from "@/lib/village";
 import { cn } from "@/lib/cn";
@@ -39,8 +39,8 @@ export default async function Library({ searchParams }: { searchParams: { q?: st
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-3.5 lg:gap-0">
-          <section className="pt-3 lg:pb-5 lg:pt-16">
+        <Gutter className={PAGE_STACK}>
+          <section className="pt-8 lg:pt-14">
             <Eyebrow>Public library</Eyebrow>
             <h1 className="mt-2.5 font-display text-[38px] font-extrabold leading-[1.12] tracking-[-.02em] lg:mt-3 lg:text-[66px] lg:leading-none lg:tracking-[-.03em]">What the village already knows.</h1>
             <p className="mt-2.5 max-w-[640px] text-[16px] leading-normal text-bark lg:mt-4 lg:text-[19px]">Advice, templates and recordings from mentors<span className="max-lg:hidden"> in the community</span>. Open to everyone. No account needed.</p>
@@ -85,7 +85,7 @@ export default async function Library({ searchParams }: { searchParams: { q?: st
             </ul>
           )}
 
-          <section className="dc-card flex flex-col gap-4 p-[22px] lg:mt-9 lg:flex-row lg:items-center lg:gap-7 lg:rounded-[36px] lg:px-10 lg:py-9">
+          <section className="dc-card flex flex-col gap-4 p-[22px] lg:flex-row lg:items-center lg:gap-7 lg:rounded-[36px] lg:px-10 lg:py-9">
             <IconTile icon="message" tone="butter" size={64} iconSize={32} radius={16} className="max-lg:hidden" />
             <div className="flex-1">
               <H className="text-[24px] lg:text-[30px]">Want to ask someone directly?</H>

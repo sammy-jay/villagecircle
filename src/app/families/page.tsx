@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/dc/icons";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { ApprovalSample, CheckList, CtaBand, Gutter, H, NumberDot, OTag, PhoneActionBar } from "@/components/public/kit";
+import { ApprovalSample, CheckList, CtaBand, Gutter, H, NumberDot, OTag, PhoneActionBar, PAGE_STACK, SECTION_STACK } from "@/components/public/kit";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "For families" };
@@ -34,12 +34,12 @@ export default function Families() {
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:gap-0">
-          <section className="flex items-center gap-12 pt-3 lg:pb-5 lg:pt-[70px]">
+        <Gutter className={PAGE_STACK}>
+          <section className="flex items-center gap-12 pt-8 lg:pt-14">
             <div className="flex-1">
               <OTag icon="heart" className="text-mint-ink">For families</OTag>
               <h1 className="mt-3 font-display text-[38px] font-extrabold leading-[1.12] tracking-[-.02em] lg:mt-4 lg:text-[64px] lg:leading-[1.02] lg:tracking-[-.025em]">You are not handing your child to strangers.</h1>
-              <p className="mt-2.5 max-w-[560px] text-[16.5px] leading-normal text-bark lg:mt-[18px] lg:text-[20px]">You are building a village around them. You stay in charge at every step.</p>
+              <p className="mt-2.5 max-w-[560px] text-[16.5px] leading-relaxed text-bark lg:mt-[18px] lg:text-[20px]">You are building a village around them. You stay in charge at every step.</p>
               <div className="mt-7 flex gap-3 max-lg:hidden">
                 <Link href={GUARDIAN} className="dc-btn dc-btn-primary h-[58px]"><Icon name="arrowRight" size={18} />Set up as a guardian</Link>
                 <Link href="/policies/family-guidelines" className="dc-btn dc-btn-soft h-[58px]">Read the family guidelines</Link>
@@ -48,7 +48,7 @@ export default function Families() {
             <div className="w-[470px] flex-none max-lg:hidden">{sample}</div>
           </section>
 
-          <section className="flex flex-col gap-4 lg:gap-5 lg:pt-12">
+          <section className={SECTION_STACK}>
             <H className="text-[26px] lg:text-[40px]">Where you decide</H>
             <div className="dc-card px-5 py-0.5 lg:hidden">
               {DECIDE.map(([t, s], i) => (
@@ -71,7 +71,7 @@ export default function Families() {
 
           <div className="lg:hidden">{sample}</div>
 
-          <section className="flex flex-col gap-4 rounded-[30px] bg-mint p-6 text-mint-ink lg:mt-12 lg:flex-row lg:items-center lg:gap-11 lg:rounded-[36px] lg:p-11">
+          <section className="flex flex-col gap-4 rounded-[30px] bg-mint p-6 text-mint-ink lg:flex-row lg:items-center lg:gap-11 lg:rounded-[36px] lg:p-11">
             <div className="lg:w-[400px] lg:flex-none">
               <Icon name="shieldCheck" size={36} className="lg:hidden" /><Icon name="shieldCheck" size={44} className="max-lg:hidden" />
               <H className="mt-2.5 text-[28px] lg:mt-3.5 lg:text-[40px]">How we keep your child safe</H>
@@ -98,7 +98,7 @@ export default function Families() {
             </div>
           </div>
 
-          <CtaBand tone="butter" className="mt-12 max-lg:hidden" title="A village for your child starts with your yes." sub="Set up a guardian account first. Your child can join once you have said yes.">
+          <CtaBand tone="butter" className="max-lg:hidden" title="A village for your child starts with your yes." sub="Set up a guardian account first. Your child can join once you have said yes.">
             <Link href={GUARDIAN} className="dc-btn dc-btn-primary h-14"><Icon name="arrowRight" size={18} />Set up as a guardian</Link>
             <Link href="/help#contact" className="dc-btn dc-btn-outline h-14">Talk to the team</Link>
           </CtaBand>

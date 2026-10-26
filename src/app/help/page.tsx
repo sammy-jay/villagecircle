@@ -3,7 +3,7 @@ import { Icon, type IconName } from "@/components/dc/icons";
 import { PublicFooter } from "@/components/public/footer";
 import { ContactForm } from "@/components/public/forms";
 import { PublicHeader } from "@/components/public/header";
-import { Eyebrow, Gutter, H, IconTile, TONE, type Tone } from "@/components/public/kit";
+import { Eyebrow, Gutter, H, IconTile, TONE, type Tone, PAGE_STACK } from "@/components/public/kit";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "Help centre" };
@@ -21,8 +21,8 @@ export default function Help() {
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:gap-0">
-          <section className="pt-3 lg:flex lg:flex-col lg:items-center lg:pb-5 lg:pt-16 lg:text-center">
+        <Gutter className={PAGE_STACK}>
+          <section className="pt-8 lg:flex lg:flex-col lg:items-center lg:pt-14 lg:text-center">
             <Eyebrow>Help centre</Eyebrow>
             <h1 className="mt-2.5 font-display text-[42px] font-extrabold leading-[1.12] tracking-[-.02em] lg:mt-3 lg:text-[72px] lg:tracking-[-.03em]">How can we help?</h1>
             <p className="mt-2.5 text-[16px] leading-normal text-bark lg:mt-3 lg:text-[19px]">Pick what is closest. You will get a reply from a person, not a bot.</p>
@@ -34,7 +34,7 @@ export default function Help() {
             </form>
           </section>
 
-          <section aria-label="Topics" className="flex flex-col gap-4 lg:flex-row lg:gap-[18px] lg:pt-6">
+          <section aria-label="Topics" className="flex flex-col gap-4 lg:flex-row lg:gap-[18px]">
             {TOPICS.map((t) => (
               <Link key={t.title} href={`/faq?topic=${t.topic}`} className={cn("flex flex-1 items-center gap-3.5 rounded-[22px] p-4 lg:min-h-[170px] lg:flex-col lg:items-start lg:gap-0 lg:rounded-card lg:p-[18px]", TONE[t.tone].bg, TONE[t.tone].ink)}>
                 <IconTile icon={t.icon} tone={t.tone} white size={46} iconSize={23} radius={16} className="lg:hidden" />

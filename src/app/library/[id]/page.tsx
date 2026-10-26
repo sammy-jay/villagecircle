@@ -19,8 +19,8 @@ export default async function Resource({ params }: { params: { id: string } }) {
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:max-w-[920px] lg:gap-5">
-          <Link href="/library" className="inline-flex items-center gap-1.5 pt-3 text-[14px] font-bold text-clay lg:pt-12"><Icon name="arrowLeft" size={16} />Public library</Link>
+        <Gutter className="flex flex-col gap-5 pb-12 lg:max-w-[920px] lg:gap-6 lg:pb-24">
+          <Link href="/library" className="inline-flex items-center gap-1.5 pt-8 text-[14px] font-bold text-clay lg:pt-14"><Icon name="arrowLeft" size={16} />Public library</Link>
           <div className="flex flex-wrap gap-2"><OTag>{r.card.kind}</OTag>{r.card.topic && <Pill>{r.card.topic}</Pill>}</div>
           <h1 className="font-display text-[34px] font-extrabold leading-[1.12] tracking-[-.02em] lg:text-[52px] lg:tracking-[-.025em]">{r.card.title}</h1>
           <p className="flex flex-wrap items-center gap-2 text-[14px] text-stone">

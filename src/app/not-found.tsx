@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/dc/icons";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { Gutter, H, LinkRows, OTag } from "@/components/public/kit";
+import { Gutter, H, LinkRows, OTag, PAGE_STACK, SECTION_STACK } from "@/components/public/kit";
 
 export const metadata = { title: "Page not found" };
 
@@ -35,9 +35,9 @@ export default function NotFound() {
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:gap-0">
+        <Gutter className={PAGE_STACK}>
           <Art phone />
-          <section className="flex items-center gap-10 lg:pb-10 lg:pt-[90px]">
+          <section className="flex items-center gap-10 pt-8 lg:pt-20">
             <div className="flex flex-1 flex-col gap-4 lg:gap-5">
               <div>
                 <OTag className="text-blush-ink">Page not found</OTag>
@@ -52,7 +52,7 @@ export default function NotFound() {
             </div>
             <Art />
           </section>
-          <section className="flex flex-col gap-4 lg:pt-5">
+          <section className={SECTION_STACK}>
             <H className="text-[28px] max-lg:hidden">Or try one of these</H>
             <LinkRows className="lg:hidden" rows={[...TRY]} />
             <div className="flex gap-[18px] max-lg:hidden">

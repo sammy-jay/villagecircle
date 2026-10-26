@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Icon, type IconName } from "@/components/dc/icons";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { CheckList, Gutter, H, IconTile, NumberDot, OTag, PhoneActionBar, StepTrail, TONE } from "@/components/public/kit";
+import { CheckList, Gutter, H, IconTile, NumberDot, OTag, PhoneActionBar, StepTrail, TONE, PAGE_STACK, SECTION_STACK } from "@/components/public/kit";
 import { MIN_AGE } from "@/lib/domain/age";
 import { cn } from "@/lib/cn";
 
@@ -40,8 +40,8 @@ export default function BecomeAMentor() {
     <>
       <PublicHeader />
       <main id="main">
-        <Gutter className="flex flex-col gap-4 lg:gap-0">
-          <section className="flex flex-col gap-10 rounded-[32px] bg-mint p-6 text-mint-ink lg:mt-10 lg:flex-row lg:items-center lg:rounded-[40px] lg:p-14">
+        <Gutter className={PAGE_STACK}>
+          <section className="flex flex-col gap-10 rounded-[32px] bg-mint p-6 text-mint-ink max-lg:mt-8 lg:mt-14 lg:flex-row lg:items-center lg:rounded-[40px] lg:p-14">
             <div className="flex-1">
               <OTag icon="heart">Become a mentor</OTag>
               <h1 className="mt-3.5 font-display text-[50px] font-extrabold leading-[.98] tracking-[-.03em] lg:mt-4 lg:text-[84px]">Give an hour.<br />Change a week.</h1>
@@ -55,7 +55,7 @@ export default function BecomeAMentor() {
           </section>
           <Challenge className="lg:hidden" />
 
-          <section className="flex flex-col gap-4 lg:gap-5 lg:pt-14">
+          <section className={SECTION_STACK}>
             <H className="text-[26px] lg:text-[40px]">What we ask of you</H>
             <div className="flex flex-col gap-4 lg:flex-row">
               {ASKS.map((a, i) => {
@@ -101,7 +101,7 @@ export default function BecomeAMentor() {
             </div>
           </div>
 
-          <section className="mt-10 flex items-center gap-[30px] rounded-[36px] bg-blush px-11 py-10 text-blush-ink max-lg:hidden">
+          <section className="flex items-center gap-[30px] rounded-[36px] bg-blush px-11 py-10 text-blush-ink max-lg:hidden">
             <div className="min-w-0 flex-1">
               <H className="text-[38px] [text-wrap:balance]">One hour a month. Twelve a year.</H>
               <p className="mt-2 text-[16.5px] leading-normal opacity-90">No league tables and no star ratings. Gratitude is the reward.</p>
