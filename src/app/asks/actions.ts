@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
-import { changeTopic, closeAsAnswered, getOwnAsk, reopenAsk, saveAnswers, startAsk, submitAsk, withdrawAsk } from "@/lib/asks";
+import { changeTopic, closeAsAnswered, deleteDraft, getOwnAsk, reopenAsk, saveAnswers, startAsk, submitAsk, withdrawAsk } from "@/lib/asks";
 import { CONTINUE_AT, PROMPTS } from "@/lib/domain/ask-answers";
 import { sendMessage } from "@/lib/ask-thread";
 import { joinCall, pickTime, reportOutcome, requestFollowUp, requestNewTimes, submitThanks } from "@/lib/connections";
@@ -73,6 +73,13 @@ export async function answeredAction(fd: FormData) {
   if (!r.ok) redirect(edit(askId, "read"));
   revalidatePath("/asks");
   redirect(`/asks/${askId}`);
+}
+
+/** Delete a draft, then back to My Asks. */
+export async function deleteDraftAction(fd: FormData) {
+  const r = await deleteDraft(await uid(), str(fd, "askId"));
+  revalidatePath("/asks");
+  redirect(r.ok ? "/asks?deleted=1" : "/asks");
 }
 
 /** D12 step 4: both promises ticked, then submit. Minors go to their guardian, adults to the team, crisis wording to EX9. */

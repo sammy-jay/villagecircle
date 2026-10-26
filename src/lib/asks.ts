@@ -150,6 +150,21 @@ export async function closeAsAnswered(userId: string, askId: string): Promise<R>
   const m = await moveAsk(askId, "ANSWERED_BY_RESOURCE", "PARTICIPANT", { actorId: userId }); return m.ok ? { ok: true } : m;
 }
 
+/** Delete a draft for good. Only drafts: once an Ask is sent it has a history that the team keeps. */
+export async function deleteDraft(userId: string, askId: string): Promise<R> {
+  const o = await ownAsk(userId, askId); if (!o) return fail("Ask not found.");
+  if (o.ask.state !== "DRAFT") return fail("Only drafts can be deleted. You can withdraw an Ask that was sent.");
+  await db.$transaction([
+    db.askStateChange.deleteMany({ where: { askId } }),
+    db.askMessage.deleteMany({ where: { askId } }),
+    db.review.deleteMany({ where: { askId } }),
+    db.shortlistEntry.deleteMany({ where: { askId } }),
+    db.guardianAuthorization.deleteMany({ where: { askId } }),
+    db.ask.delete({ where: { id: askId } }),
+  ]);
+  return { ok: true };
+}
+
 /** "Reopen with the same answers": a fresh draft, because ended Asks never come back to life. */
 export async function reopenAsk(userId: string, askId: string): Promise<R<{ id: string }>> {
   const o = await ownAsk(userId, askId); if (!o) return fail("Ask not found.");

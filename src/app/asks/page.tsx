@@ -6,6 +6,7 @@ import { ParticipantShell } from "@/components/app/app-shell";
 import { AskCard, Card } from "@/components/app/feed";
 import { Journey } from "@/components/app/ask-journey";
 import { ClosedCard } from "./[id]/exit-views";
+import { DeleteDraft } from "./delete-draft";
 import { participantPage } from "@/lib/participant-ctx";
 import { listOwnAsks } from "@/lib/asks";
 import { trackerView } from "@/lib/connections";
@@ -45,7 +46,7 @@ function line(a: { state: string; mentorShort: string | null; scheduledAt: Date 
 }
 
 /** D13 My Asks: active and closed, the current one expanded with its journey. */
-export default async function MyAsks({ searchParams }: { searchParams: { tab?: string } }) {
+export default async function MyAsks({ searchParams }: { searchParams: { tab?: string; deleted?: string } }) {
   const r = await participantPage({ allowPaused: true });
   if ("to" in r) redirect(r.to === "/login" ? "/login?next=/asks" : r.to);
   const own = await listOwnAsks(r.ctx.userId);
@@ -61,6 +62,17 @@ export default async function MyAsks({ searchParams }: { searchParams: { tab?: s
   const row = (a: (typeof own.asks)[number]) => {
     const stamp = a.state === "DRAFT" ? `Edited ${day(a.updatedAt)}` : a.exitedAt ? `Closed ${day(a.exitedAt)}` : a.submittedAt ? `Sent ${day(a.submittedAt)}` : "";
     const href = a.state === "DRAFT" ? `/asks/${a.id}/edit` : `/asks/${a.id}`;
+    if (a.state === "DRAFT") return (
+      <div key={a.id} className="flex flex-col gap-2 rounded-card border border-line bg-card p-[18px]">
+        <div className="flex items-center gap-2.5">{a.state in ASK_TAG && <AskTag state={a.state as AskTagKey} />}<span className="text-[12.5px] text-stone">{stamp}</span></div>
+        <Link href={href} className="font-display text-[19px] font-extrabold leading-[1.15] tracking-[-.01em] hover:text-clay">{a.title}</Link>
+        <p className="text-[14px] leading-normal text-bark">{line(a, guardian)}</p>
+        <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Link href={href} className="inline-flex items-center gap-1.5 text-[14px] font-bold text-forest"><Icon name="pencil" size={16} />Carry on</Link>
+          <DeleteDraft askId={a.id} />
+        </div>
+      </div>
+    );
     return (
       <Link key={a.id} href={href} className="flex flex-col gap-2 rounded-card border border-line bg-card p-[18px]">
         <div className="flex items-center gap-2.5">{a.state in ASK_TAG && <AskTag state={a.state as AskTagKey} />}<span className="text-[12.5px] text-stone">{stamp}</span></div>
@@ -120,6 +132,7 @@ export default async function MyAsks({ searchParams }: { searchParams: { tab?: s
         <Link href="/asks/new" className="dc-btn dc-btn-primary h-[50px]"><Icon name="plus" size={18} />New Ask</Link>
       </div>
       <h1 className="sr-only lg:hidden">My Asks</h1>
+      {searchParams.deleted === "1" && <p role="status" className="rounded-[18px] bg-mint px-4 py-3 text-[15px] font-semibold text-mint-ink">Draft deleted.</p>}
       {tabs}
       {tab === "active" ? (
         <>

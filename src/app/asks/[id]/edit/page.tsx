@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { answeredAction } from "@/app/asks/actions";
 import { cn } from "@/lib/cn";
 import { EditLink, SendForm, TellAside, TellStep, TopicStep } from "./steps";
+import { DeleteDraft } from "../../delete-draft";
 
 export const metadata = { title: "New Ask" };
 export const dynamic = "force-dynamic";
@@ -45,7 +46,12 @@ export default async function EditAsk({ params, searchParams }: { params: { id: 
 
   const a = own?.ask.answers;
   const back = fresh ? "/home" : step === "topic" ? "/asks" : `/asks/${params.id}/edit?step=${STEPS[idx - 1]}`;
-  const draftNote = <p className="text-center text-[12.5px] text-stone">Draft saved. It waits for 30 days.</p>;
+  const draftNote = (
+    <div className="flex flex-col items-center gap-2">
+      <p className="text-center text-[12.5px] text-stone">Draft saved. It waits for 30 days.</p>
+      {own?.ask.state === "DRAFT" && <DeleteDraft askId={own.ask.id} className="text-[13px]" />}
+    </div>
+  );
   const minorNote = c.minor && (
     <div className="flex gap-3 rounded-[20px] bg-mint px-4 py-3.5 text-[13.5px] leading-[1.45] text-mint-ink">
       <Icon name="shieldCheck" size={22} className="shrink-0" />
