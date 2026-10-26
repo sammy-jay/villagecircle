@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Accordion } from "@/components/public/accordion";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { BuiltForSafety, FinalCta, HOME_X, HomeHero, HowItWorks, SectionHead, ThanksWall, TrustStrip, WhoItIsFor, type WallCard } from "@/components/public/home";
+import { BuiltForSafety, FinalCta, HOME_X, HOME_Y, HomeHero, HowItWorks, SectionHead, ThanksWall, TrustStrip, WhoItIsFor, type WallCard } from "@/components/public/home";
 import { MIN_AGE } from "@/lib/domain/age";
 import { FAQ } from "@/lib/public-content";
 import { thanksWall } from "@/lib/village";
@@ -48,11 +48,11 @@ export default async function Home() {
         <WhoItIsFor minAge={MIN_AGE} />
         {wall.length > 0 && <ThanksWall cards={wall} />}
         <BuiltForSafety />
-        <section className={cn("mx-auto max-w-[1280px] py-5 lg:py-[30px]", HOME_X)}>
+        <section className={cn("mx-auto max-w-[1280px]", HOME_Y, HOME_X)}>
           <div className="mx-auto max-w-[860px]">
             <SectionHead eyebrow="FAQ" title="Questions people ask first" center />
             <Accordion items={HOME_FAQ} variant="mint" />
-            <p className="mt-4 text-center"><Link href="/faq" className="text-[15px] font-bold text-clay">See all questions</Link></p>
+            <p className="mt-6 text-center"><Link href="/faq" className="text-[15px] font-bold text-clay">See all questions</Link></p>
           </div>
         </section>
         <FinalCta />

@@ -7,6 +7,8 @@ import { ApprovalSample, CheckDot, H, IconTile, Pill, RingAvatar, StatCard, TONE
 /* Sections of the landing board (V-Main). Phone gutters here are 18px, as on the board. */
 
 export const HOME_X = "px-[18px] lg:px-14";
+/** Space above and below each landing section. Raise or lower it here to change the rhythm of the whole page. */
+export const HOME_Y = "py-12 lg:py-24";
 
 /** Row that scrolls sideways on the phone and becomes a grid on desktop. */
 export function Rail({ cols, children, className }: { cols: 3 | 4 | 5; children: ReactNode; className?: string }) {
@@ -23,10 +25,10 @@ const railItem = (w: string) => cn("flex-none snap-start lg:w-auto", w);
 
 export function SectionHead({ eyebrow, title, phoneTitle, sub, phoneSub = true, center, className }: { eyebrow: string; title: string; phoneTitle?: string; sub?: string; phoneSub?: boolean; center?: boolean; className?: string }) {
   return (
-    <div className={cn("mb-4 flex flex-col gap-2.5 lg:mb-6", center && "items-center text-center", className)}>
+    <div className={cn("mb-7 flex flex-col gap-3 lg:mb-12", center && "items-center text-center", className)}>
       <p className="text-[13px] font-extrabold tracking-[.05em] text-clay">{eyebrow}</p>
       <H className="text-[28px] lg:text-[44px]">{phoneTitle ? <><span className="lg:hidden">{phoneTitle}</span><span className="max-lg:hidden">{title}</span></> : title}</H>
-      {sub && <p className={cn("mt-0.5 max-w-[680px] text-[16px] leading-normal text-bark lg:text-[18px]", !phoneSub && "max-lg:hidden")}>{sub}</p>}
+      {sub && <p className={cn("mt-1 max-w-[680px] text-[16px] leading-relaxed text-bark lg:text-[18px]", !phoneSub && "max-lg:hidden")}>{sub}</p>}
     </div>
   );
 }
@@ -77,23 +79,23 @@ function MentorsMini({ className }: { className?: string }) {
 
 export function HomeHero({ minAge }: { minAge: number }) {
   return (
-    <section className={cn("mx-auto flex max-w-[1280px] items-center gap-[30px] overflow-hidden pb-[30px] pt-[26px] lg:overflow-visible lg:pb-5 lg:pt-10", HOME_X)}>
+    <section className={cn("mx-auto flex max-w-[1280px] items-center gap-[30px] overflow-hidden pb-10 pt-8 lg:overflow-visible lg:pb-16 lg:pt-14", HOME_X)}>
       <div className="min-w-0 flex-[1_1_560px]">
         <div className="flex flex-wrap items-center gap-2.5">
           <Pill tone="butter" icon="smile" className="text-[13px]">For ages {minAge} and up</Pill>
           <span className="text-[13.5px] font-bold text-clay">Ask the Village</span>
         </div>
-        <h1 className="mt-[18px] font-display text-[60px] font-extrabold leading-[.96] tracking-[-.03em] lg:text-[88px]">Ask the<br />village<span className="text-clay">.</span></h1>
-        <p className="mt-4 font-display text-[20px] font-extrabold leading-[1.15] text-forest lg:text-[26px]">Rebuilding the Village.<br />Empowering the Next Generation.</p>
-        <p className="mt-4 max-w-[520px] text-[17px] leading-normal text-bark lg:text-[20px]">Ask a question about school, work or life. The village finds someone who has walked that road and is glad to give an hour.</p>
-        <div className="mt-[22px] flex flex-col gap-2.5 lg:mt-7 lg:flex-row lg:gap-3">
+        <h1 className="mt-6 font-display text-[60px] font-extrabold leading-[.96] tracking-[-.03em] lg:text-[88px]">Ask the<br />village<span className="text-clay">.</span></h1>
+        <p className="mt-5 font-display text-[20px] font-extrabold leading-[1.15] text-forest lg:text-[26px]">Rebuilding the Village.<br />Empowering the Next Generation.</p>
+        <p className="mt-5 max-w-[520px] text-[17px] leading-relaxed text-bark lg:text-[20px]">Ask a question about school, work or life. The village finds someone who has walked that road and is glad to give an hour.</p>
+        <div className="mt-8 flex flex-col gap-3 lg:mt-10 lg:flex-row">
           <Link href="/register" className="dc-btn dc-btn-primary h-[58px] lg:h-[60px]"><Icon name="arrowRight" size={18} />Start an Ask</Link>
           <Link href="/become-a-mentor" className="dc-btn dc-btn-ghost h-[54px] lg:h-[60px]">I would like to mentor</Link>
         </div>
-        <Link href="/families" className="mt-[18px] inline-flex items-center gap-2 text-[15px] font-bold text-forest"><Icon name="shieldCheck" size={20} />I am a parent or guardian<Icon name="arrowRight" size={16} strokeWidth={2.5} /></Link>
+        <Link href="/families" className="mt-6 inline-flex items-center gap-2 text-[15px] font-bold text-forest"><Icon name="shieldCheck" size={20} />I am a parent or guardian<Icon name="arrowRight" size={16} strokeWidth={2.5} /></Link>
 
         {/* Phone collage */}
-        <div className="relative mt-[22px] flex flex-col gap-3 pt-2.5 lg:hidden" aria-hidden="true">
+        <div className="relative mt-10 flex flex-col gap-3 pt-2.5 lg:hidden" aria-hidden="true">
           <div className="absolute -left-[30px] top-[30px] size-[230px] rounded-full bg-mint" />
           <div className="absolute -right-5 top-[300px] size-[170px] rounded-full bg-butter" />
           <AskCard className="relative w-[300px] max-w-full -rotate-3" />
@@ -120,7 +122,7 @@ const TRUST: { icon: IconName; tone: Tone; title: string; sub: string }[] = [
 ];
 export function TrustStrip() {
   return (
-    <section aria-label="Promises" className={cn("mx-auto grid max-w-[1280px] grid-cols-2 gap-2.5 py-1 lg:grid-cols-4 lg:gap-3.5 lg:py-2.5", HOME_X)}>
+    <section aria-label="Promises" className={cn("mx-auto grid max-w-[1280px] grid-cols-2 gap-3 py-4 lg:grid-cols-4 lg:gap-4 lg:py-8", HOME_X)}>
       {TRUST.map((t) => (
         <div key={t.title} className={cn("flex flex-col items-start gap-2 rounded-[22px] px-4 py-3.5 lg:flex-row lg:items-center lg:gap-3", TONE[t.tone].bg, TONE[t.tone].ink)}>
           <IconTile icon={t.icon} tone={t.tone} white size={38} iconSize={19} className="lg:hidden" />
@@ -157,7 +159,7 @@ const STEPS: { tone: Tone; rot: string; title: string; body: string; art: ReactN
 ];
 export function HowItWorks() {
   return (
-    <section id="how" className={cn("mx-auto max-w-[1280px] scroll-mt-20 py-5 lg:py-[30px]", HOME_X)}>
+    <section id="how" className={cn("mx-auto max-w-[1280px] scroll-mt-20", HOME_Y, HOME_X)}>
       <SectionHead eyebrow="HOW IT WORKS" title="From a question to a conversation in four plain steps" sub="Every Ask shows one plain status and what happens next, so nobody is left wondering." />
       <Rail cols={4} className="lg:gap-[18px]">
         {STEPS.map((s, i) => (
@@ -167,7 +169,7 @@ export function HowItWorks() {
               <span className="flex size-8 flex-none items-center justify-center rounded-full bg-white font-display text-[15px] font-extrabold">{i + 1}</span>
               <H as="h3" className="text-[21px]">{s.title}</H>
             </div>
-            <p className="mt-2.5 text-[14.5px] leading-normal opacity-[.92]">{s.body}</p>
+            <p className="mt-3 text-[14.5px] leading-relaxed opacity-[.92]">{s.body}</p>
           </div>
         ))}
       </Rail>
@@ -184,7 +186,7 @@ const STAGES: [IconName, string, string, string][] = [
 ];
 export function WhoItIsFor({ minAge }: { minAge: number }) {
   return (
-    <section className={cn("mx-auto max-w-[1280px] py-[22px] lg:py-9", HOME_X)}>
+    <section className={cn("mx-auto max-w-[1280px]", HOME_Y, HOME_X)}>
       <SectionHead eyebrow="WHO IT IS FOR" title="A mentor for every stage of the road" />
       <Rail cols={4} className="lg:gap-4">
         {STAGES.map(([icon, age, title, body], i) => {
@@ -193,13 +195,13 @@ export function WhoItIsFor({ minAge }: { minAge: number }) {
             <div key={title} className={cn(railItem("w-[236px]"), "rounded-[26px] p-3.5 lg:p-5", TONE[tone].bg, TONE[tone].ink)}>
               <div className="flex items-center gap-2.5"><IconTile icon={icon} tone={tone} white size={44} iconSize={22} radius={14} /><p className="text-[12px] font-extrabold tracking-[.04em] opacity-80">{i === 0 ? `AGES ${minAge} TO 17` : age}</p></div>
               <H as="h3" className="mt-3 text-[22px]">{title}</H>
-              <p className="mt-1.5 text-[13.5px] leading-normal lg:text-[14.5px]">{body}</p>
+              <p className="mt-2 text-[13.5px] leading-relaxed lg:text-[14.5px]">{body}</p>
             </div>
           );
         })}
       </Rail>
-      <p className="mt-3 max-w-[760px] text-[17px] font-semibold leading-normal lg:mt-[26px]">Mentors are doctors, engineers, teachers, lawyers, founders, tradespeople and community leaders. A grand title is not required. Willingness is.</p>
-      <div className="mt-4 flex flex-wrap gap-2.5">
+      <p className="mt-8 max-w-[760px] text-[17px] font-semibold leading-relaxed lg:mt-12">Mentors are doctors, engineers, teachers, lawyers, founders, tradespeople and community leaders. A grand title is not required. Willingness is.</p>
+      <div className="mt-5 flex flex-wrap gap-3">
         <Link href="/families" className="dc-btn dc-btn-soft h-11">For families</Link>
         <Link href="/become-a-mentor" className="dc-btn dc-btn-soft h-11">For mentors</Link>
       </div>
@@ -214,10 +216,10 @@ export function ThanksWall({ cards }: { cards: WallCard[] }) {
   const rot = ["lg:-rotate-[1.5deg]", "lg:rotate-1", "lg:-rotate-[.8deg]"];
   return (
     <section className="bg-sand">
-      <div className={cn("mx-auto max-w-[1280px] pt-5 lg:pt-[30px]", HOME_X)}>
+      <div className={cn("mx-auto max-w-[1280px]", HOME_Y, HOME_X)}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionHead eyebrow="THANK-YOU WALL" title="Said by the village" />
-          <div className="mb-4 lg:mb-6"><Pill tone="mint" icon="shieldCheck" className="text-[13px]">Reviewed by the team</Pill></div>
+          <div className="mb-7 lg:mb-12"><Pill tone="mint" icon="shieldCheck" className="text-[13px]">Reviewed by the team</Pill></div>
         </div>
         <Rail cols={3} className="lg:gap-[22px] [&>*:nth-child(n+4)]:lg:hidden">
           {cards.map((c, i) => {
@@ -248,18 +250,18 @@ const SAFEGUARDS: [IconName, string, string][] = [
 ];
 export function BuiltForSafety() {
   return (
-    <section className="mx-auto my-3 max-w-[1280px] px-3.5 lg:my-4 lg:px-14">
-      <div className="rounded-[32px] bg-forest px-5 py-6 text-white lg:rounded-[40px] lg:px-14 lg:py-12">
+    <section className="mx-auto my-12 max-w-[1280px] px-3.5 lg:my-24 lg:px-14">
+      <div className="rounded-[32px] bg-forest px-5 py-10 text-white lg:rounded-[40px] lg:px-14 lg:py-16">
         <Icon name="shieldCheck" size={46} />
         <H className="mt-3 text-[34px] text-white lg:text-[48px]">Built for safety</H>
-        <p className="mt-2.5 max-w-[640px] text-[16px] leading-normal text-white/[.92] lg:text-[18px]">Six safeguards sit behind every single conversation. Nobody has to take our word for it.</p>
-        <div className="mt-[26px] grid gap-4 lg:mt-[34px] lg:grid-cols-3 lg:gap-[18px]">
+        <p className="mt-3 max-w-[640px] text-[16px] leading-relaxed text-white/[.92] lg:text-[18px]">Six safeguards sit behind every single conversation. Nobody has to take our word for it.</p>
+        <div className="mt-8 grid gap-5 lg:mt-12 lg:grid-cols-3 lg:gap-5">
           {SAFEGUARDS.map(([icon, t, b]) => (
             <div key={t} className="flex items-start gap-3 lg:block lg:rounded-[26px] lg:border lg:border-white/[.22] lg:bg-white/[.12] lg:p-[22px]">
               <span className="flex size-[42px] flex-none items-center justify-center rounded-[14px] bg-white text-forest lg:size-12 lg:rounded-field"><Icon name={icon} size={22} className="lg:hidden" /><Icon name={icon} size={26} className="max-lg:hidden" /></span>
               <div>
                 <H as="h3" className="text-[17px] text-white lg:mt-3.5 lg:text-[20px]">{t}</H>
-                <p className="mt-0.5 text-[14px] leading-[1.45] text-white/90 lg:mt-1.5 lg:text-[14.5px] lg:leading-normal">{b}</p>
+                <p className="mt-0.5 text-[14px] leading-[1.45] text-white/90 lg:mt-2 lg:text-[14.5px] lg:leading-relaxed">{b}</p>
               </div>
             </div>
           ))}
@@ -274,15 +276,15 @@ export function BuiltForSafety() {
 export function FinalCta() {
   const outline = "dc-btn h-[54px] border-white/45 text-white hover:bg-white/10 lg:h-[60px] lg:px-6";
   return (
-    <section className="mx-auto mb-5 mt-3 max-w-[1280px] px-3.5 lg:mb-12 lg:mt-6 lg:px-14">
-      <div className="relative overflow-hidden rounded-[32px] bg-[#1D1914] px-5 py-7 lg:rounded-[44px] lg:p-14">
+    <section className="mx-auto mb-12 mt-6 max-w-[1280px] px-3.5 lg:mb-24 lg:mt-12 lg:px-14">
+      <div className="relative overflow-hidden rounded-[32px] bg-[#1D1914] px-5 py-10 lg:rounded-[44px] lg:p-16">
         <div className="absolute -right-[60px] -top-[60px] size-[220px] rounded-full bg-[rgba(74,126,98,.45)]" aria-hidden="true" />
         <div className="absolute -bottom-[70px] -left-[50px] size-[200px] rotate-[18deg] rounded-[60px] bg-[rgba(168,71,43,.25)]" aria-hidden="true" />
         <div className="relative">
           <div className="mb-5 flex justify-center" aria-hidden="true"><RingAvatar initials="KM" tone="butter" size={56} /><RingAvatar initials="TA" tone="mint" size={56} className="-ml-3.5" /><RingAvatar initials="IB" tone="blush" size={56} className="-ml-3.5" /></div>
           <H className="mx-auto max-w-[820px] text-center text-[36px] text-white [text-wrap:balance] lg:text-[58px]">Your question already has a village waiting for it.</H>
-          <p className="mt-4 text-center text-[16px] leading-normal text-white/85 lg:text-[19px]">Free, private and safe. Under 18? Join with a parent or guardian.</p>
-          <div className="mt-[26px] flex flex-col gap-2.5 lg:mt-[30px] lg:flex-row lg:justify-center lg:gap-3">
+          <p className="mt-5 text-center text-[16px] leading-relaxed text-white/85 lg:text-[19px]">Free, private and safe. Under 18? Join with a parent or guardian.</p>
+          <div className="mt-8 flex flex-col gap-3 lg:mt-10 lg:flex-row lg:justify-center">
             <Link href="/register" className="dc-btn dc-btn-primary h-[58px] lg:h-[60px]"><Icon name="arrowRight" size={18} />Start an Ask</Link>
             <Link href="/become-a-mentor" className={outline}>Apply to mentor</Link>
             <Link href="/register?role=guardian" className={outline}>Set up as guardian</Link>
