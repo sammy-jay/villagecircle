@@ -37,6 +37,10 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
   const booked = t.state === "SCHEDULED" && !!c?.scheduledAt;
   const picking = t.state === "MENTOR_STEPPED_FORWARD" || t.state === "CONNECTION_APPROVED";
   const waitingGuardian = picking && c?.scheduledAt && !c.guardianTimeApprovedAt && t.minor;
+  // After a missed call (or a change), there is nothing to pick until the mentor offers new times.
+  const missed = picking && c?.status === "MISSED";
+  const waitingTimes = t.state === "CONNECTION_APPROVED" && !!c && !c.scheduledAt && c.offered.length === 0;
+  const rebooking = !!c && c.rescheduleCount > 0;
   const joinOpen = booked && c!.scheduledAt!.getTime() - Date.now() < 10 * 60_000;
   const g = t.guardianName ?? "your guardian";
   const outlook = booked ? `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(`Village Circle: ${t.topic}`)}&startdt=${c!.scheduledAt!.toISOString()}&enddt=${new Date(c!.scheduledAt!.getTime() + c!.minutes * 60_000).toISOString()}&body=${encodeURIComponent("Join from My Asks.")}` : "";
@@ -55,10 +59,17 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
       </div>
       <p className="text-[13.5px] leading-[1.45] opacity-85">The link opens 10 minutes before. We remind you 24 hours and 1 hour before. This conversation is recorded, and you and {mentor} are told first.</p>
     </section>
+  ) : missed || waitingTimes ? (
+    <section className="rounded-[28px] bg-blush p-5 text-blush-ink">
+      <span className="rounded-full border-[1.5px] border-current px-3 py-1.5 text-[12.5px] font-bold">{missed ? "Missed call" : "Waiting"}</span>
+      <h2 className="mt-3 font-display text-[28px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[30px]">{missed ? "The conversation did not happen" : `Waiting for new times from ${mentor}`}</h2>
+      <p className="mt-1.5 text-[14.5px] leading-normal">{missed ? "Nobody is blamed. You can rebook, or ask the team to find someone else." : `We asked ${mentor} to offer new times. We will tell you as soon as they arrive${t.minor ? `, and ${g} approves the one you pick` : ""}.`}</p>
+      {missed && <Link href={`/asks/${params.id}/missed`} className="dc-btn dc-btn-primary mt-4 h-[50px]"><Icon name="calendar" size={18} />Rebook the conversation</Link>}
+    </section>
   ) : picking ? (
     <section className="rounded-[28px] bg-butter p-5 text-butter-ink">
       <span className="rounded-full border-[1.5px] border-current px-3 py-1.5 text-[12.5px] font-bold">{waitingGuardian ? "Waiting" : "Good news"}</span>
-      <h2 className="mt-3 font-display text-[28px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[30px]">{waitingGuardian ? `Waiting for ${g} to approve the time` : `${mentor} stepped forward!`}</h2>
+      <h2 className="mt-3 font-display text-[28px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[30px]">{waitingGuardian ? `Waiting for ${g} to approve the time` : rebooking ? `New times from ${mentor}` : `${mentor} stepped forward!`}</h2>
       <p className="mt-1.5 text-[14.5px] leading-normal">{waitingGuardian ? `You picked ${whenLong(c!.scheduledAt!)}. Nothing is booked until ${g} says yes.` : `${title}? Pick a time${t.minor ? ` and ${g} will approve it` : ""}.`}</p>
       {!waitingGuardian && t.state === "CONNECTION_APPROVED" && <Link href={`/asks/${params.id}/time`} className="dc-btn dc-btn-primary mt-4 h-[50px]"><Icon name="calendar" size={18} />Pick a time</Link>}
       {t.state === "MENTOR_STEPPED_FORWARD" && <p className="mt-3 text-[13.5px] opacity-85">{t.minor ? `${g} approves the match first, then you can pick a time.` : "The team confirms the match, then you can pick a time."}</p>}

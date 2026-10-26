@@ -1,5 +1,6 @@
 import { requireRole } from "./auth";
 import { db } from "./db";
+import { settleCalls } from "./connections";
 import { firstName, shortName } from "./domain/views";
 import { gateFor, mentorHome, type MentorGate } from "./domain/mentor-gate";
 
@@ -13,6 +14,7 @@ export interface MCtx { userId: string; name: string; first: string; short: stri
  */
 export async function mentorPage(next: string, need: "any" | "profile" | "active" = "active"): Promise<{ to: string } | { ctx: MCtx }> {
   const g = await requireRole("MENTOR");
+  if (g.ok) await settleCalls(); // a call whose time has passed must not show as booked
   if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : g.reason === "forbidden" ? "/after-login" : `/login?next=${encodeURIComponent(next)}` };
   const u = await db.user.findUnique({ where: { id: g.user.id }, select: { id: true, name: true, status: true } });
   if (!u) return { to: "/login" };

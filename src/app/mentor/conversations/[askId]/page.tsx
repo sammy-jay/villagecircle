@@ -110,11 +110,19 @@ export default async function Conversation({ params, searchParams }: { params: {
   return (
     <MentorShell ctx={c} phone={{ back: "/mentor?tab=scheduled", title: "Your conversation" }} tabs={false}>
       <h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-[-.02em] lg:text-[40px]">{ch.topic} with {ch.participantFirst}</h1>
+      {ch.needsTimes ? (
+        <Card className="flex flex-col gap-2 p-5 lg:p-6">
+          <p className="text-[16px] font-extrabold">{ch.missed ? "The conversation did not happen" : `${ch.participantFirst} needs a new time`}</p>
+          <p className="text-[14.5px] text-bark">{ch.missed ? "Nobody is blamed and your hour isn't counted. Offer new times so it can be rebooked" : "Offer new times so it can be rebooked"}{ch.minor ? ". A guardian approves the one they pick." : "."}</p>
+          <Link href={`/mentor/conversations/${id}/change`} className="dc-btn dc-btn-primary mt-2 h-[50px] self-start"><Icon name="calendar" size={18} />Offer new times</Link>
+        </Card>
+      ) : (
       <Card className="flex flex-col gap-2 p-5 lg:p-6">
         <p className="text-[16px] font-extrabold">{ch.start ? longWhen(ch.start) : "Waiting for a time to be chosen"}</p>
         <p className="text-[14.5px] text-bark">{ch.start ? `${ch.minutes} minutes. ${ch.minor ? "Waiting for the guardian to approve the time." : "Booked."}` : `The family is choosing one of the times you offered${ch.minor ? ", and a guardian approves it" : ""}. We will email you when it is booked.`}</p>
         <Link href={`/mentor/conversations/${id}/change`} className="mt-1 text-[14.5px] font-bold text-clay">I need to change this</Link>
       </Card>
+      )}
     </MentorShell>
   );
 }

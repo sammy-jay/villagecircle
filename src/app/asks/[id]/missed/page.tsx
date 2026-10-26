@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Icon } from "@/components/dc/icons";
 import { ParticipantShell } from "@/components/app/app-shell";
@@ -37,7 +38,9 @@ export default async function Missed({ params }: { params: { id: string } }) {
       </section>
       <Card className="flex flex-col gap-3 p-5">
         <p className="text-[14.5px] text-bark">{mentorAbsent ? `You waited ${v.waitedMin} minutes. The room has closed and nothing was recorded of the empty call.` : "You can rebook once. If it happens again, the team will talk to you first."}</p>
-        {v.canRebook ? choice("rebook", mentorAbsent ? "Pick a new time" : `Rebook with ${v.mentorFirst}`, true) : <p className="text-[14.5px] font-semibold">A team member will be in touch about what happens next.</p>}
+        {v.hasNewTimes
+          ? <Link href={`/asks/${params.id}/time`} className="dc-btn dc-btn-primary h-[52px] w-full lg:w-auto lg:self-start"><Icon name="calendar" size={18} />{v.mentorFirst} offered new times. Pick one</Link>
+          : v.canRebook ? choice("rebook", mentorAbsent ? "Pick a new time" : `Rebook with ${v.mentorFirst}`, true) : <p className="text-[14.5px] font-semibold">A team member will be in touch about what happens next.</p>}
         {mentorAbsent && choice("other", "Prefer someone else? Ask the team to find a new mentor", false)}
       </Card>
     </ParticipantShell>

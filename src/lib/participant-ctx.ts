@@ -1,5 +1,6 @@
 import { requireRole } from "./auth";
 import { db } from "./db";
+import { settleCalls } from "./connections";
 import { openAskCount } from "./domain/limits";
 import { isMinor } from "./domain/age";
 
@@ -9,6 +10,7 @@ export interface PCtx { userId: string; name: string; first: string; minor: bool
 export async function participantPage(opts: { allowPaused?: boolean } = {}): Promise<{ to: string } | { ctx: PCtx }> {
   const g = await requireRole("PARTICIPANT");
   if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : "/login" };
+  await settleCalls(); // a call whose time has passed must not show as booked
   const u = await db.user.findUnique({ where: { id: g.user.id }, include: { participant: true } });
   if (!u?.participant) return { to: "/login" };
   if (u.status === "PENDING_GUARDIAN") return { to: "/guardian-needed" };

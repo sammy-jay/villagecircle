@@ -1,5 +1,6 @@
 import { requireRole } from "./auth";
 import { db } from "./db";
+import { settleCalls } from "./connections";
 import { guardianShellData } from "./call-extra";
 
 export interface GCtx { userId: string; name: string; first: string; kids: string[]; needs: number; unread: boolean }
@@ -7,6 +8,7 @@ export interface GCtx { userId: string; name: string; first: string; kids: strin
 /** Shared guard for guardian pages. Returns a redirect target or the shell context. */
 export async function guardianPage(next: string): Promise<{ to: string } | { ctx: GCtx }> {
   const g = await requireRole("GUARDIAN");
+  if (g.ok) await settleCalls(); // a call whose time has passed must not show as booked
   if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : `/login?next=${encodeURIComponent(next)}` };
   const u = await db.user.findUnique({ where: { id: g.user.id }, select: { id: true, name: true } });
   if (!u) return { to: "/login" };

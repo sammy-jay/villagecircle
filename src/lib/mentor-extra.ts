@@ -20,7 +20,10 @@ export async function mentorChangeView(userId: string, askId: string) {
   const r = await roleIn(userId, askId); if (!r || r.role !== "MENTOR" || !r.conn || !["SCHEDULED", "CONNECTION_APPROVED"].includes(r.ask.state)) return null;
   const u = r.ask.participant.user;
   const m = await db.mentorProfile.findUnique({ where: { id: r.conn.mentorId } });
-  return { topic: r.ask.topic.name, start: r.conn.scheduledAt, minutes: r.conn.durationMinutes, minor: !!u.dateOfBirth && isMinor(u.dateOfBirth), participantFirst: firstName(u.name), hoursGiven: m?.hoursGivenThisMonth ?? 0, monthlyHours: m?.monthlyHours ?? 0 };
+  // needsTimes: nothing booked and nothing offered, e.g. after a missed call or a change request. missed: the last call did not happen.
+  const needsTimes = r.ask.state === "CONNECTION_APPROVED" && !r.conn.scheduledAt && r.conn.offeredTimes.length === 0;
+  const missed = r.conn.status === "MISSED" || (needsTimes && ["PARTICIPANT_ABSENT", "MENTOR_ABSENT", "NEITHER"].includes(r.conn.attendance));
+  return { topic: r.ask.topic.name, start: r.conn.scheduledAt, minutes: r.conn.durationMinutes, minor: !!u.dateOfBirth && isMinor(u.dateOfBirth), participantFirst: firstName(u.name), hoursGiven: m?.hoursGivenThisMonth ?? 0, monthlyHours: m?.monthlyHours ?? 0, needsTimes, missed };
 }
 
 /** D27 "Your responses": this mentor's own answers to released Asks. Never shown to a participant. */

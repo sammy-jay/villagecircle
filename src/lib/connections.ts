@@ -235,19 +235,23 @@ export async function recordMiss(connectionId: string): Promise<R<{ attendance: 
   if (second) await notifyTeam(c.askId, "A second missed conversation", "A team member should step in (R-MISS).");
   for (const g of await guardiansOf(c.participantId)) await notify(g.userId, "connection.missed", "The conversation did not happen", "You'll be told the next steps. Nobody is blamed.", { link: `/guardian/approvals/${c.askId}` });
   await notify(c.ask.participant.userId, "connection.missed", "The conversation did not happen", "You can pick a new time or ask the team to find someone else.", { link: `/asks/${c.askId}/missed` });
-  if (att !== "MENTOR_ABSENT") await notify(c.mentor.userId, "connection.missed", "The conversation did not happen", "A team member will follow up. Your hour isn't counted.", { link: "/mentor" });
+  // The mentor hears in every case and, unless the team is stepping in, can offer new times straight away.
+  const mentorBody = second ? "A team member will follow up. Your hour isn't counted." : `${att === "MENTOR_ABSENT" ? "You were not in the room, so the" : "The"} conversation was not held and your hour isn't counted. Offer new times so it can be rebooked.`;
+  await notify(c.mentor.userId, "connection.missed", "The conversation did not happen", mentorBody, { link: second ? `/mentor/conversations/${c.askId}` : `/mentor/conversations/${c.askId}/change` });
   return { ok: true, attendance: att };
 }
 export async function missedView(userId: string, askId: string) {
   const r = await roleIn(userId, askId); if (!r || r.role !== "PARTICIPANT" || !r.conn) return null;
   const c = r.conn; const guardians = await guardiansOf(r.ask.participantId);
   const gUser = guardians[0] ? await db.user.findUnique({ where: { id: guardians[0].userId }, select: { name: true } }) : null;
-  return { variant: c.attendance === "MENTOR_ABSENT" ? ("MENTOR" as const) : ("PARTICIPANT" as const), mentorFirst: firstName(r.conn.mentor.user.name), guardianFirst: gUser ? firstName(gUser.name) : null, minor: isMinorAsk(r.ask), canRebook: c.rescheduleCount <= 1, waitedMin: MISSED_AFTER_MIN };
+  return { variant: c.attendance === "MENTOR_ABSENT" ? ("MENTOR" as const) : ("PARTICIPANT" as const), mentorFirst: firstName(r.conn.mentor.user.name), guardianFirst: gUser ? firstName(gUser.name) : null, minor: isMinorAsk(r.ask), canRebook: c.rescheduleCount <= 1, waitedMin: MISSED_AFTER_MIN, hasNewTimes: r.ask.state === "CONNECTION_APPROVED" && !c.scheduledAt && c.offeredTimes.length > 0 };
 }
-/** "Pick a new time" / "Rebook": the mentor is asked to offer new times (they never see why). */
+/** "Pick a new time" / "Rebook": the mentor is asked to offer new times (they never see why). The call stops showing as missed. */
 export async function requestNewTimes(userId: string, askId: string): Promise<R> {
   const r = await roleIn(userId, askId); if (!r || r.role !== "PARTICIPANT" || !r.conn) return fail("Not available.");
-  await notify(r.conn.mentor.userId, "connection.new_times_needed", "Please offer new times", "A conversation needs a new time.", { link: `/mentor/conversations/${askId}/change` });
+  if (r.ask.state !== "CONNECTION_APPROVED") return fail("Not available right now.");
+  if (r.conn.status === "MISSED") await db.connection.update({ where: { id: r.conn.id }, data: { status: "PROPOSED", changeRequestedBy: "PARTICIPANT" } });
+  await notify(r.conn.mentor.userId, "connection.new_times_needed", "Please offer new times", "A conversation needs a new time.", { link: `/mentor/conversations/${askId}/change`, dedupeKey: `newtimes-${r.conn.id}-${r.conn.rescheduleCount}` });
   return { ok: true };
 }
 export async function askTeamForDifferentMentor(userId: string, askId: string): Promise<R> {
@@ -331,9 +335,44 @@ export async function completeConversation(userId: string, askId: string, d: { n
 /** Cron: record misses fifteen minutes after the start. */
 export async function sweepMisses() {
   const cutoff = new Date(Date.now() - MISSED_AFTER_MIN * 60_000);
-  const due = await db.connection.findMany({ where: { status: "CONFIRMED", scheduledAt: { lte: cutoff }, ask: { state: "SCHEDULED" } }, select: { id: true, mentorJoinedAt: true, participantJoinedAt: true } });
+  const due = await db.connection.findMany({ where: { status: "CONFIRMED", pausedByConcern: false, scheduledAt: { lte: cutoff }, ask: { state: "SCHEDULED" } }, select: { id: true, mentorJoinedAt: true, participantJoinedAt: true } });
   let n = 0;
   for (const c of due) { if (c.mentorJoinedAt && c.participantJoinedAt) continue; const r = await recordMiss(c.id); if (r.ok) n++; }
   return n;
+}
+
+/**
+ * Times that passed before anything was booked: a picked time still waiting for a guardian, or offered times nobody picked.
+ * They are dropped, so the family picks another offered time, or the mentor is asked for new ones.
+ */
+export async function sweepPassedTimes(now: Date = new Date()) {
+  const conns = await db.connection.findMany({ where: { status: { in: ["PROPOSED", "AWAITING_GUARDIAN"] }, ask: { state: "CONNECTION_APPROVED" } }, include: { ask: { include: { participant: true } }, mentor: true } });
+  let n = 0;
+  for (const c of conns) {
+    const future = c.offeredTimes.filter((t) => t.getTime() > now.getTime());
+    const lapsed = !!c.scheduledAt && c.scheduledAt.getTime() <= now.getTime();
+    if (!lapsed && future.length === c.offeredTimes.length) continue;
+    await db.connection.update({ where: { id: c.id }, data: { offeredTimes: future, ...(lapsed ? { scheduledAt: null, guardianTimeApprovedAt: null, status: "PROPOSED" as const } : {}) } });
+    n++;
+    const key = `passed-${c.id}-${c.offeredTimes.map((t) => t.getTime()).join(".")}`;
+    if (future.length === 0) {
+      await notify(c.mentor.userId, "connection.new_times_needed", "Please offer new times", "The times you offered passed before one was booked.", { link: `/mentor/conversations/${c.askId}/change`, dedupeKey: `${key}-m` });
+      await notify(c.ask.participant.userId, "connection.time_passed", "Those times have passed", "We asked your mentor for new times. We will tell you when they arrive.", { link: `/asks/${c.askId}`, dedupeKey: `${key}-p` });
+    } else if (lapsed) {
+      await notify(c.ask.participant.userId, "connection.time_passed", "Pick another time", "The time you picked passed before it was booked. Your mentor's other times are still open.", { link: `/asks/${c.askId}/time`, dedupeKey: `${key}-p` });
+    }
+  }
+  return n;
+}
+
+let lastSettle = 0;
+/**
+ * The cron runs the sweeps every 10 minutes. Dashboards also run them (at most once a minute per server), so a call whose
+ * time has passed never keeps showing as booked, even where no cron runs, such as a local server.
+ */
+export async function settleCalls() {
+  if (Date.now() - lastSettle < 60_000) return;
+  lastSettle = Date.now();
+  try { await sweepMisses(); await sweepPassedTimes(); } catch (e) { console.error("settleCalls", e); }
 }
 void sendEmail;

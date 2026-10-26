@@ -32,8 +32,8 @@ export default async function Change({ params }: { params: { askId: string } }) 
   return (
     <MentorShell ctx={r.ctx} aside={aside} phone={{ back: `/mentor/conversations/${params.askId}`, title: "Change the time" }} tabs={false}>
       <div>
-        <h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-[-.02em] lg:text-[40px]">{v.start ? `Can't make ${weekday(v.start)}?` : "Need to change this?"}</h1>
-        <p className="mt-1 text-[16px] text-bark">Tell the team what you need. Everything goes through the team so contact details stay private.</p>
+        <h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-[-.02em] lg:text-[40px]">{v.needsTimes ? "Offer new times" : v.start ? `Can't make ${weekday(v.start)}?` : "Need to change this?"}</h1>
+        <p className="mt-1 text-[16px] text-bark">{v.missed ? `The last conversation did not happen. Offer up to three new times and ${v.participantFirst} picks one${v.minor ? ", with a guardian's approval" : ""}.` : "Tell the team what you need. Everything goes through the team so contact details stay private."}</p>
       </div>
       <Card className="p-5"><p className="text-[13.5px] text-stone">{v.topic} · {v.minor ? "A young person under 18" : "An adult participant"}</p><p className="mt-0.5 text-[17px] font-extrabold">{v.start ? longWhen(v.start) : "No time chosen yet"}</p></Card>
       <Card className="p-5 lg:p-6"><ChangeTime askId={params.askId} suggestions={suggestions} /></Card>
