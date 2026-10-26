@@ -37,7 +37,7 @@ export const MENTOR_NAV: NavItem[] = [
   { href: "/mentor/impact", label: "My impact", icon: "chart" },
   { href: "/mentor/resources", label: "Resources", icon: "book" },
   { href: "/mentor/volunteer", label: "Community", icon: "users" },
-  { href: "/mentor/profile", label: "Profile and privacy", icon: "user" },
+  { href: "/mentor/settings", label: "Profile and settings", icon: "user" }, // the same place as the person menu in the top bar
 ];
 
 export const ADMIN_NAV: NavGroup[] = [
