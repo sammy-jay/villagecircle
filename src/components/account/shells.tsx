@@ -41,13 +41,14 @@ export function PhoneBar({ children, className }: { children: ReactNode; classNa
  * DK1, DK3, DK4, M19 to M22, P02: form column on the left (700 or 640 wide, 44/80 padding, logo on top),
  * pastel panel on the right with illustration cards. `center` vertically centres the column body.
  */
-export function SplitShell({ width = 640, panel, art, children, center, phone }: { width?: 640 | 700; panel: Pastel | "sand"; art: ReactNode; children: ReactNode; center?: boolean; phone?: { back?: string; title?: ReactNode; right?: ReactNode; mark?: boolean } }) {
+export function SplitShell({ width = 640, panel, art, children, center, phone }: { width?: 640 | 700 | "half"; panel: Pastel | "sand"; art: ReactNode; children: ReactNode; center?: boolean; phone?: { back?: string; title?: ReactNode; right?: ReactNode; mark?: boolean } }) {
+  const half = width === "half"; // form and art panel take 50% each; the form column stays readable at 560px
   return (
     <div className="min-h-screen lg:flex">
       <PhoneHeader {...phone} />
-      <div className={cn("flex flex-col gap-4 px-6 pb-[18px] pt-2 lg:flex-none lg:px-20 lg:py-11", width === 700 ? "lg:w-[700px]" : "lg:w-[640px]")}>
-        <Link href="/" className="self-start max-lg:hidden" aria-label="The Village Circle, home"><Image src="/brand/logo.png" alt="The Village Circle" width={62} height={56} priority /></Link>
-        <main id="main" className={cn("flex flex-col gap-4", center && "lg:flex-1 lg:justify-center lg:pb-10")}>{children}</main>
+      <div className={cn("flex flex-col gap-4 px-6 pb-[18px] pt-2 lg:flex-none lg:py-11", half ? "lg:w-1/2 lg:items-center lg:px-12" : width === 700 ? "lg:w-[700px] lg:px-20" : "lg:w-[640px] lg:px-20")}>
+        <Link href="/" className={cn("self-start max-lg:hidden", half && "lg:w-full lg:max-w-[560px]")} aria-label="The Village Circle, home"><Image src="/brand/logo.png" alt="The Village Circle" width={62} height={56} priority /></Link>
+        <main id="main" className={cn("flex flex-col gap-4", half && "lg:w-full lg:max-w-[560px]", center && "lg:flex-1 lg:justify-center lg:pb-10")}>{children}</main>
       </div>
       <aside aria-hidden="true" className={cn("hidden flex-1 items-center justify-center overflow-hidden p-10 lg:flex", PANEL[panel])}>{art}</aside>
     </div>

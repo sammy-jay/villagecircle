@@ -42,7 +42,7 @@ export default async function Login({ searchParams }: { searchParams: { next?: s
   const notice = searchParams.verified ? NOTICES.verified : searchParams.reset ? NOTICES.reset : undefined;
   return (
     <>
-      <SplitShell width={700} panel="blush" art={<Art />}>
+      <SplitShell width="half" panel="blush" art={<Art />}>
         <div className="lg:mt-11">
           <p className="text-[13px] font-extrabold tracking-[.04em] text-clay max-lg:hidden">LOG IN</p>
           <h1 className="font-display text-[42px] font-extrabold leading-none tracking-[-.01em] lg:mt-2 lg:text-[52px] lg:tracking-[-.02em]">Welcome back.</h1>

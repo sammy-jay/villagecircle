@@ -1,9 +1,9 @@
 import { Icon } from "@/components/dc/icons";
-import { ArtCard, PhoneBar, SplitShell } from "@/components/account/shells";
+import { ArtCard, SplitShell } from "@/components/account/shells";
 import { RingAvatar } from "@/components/public/kit";
 import { MIN_AGE } from "@/lib/domain/age";
 import type { SignupRole } from "@/lib/register";
-import { RegisterForm, RegisterPhoneBar } from "./register-form";
+import { RegisterForm } from "./register-form";
 
 export const metadata = { title: "Join free" };
 
@@ -48,16 +48,13 @@ export default function Register({ searchParams }: { searchParams: { role?: stri
   const role: SignupRole = searchParams.role === "mentor" || searchParams.role === "guardian" ? searchParams.role : "participant";
   const c = COPY[role];
   return (
-    <>
-      <SplitShell width={700} panel="mint" art={<Art />} phone={{ back: "/", title: "Join free", mark: false }}>
-        <div className="lg:mt-1.5">
-          <p className="text-[13px] font-extrabold uppercase tracking-[.04em] text-clay max-lg:hidden">{c.eyebrow}</p>
-          <h1 className="font-display text-[36px] font-extrabold leading-[1.12] tracking-[-.01em] lg:mt-2 lg:text-[46px] lg:leading-[1.02] lg:tracking-[-.02em]">Make your space.</h1>
-          <p className="mt-2.5 text-[16px] leading-normal text-bark max-lg:hidden">{c.sub}</p>
-        </div>
-        <RegisterForm role={role} minAge={MIN_AGE} />
-      </SplitShell>
-      <PhoneBar><RegisterPhoneBar /></PhoneBar>
-    </>
+    <SplitShell width="half" panel="mint" art={<Art />} phone={{ back: "/", title: "Join free", mark: false }}>
+      <div className="lg:mt-1.5">
+        <p className="text-[13px] font-extrabold uppercase tracking-[.04em] text-clay max-lg:hidden">{c.eyebrow}</p>
+        <h1 className="font-display text-[36px] font-extrabold leading-[1.12] tracking-[-.01em] lg:mt-2 lg:text-[46px] lg:leading-[1.02] lg:tracking-[-.02em]">Make your space.</h1>
+        <p className="mt-2.5 text-[16px] leading-normal text-bark max-lg:hidden">{c.sub}</p>
+      </div>
+      <RegisterForm role={role} minAge={MIN_AGE} />
+    </SplitShell>
   );
 }
