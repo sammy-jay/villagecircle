@@ -59,7 +59,7 @@ export function IncidentDetail({ i, canAct }: { i: I; canAct: boolean }) {
               </ActionForm>
               <div className="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
                 {i.next && i.next !== "CLOSED" && <ActionForm action={incidentMoveAction} ok="Moved on."><input type="hidden" name="id" value={i.id} /><input type="hidden" name="to" value={i.next} /><Submit variant="soft">Move to {INCIDENT_STATE_LABEL[i.next].toLowerCase()}</Submit></ActionForm>}
-                {i.connection?.paused && <ActionForm action={incidentRestoreAction} ok="Connection restored." confirm="Restore this connection? The two people can be scheduled again."><input type="hidden" name="id" value={i.id} /><Submit variant="ghost">Restore the connection</Submit></ActionForm>}
+                {i.connection?.paused && <ActionForm action={incidentRestoreAction} ok="Connection restored." confirm={{ title: "Restore this connection?", body: "The two people can be scheduled again.", confirmLabel: "Restore connection" }}><input type="hidden" name="id" value={i.id} /><Submit variant="ghost">Restore the connection</Submit></ActionForm>}
               </div>
             </Panel>
           )}

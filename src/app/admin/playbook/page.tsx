@@ -43,12 +43,12 @@ export default async function Playbook({ searchParams }: { searchParams: { ask?:
             <div className="grid gap-3 lg:grid-cols-2">
               <Panel>
                 <h3 className="font-display text-[18px] font-extrabold">Freeze it</h3>
-                <ActionForm action={decisionAction} ok="Frozen and escalated to a senior reviewer." confirm="Freeze this Ask and escalate it?"><input type="hidden" name="askId" value={p.ask.id} /><input type="hidden" name="decision" value="FLAG" /><input name="note" className="dc-saymore" placeholder="What did you see? (kept for the team)" aria-label="What you saw" /><Submit variant="outline" icon="pause" className="self-start">Freeze Ask</Submit></ActionForm>
+                <ActionForm action={decisionAction} ok="Frozen and escalated to a senior reviewer." confirm={{ title: "Freeze this Ask and escalate it?", body: "A senior reviewer picks it up.", confirmLabel: "Freeze and escalate", danger: true }}><input type="hidden" name="askId" value={p.ask.id} /><input type="hidden" name="decision" value="FLAG" /><input name="note" className="dc-saymore" placeholder="What did you see? (kept for the team)" aria-label="What you saw" /><Submit variant="outline" icon="pause" className="self-start">Freeze Ask</Submit></ActionForm>
               </Panel>
               {r.ctx.perms.includes("asks.release") && (
                 <Panel>
                   <h3 className="font-display text-[18px] font-extrabold">Close as Redirected</h3>
-                  <ActionForm action={decisionAction} ok="Closed with your note." confirm="Close this Ask as redirected? The participant reads your note."><input type="hidden" name="askId" value={p.ask.id} /><input type="hidden" name="decision" value="REDIRECT" /><textarea name="note" rows={2} className="dc-textarea" placeholder="A kind note, for example: needs a licensed professional" aria-label="Note to the participant" /><Submit variant="soft" className="self-start">Close as Redirected</Submit></ActionForm>
+                  <ActionForm action={decisionAction} ok="Closed with your note." confirm={{ title: "Close this Ask as redirected?", body: "The participant reads your note.", confirmLabel: "Close Ask" }}><input type="hidden" name="askId" value={p.ask.id} /><input type="hidden" name="decision" value="REDIRECT" /><textarea name="note" rows={2} className="dc-textarea" placeholder="A kind note, for example: needs a licensed professional" aria-label="Note to the participant" /><Submit variant="soft" className="self-start">Close as Redirected</Submit></ActionForm>
                 </Panel>
               )}
             </div>

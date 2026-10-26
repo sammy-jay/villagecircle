@@ -13,6 +13,7 @@ import { initials } from "@/components/dc";
 import { useCooldown } from "@/components/account/resend";
 import { checkCodeAction, decideAction, inviteCodeAction, type ActionState } from "@/app/account-actions";
 import { cn } from "@/lib/cn";
+import { useConfirmSubmit } from "@/components/app/confirm";
 
 export type InviteInfo = { token: string; firstName: string; age: number | null; guardianName: string; phoneHint: string; hasAccount: boolean; codeSent: boolean };
 
@@ -222,13 +223,14 @@ export function AuthorizeFlow({ v }: { v: InviteInfo }) {
   );
 }
 
-/** "I do not authorize this" posts decision=decline after a plain confirmation. */
+/** "I do not authorize this" posts decision=decline after the app's own dialog confirms it. */
 function DeclineButton({ className }: { className: string }) {
+  const declining = useConfirmSubmit({ title: "Not authorize this account?", body: "The account is closed and nothing is shared.", confirmLabel: "Do not authorize", cancelLabel: "Go back", danger: true });
   return (
-    <button type="submit" name="decision" value="decline" className={className}
-      onClick={(e) => { if (!confirm("If you do not authorize, the account is closed and nothing is shared. Continue?")) e.preventDefault(); }}>
-      I do not authorize this
-    </button>
+    <>
+      <button type="submit" name="decision" value="decline" className={className} onClick={declining.onClick}>I do not authorize this</button>
+      {declining.dialog}
+    </>
   );
 }
 

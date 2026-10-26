@@ -28,7 +28,7 @@ export default async function Suspend({ params, searchParams }: { params: { id: 
         {a.hours && <p className="text-[14px] text-bark"><b className="font-display text-[22px] text-ink">{a.hours.given}</b> hours given this month</p>}
       </Panel>
       <Panel>
-        <ActionForm action={suspendAction} ok={{ suspended: "Suspended. The record is kept and the safeguarding lead has been alerted." }} confirm={`Suspend ${a.short}? This takes effect straight away.`}>
+        <ActionForm action={suspendAction} ok={{ suspended: "Suspended. The record is kept and the safeguarding lead has been alerted." }} confirm={{ title: `Suspend ${a.short}?`, body: "This takes effect straight away. The record is kept and you can restore the account later.", confirmLabel: "Suspend account", danger: true }}>
           <input type="hidden" name="id" value={a.id} />{searchParams.incident && <input type="hidden" name="incident" value={searchParams.incident} />}
           {a.isMentor && <div><p className="dc-label">Reason</p><Select name="reason" defaultValue={searchParams.incident ? "V-INCIDENT" : undefined} placeholder="Choose a reason" options={SUSPEND_REASONS.map((x) => ({ value: x.code, label: `${x.code} · ${x.label}` }))} sayMore={{ name: "more", show: "always" }} /><span className="dc-hint">Reason codes are used in reports.</span></div>}
           {a.isMentor && (

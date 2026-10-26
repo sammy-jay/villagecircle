@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Icon } from "@/components/dc/icons";
 import { PhoneBar } from "@/components/account/shells";
+import { useConfirmSubmit } from "@/components/app/confirm";
 import { approveConnectionAction, type GState } from "../../actions";
 import { cn } from "@/lib/cn";
 
@@ -25,9 +26,11 @@ export function ApproveForm({ askId, mentor, times, selected, attends, first }: 
   const [state, action] = useFormState<GState, FormData>(approveConnectionAction, {});
   const [time, setTime] = useState(selected ?? times[0]?.iso ?? "");
   const [join, setJoin] = useState(attends ? "ATTEND" : "REACHABLE");
-  const decline = (e: React.MouseEvent<HTMLButtonElement>) => { if (!confirm(`Choose a different mentor? ${mentor} is told kindly, with no reason given. ${first}'s Ask stays open and the team suggests someone else.`)) e.preventDefault(); };
+  const declining = useConfirmSubmit({ title: "Choose a different mentor?", body: `${mentor} is told kindly, with no reason given. ${first}'s Ask stays open and the team suggests someone else.`, confirmLabel: "Choose a different mentor" });
+  const decline = declining.onClick;
   return (
     <form id="approve" action={action} className="flex flex-col gap-3.5">
+      {declining.dialog}
       <input type="hidden" name="askId" value={askId} /><input type="hidden" name="time" value={time} /><input type="hidden" name="attends" value={join} />
       <div role="radiogroup" aria-label="Time" className="flex flex-col gap-2.5">
         {times.map((t) => <Radio key={t.iso} on={time === t.iso} title={t.label} sub={selected === t.iso ? `Mentor offered. ${first} picked this one` : "Mentor offered"} onClick={() => setTime(t.iso)} />)}

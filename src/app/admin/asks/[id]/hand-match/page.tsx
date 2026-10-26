@@ -57,7 +57,7 @@ export default async function HandMatch({ params }: { params: { id: string } }) 
           {release && (
             <li className="flex flex-col gap-2 border-b border-line pb-4">
               <b className="text-[16px]">3. Suggest an outside resource</b><span className="text-[14px] text-bark">If nobody fits, send a kind note and a referral. The participant reads it.</span>
-              {open && <ActionForm action={handMatchAction} ok="Sent. The Ask is closed as redirected." confirm="Close this Ask with a referral? The participant reads your note."><input type="hidden" name="askId" value={id} /><input type="hidden" name="action" value="SUGGEST_RESOURCE" /><textarea name="note" rows={2} className="dc-textarea" placeholder="A kind note and where to go (10 characters or more)" aria-label="Note to the participant" /><Submit variant="soft" className="self-start">Send the referral</Submit></ActionForm>}
+              {open && <ActionForm action={handMatchAction} ok="Sent. The Ask is closed as redirected." confirm={{ title: "Close this Ask with a referral?", body: "The participant reads your note.", confirmLabel: "Close with referral" }}><input type="hidden" name="askId" value={id} /><input type="hidden" name="action" value="SUGGEST_RESOURCE" /><textarea name="note" rows={2} className="dc-textarea" placeholder="A kind note and where to go (10 characters or more)" aria-label="Note to the participant" /><Submit variant="soft" className="self-start">Send the referral</Submit></ActionForm>}
             </li>
           )}
           <li className="flex flex-col gap-2">

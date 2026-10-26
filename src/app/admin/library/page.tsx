@@ -61,7 +61,7 @@ export default async function Library({ searchParams }: { searchParams: { q?: st
               <div className="flex flex-wrap gap-2"><Submit name="intent" value="publish" icon="check">Save and re-confirm</Submit><Submit name="intent" value="save" variant="soft">Save changes</Submit><Link href={href({ id: undefined, new: undefined })} className="dc-btn dc-btn-ghost h-[50px]">Cancel</Link></div>
             </ActionForm>
             {sel && sel.status !== "ARCHIVED" && (
-              <ActionForm action={resourceReviewFormAction} className="mt-4 border-t border-line pt-4" ok="Archived. It is hidden and the record is kept." confirm="Archive this resource? It leaves the library.">
+              <ActionForm action={resourceReviewFormAction} className="mt-4 border-t border-line pt-4" ok="Archived. It is hidden and the record is kept." confirm={{ title: "Archive this resource?", body: "It leaves the library. The record is kept.", confirmLabel: "Archive", danger: true }}>
                 <input type="hidden" name="id" value={sel.id} /><input type="hidden" name="outcome" value="ARCHIVE" />
                 <input name="note" className="dc-saymore" placeholder="Why archive (10 characters or more)" aria-label="Why archive" />
                 <Submit variant="outline" icon="trash" className="self-start">Archive</Submit>

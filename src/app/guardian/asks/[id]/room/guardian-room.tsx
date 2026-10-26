@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/dc/icons";
+import { useConfirmSubmit } from "@/components/app/confirm";
 import { pauseFromCallAction, stepOutAction } from "../../../actions";
 import { cn } from "@/lib/cn";
 
@@ -13,6 +14,7 @@ export function GuardianRoom({ askId, src, simulated, title, mentor, first, reco
   askId: string; src: string; simulated: boolean; title: string; mentor: string; first: string; recorded: boolean; startIso: string; minutes: number;
 }) {
   const [now, setNow] = useState<number | null>(null);
+  const pausing = useConfirmSubmit({ title: "Pause this connection?", body: `The call ends for everyone, ${first}'s account and open Asks are put on hold, and the safeguarding lead is alerted.`, confirmLabel: "Pause connection", danger: true });
   useEffect(() => { setNow(Date.now()); const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
   const elapsed = now == null ? 0 : Math.max(0, Math.floor((now - new Date(startIso).getTime()) / 1000));
   const tile = (name: string, sub: string, bg: string, ink: string, big?: boolean) => (
@@ -48,7 +50,8 @@ export function GuardianRoom({ askId, src, simulated, title, mentor, first, reco
           <p className="text-[14px] leading-normal text-[#D6CEBF]">You joined as an observer. {first} and {mentor.split(" ")[0]} can see you are here.</p>
           <form action={stepOutAction}><input type="hidden" name="askId" value={askId} /><button type="submit" className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white/[.12] text-[15px] font-bold"><Icon name="clock" size={19} />Step out, stay reachable</button></form>
           <Link href="/settings/contact" className="flex h-[52px] items-center justify-center gap-2 rounded-full border-2 border-[#352E26] text-[15px] font-bold"><Icon name="clipboard" size={19} />Add a note for the team</Link>
-          <form action={pauseFromCallAction} onSubmit={(e) => { if (!confirm(`Pause this connection? The call ends for everyone, ${first}'s account and open Asks are put on hold, and the safeguarding lead is alerted.`)) e.preventDefault(); }}>
+          <form action={pauseFromCallAction} onSubmit={pausing.onSubmit}>
+            {pausing.dialog}
             <input type="hidden" name="askId" value={askId} />
             <button type="submit" className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#D8462F] text-[15px] font-bold text-white"><Icon name="pause" size={19} />Pause this connection</button>
           </form>

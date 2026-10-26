@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Icon } from "@/components/dc/icons";
+import { useConfirmSubmit } from "@/components/app/confirm";
 import { dataRequestAction, decideAskAction, requestRecordingAction, type GState } from "./actions";
 import { cn } from "@/lib/cn";
 
@@ -15,12 +16,14 @@ function Btn({ children, className, name, value, onClick }: { children: React.Re
 /** G1 / G2 step 1: authorize or decline an Ask. Declining asks for confirmation first. */
 export function AskDecision({ askId, first, review }: { askId: string; first: string; review?: string }) {
   const [state, action] = useFormState<GState, FormData>(decideAskAction, {});
+  const declining = useConfirmSubmit({ title: "Decline this Ask?", body: `${first} is told you did not authorize it. We do not share why.`, confirmLabel: "Decline Ask", danger: true });
   if (state.ok) return <p role="status" className="rounded-[16px] bg-card/80 px-4 py-3 text-[14.5px] font-semibold">{state.decided === "approved" ? `Authorized. The team reads ${first}'s Ask next, usually within 2 working days.` : `Declined. ${first} is told kindly and can edit it with you.`}</p>;
   return (
     <form action={action} className="flex flex-wrap items-center gap-2.5">
       <input type="hidden" name="askId" value={askId} />
       <Btn name="decision" value="approve" className="dc-btn-primary">Authorize this Ask</Btn>
-      <Btn name="decision" value="decline" className="border-2 border-line bg-card" onClick={(e) => { if (!confirm(`Decline this Ask? ${first} is told you did not authorize it. We do not share why.`)) e.preventDefault(); }}>Decline</Btn>
+      <Btn name="decision" value="decline" className="border-2 border-line bg-card" onClick={declining.onClick}>Decline</Btn>
+      {declining.dialog}
       {review && <Link href={review} className="dc-btn dc-btn-soft h-[46px]">Review</Link>}
       {state.error && <p role="alert" className="w-full text-[14px] font-semibold text-clay">{state.error}</p>}
     </form>
