@@ -4,6 +4,7 @@ import { env, isConfigured } from "./status";
 const client = () => twilio(env("TWILIO_ACCOUNT_SID"), env("TWILIO_AUTH_TOKEN"));
 
 export async function sendSms(to: string, body: string) {
+  if (process.env.NODE_ENV !== "production") console.log("sendSms", { to, body }); // dev only: codes must not reach production logs
   if (!isConfigured("sms") || !env("TWILIO_FROM_NUMBER")) { console.info(`[sms:dev] to=${to} body="${body}"`); return { simulated: true }; }
   await client().messages.create({ to, from: env("TWILIO_FROM_NUMBER"), body });
   return { simulated: false };

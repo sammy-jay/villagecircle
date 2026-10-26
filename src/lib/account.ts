@@ -9,6 +9,7 @@ const button = (href: string, label: string) => `<p><a href="${href}" style="bac
 async function issue(identifier: string, minutes: number) {
   await db.verificationToken.deleteMany({ where: { identifier } });
   const t = newToken();
+  if (process.env.NODE_ENV !== "production") console.log("ISSUE", t.raw); // dev only: never log live tokens
   await db.verificationToken.create({ data: { identifier, token: t.hash, expires: new Date(Date.now() + minutes * 60_000) } });
   return t.raw;
 }
