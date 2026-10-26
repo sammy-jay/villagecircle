@@ -57,7 +57,7 @@ export default async function Home() {
         </section>
         <FinalCta />
       </main>
-      <PublicFooter className="mt-0" />
+      <PublicFooter />
     </>
   );
 }
