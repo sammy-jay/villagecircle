@@ -1,6 +1,6 @@
 # Rebuild plan: screens after the public site
 
-Status on 25 October 2026: every section is built: the token layer, the shared components, the public site, Sections 1 to 5, and the shared system states (Section 6). The background jobs, health check and webhooks are back under `src/app/api`. Every route passes typecheck, lint and a compile pass, and the domain rules have 282 passing tests. What is still open is listed under **Still to do** at the end: mainly comparing signed-in screens against the boards (there is no demo data to sign in with) and the end-to-end journeys.
+Status on 25 October 2026: every section is built: the token layer, the shared components, the public site, Sections 1 to 5, and the shared system states (Section 6). The background jobs, health check and webhooks are back under `src/app/api`. Every route passes typecheck, lint and a compile pass, and the domain rules have 285 passing tests. What is still open is listed under **Still to do** at the end: mainly comparing signed-in screens against the boards (there is no demo data to sign in with) and the end-to-end journeys.
 
 ## Source of truth
 
@@ -19,7 +19,7 @@ Per board:
 | Tokens | `tailwind.config.ts`, `src/app/globals.css` | Colours, type scale, radii and dark theme from the DSF board. `.dc-*` classes for buttons, pills, tags, inputs, cards and banners. |
 | App components | `src/components/dc` | Button, Tag, AskTag, Field, Input, Select with Say more, CountedTextarea, CodeInput, Signature, Toggle, Checkbox, RadioCard, tabs, Modal/bottom sheet, toasts, Timeline, Avatar, StoryRing, Banner, EmptyState, SidebarNav, AdminMenu, AdminBreadcrumb, TabBar, icons. Route maps are in `nav-config.ts`. |
 | Public kit | `src/components/public` | Header and footer, Hero, CtaBand, LinkRows, StepTrail, ApprovalSample, accordion, the help and report forms, the cookie banner. |
-| Logic | `src/lib` | The rules and data access for every section. Domain rules have 282 passing tests (`npx vitest run`). |
+| Logic | `src/lib` | The rules and data access for every section. Domain rules have 285 passing tests (`npx vitest run`). |
 | Background jobs | `src/lib/jobs.ts`, `src/app/api/cron/[job]` | `vercel.json` runs `service-windows` (every 30 minutes), `reminders` (hourly), `sweeps` (every 10 minutes), `daily` and `monthly`, each with `CRON_SECRET`. |
 | Webhooks | `src/app/api/webhooks/screening`, `src/app/api/webhooks/daily` | Screening results (signed with `CHECKR_WEBHOOK_SECRET`) and call recordings (signed with `DAILY_WEBHOOK_SECRET`). `/api/health` checks the database. |
 | Styleguide | `/styleguide` | Every component, for side-by-side checks against the DSF board. |
