@@ -7,8 +7,10 @@ import { GUARDIAN_NAV, GUARDIAN_TABS, MENTOR_NAV, MENTOR_TABS, PARTICIPANT_NAV, 
 import { PhoneHeader } from "@/components/account/shells";
 import { initials } from "@/components/dc";
 import { NotificationBell } from "./notification-bell";
+import { UserMenu } from "./user-menu";
 
-export type ShellUser = { name: string; roleLabel: string; tone?: "blush" | "butter" | "mint" };
+/** profileHref: where "Profile and settings" in the person menu goes. signOutTo: where they land after signing out. */
+export type ShellUser = { name: string; roleLabel: string; tone?: "blush" | "butter" | "mint"; profileHref?: string; signOutTo?: string };
 const TONE = { blush: "bg-blush text-blush-ink", butter: "bg-butter text-butter-ink", mint: "bg-mint text-mint-ink" };
 
 /**
@@ -36,10 +38,7 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
           </form>
           <div className="ml-auto flex shrink-0 items-center gap-[18px]">
             <NotificationBell initialUnread={unread} />
-            <div className="flex items-center gap-2.5">
-              <span className={`flex size-11 items-center justify-center rounded-full font-display text-[16px] font-bold ${tone}`} aria-hidden="true">{initials(user.name)}</span>
-              <p className="whitespace-nowrap text-[14px] leading-[1.25]"><b>{user.name}</b><br /><span className="text-stone">{user.roleLabel}</span></p>
-            </div>
+            <UserMenu name={user.name} roleLabel={user.roleLabel} initials={initials(user.name)} tone={tone} profileHref={user.profileHref ?? "/settings"} signOutTo={user.signOutTo} />
           </div>
         </div>
       </header>
@@ -94,7 +93,7 @@ const withCountsTabs = (approvals: number) => GUARDIAN_TABS.map((t) => ("ask" in
 export function MentorShell({ ctx, children, aside, phone, tabs = true, wide }: { ctx: { short: string; open: number; unread: boolean }; children: ReactNode; aside?: ReactNode; phone?: { back?: string; title?: ReactNode; right?: ReactNode }; tabs?: boolean; wide?: boolean }) {
   const counted = (items: TabBarItem[]) => items.map((t) => ("ask" in t || t.href !== "/mentor" ? t : { ...t, count: ctx.open }));
   return (
-    <AppShell nav={withCounts(MENTOR_NAV, { "/mentor": ctx.open })} cta={{ href: "/mentor/contribute", label: "Share something" }} user={{ name: ctx.short, roleLabel: "Mentor", tone: "mint" }} unread={ctx.unread} search="Search your conversations and resources" phone={phone} aside={aside} wide={wide} tabs={tabs ? counted(MENTOR_TABS) : undefined}>
+    <AppShell nav={withCounts(MENTOR_NAV, { "/mentor": ctx.open })} cta={{ href: "/mentor/contribute", label: "Share something" }} user={{ name: ctx.short, roleLabel: "Mentor", tone: "mint", profileHref: "/mentor/settings" }} unread={ctx.unread} search="Search your conversations and resources" phone={phone} aside={aside} wide={wide} tabs={tabs ? counted(MENTOR_TABS) : undefined}>
       {children}
     </AppShell>
   );

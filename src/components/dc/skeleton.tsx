@@ -14,7 +14,7 @@ export function DashboardSkeleton({ rail = true }: { rail?: boolean }) {
       </div>
       <div className="flex h-[60px] items-center gap-3 px-4 lg:hidden"><Bone className="size-10 rounded-full" /><Bone className="h-6 w-40" /></div>
       <div className="flex">
-        <div className="hidden w-[262px] flex-none flex-col gap-3 border-r border-line bg-card px-3 py-5 lg:flex">{[0, 1, 2, 3, 4, 5].map((i) => <Bone key={i} className="h-[50px]" />)}</div>
+        <div className="hidden w-[262px] flex-none flex-col gap-1 border-r border-line bg-card px-3 py-5 lg:flex">{[0, 1, 2, 3, 4, 5].map((i) => <Bone key={i} className="h-11" />)}</div>
         <div className="flex min-w-0 flex-1 gap-8 px-5 lg:px-10">
           <div className="flex w-full max-w-[700px] flex-col gap-4 pb-6 pt-2 lg:gap-5 lg:py-8">
             <div className="flex gap-3">{[0, 1, 2, 3, 4].map((i) => <Bone key={i} className="size-[62px] rounded-full" />)}</div>
