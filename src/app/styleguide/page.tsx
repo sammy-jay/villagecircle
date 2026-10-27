@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { notFound } from "next/navigation";
 import {
   AdminBreadcrumb, AdminMenu, AskTag, Avatar, AvatarStack, Banner, Button, Card, Count, EmptyState, Field, Icon, Input,
   Moment, PageHead, SearchInput, StoryRing, Tag, Timeline, withCounts, ADMIN_NAV, type AskTagKey,
@@ -34,7 +35,9 @@ function Section({ n, title, sub, children }: { n: number; title: string; sub: s
   );
 }
 
+/** A working reference for the team. Not shown on the live site. */
 export default function Styleguide() {
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <main id="main" className="mx-auto max-w-[1280px] px-4 pb-24 pt-12 sm:px-14">
       <PageHead eyebrow="Design system" title="Village Square foundations v2"
