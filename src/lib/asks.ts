@@ -33,7 +33,7 @@ export async function participantFor(userId: string) {
 
 async function ownAsk(userId: string, askId: string) {
   const p = await participantFor(userId); if (!p) return null;
-  const ask = await db.ask.findFirst({ where: { id: askId, participantId: p.profile.id }, include: { topic: true } });
+  const ask = await db.ask.findFirst({ where: { id: askId, participantId: p.profile.id, deletedAt: { isSet: false } }, include: { topic: true } });
   return ask ? { ...p, ask } : null;
 }
 
@@ -150,18 +150,15 @@ export async function closeAsAnswered(userId: string, askId: string): Promise<R>
   const m = await moveAsk(askId, "ANSWERED_BY_RESOURCE", "PARTICIPANT", { actorId: userId }); return m.ok ? { ok: true } : m;
 }
 
-/** Delete a draft for good. Only drafts: once an Ask is sent it has a history that the team keeps. */
+/**
+ * Delete a draft. Only drafts: once an Ask is sent the team keeps it. The state history is append-only, so the draft is
+ * hidden and its answers wiped rather than removed; the participant never sees it again.
+ */
 export async function deleteDraft(userId: string, askId: string): Promise<R> {
   const o = await ownAsk(userId, askId); if (!o) return fail("Ask not found.");
   if (o.ask.state !== "DRAFT") return fail("Only drafts can be deleted. You can withdraw an Ask that was sent.");
-  await db.$transaction([
-    db.askStateChange.deleteMany({ where: { askId } }),
-    db.askMessage.deleteMany({ where: { askId } }),
-    db.review.deleteMany({ where: { askId } }),
-    db.shortlistEntry.deleteMany({ where: { askId } }),
-    db.guardianAuthorization.deleteMany({ where: { askId } }),
-    db.ask.delete({ where: { id: askId } }),
-  ]);
+  await db.ask.update({ where: { id: askId }, data: { deletedAt: new Date(), answers: {}, completeness: 0 } });
+  await audit(userId, "ask.draft.delete", "Ask", askId);
   return { ok: true };
 }
 
@@ -176,7 +173,7 @@ export async function reopenAsk(userId: string, askId: string): Promise<R<{ id: 
 
 export async function listOwnAsks(userId: string) {
   const p = await participantFor(userId); if (!p) return null;
-  const asks = await db.ask.findMany({ where: { participantId: p.profile.id }, include: { topic: true, connection: { include: { mentor: { include: { user: true } } } }, review: true }, orderBy: { updatedAt: "desc" } });
+  const asks = await db.ask.findMany({ where: { participantId: p.profile.id, deletedAt: { isSet: false } }, include: { topic: true, connection: { include: { mentor: { include: { user: true } } } }, review: true }, orderBy: { updatedAt: "desc" } });
   return { minor: p.minor, name: p.user.name, asks: asks.map((a) => ({ id: a.id, state: a.state, topic: a.topic.name, title: parseAnswers(a.answers).q1.split(/[.?!]/)[0]?.trim() || "Untitled draft", submittedAt: a.submittedAt, updatedAt: a.updatedAt, exitedAt: a.exitedAt, reasonCode: a.reasonCode, returned: a.state === "IN_TEAM_REVIEW" && a.review?.decision === "RETURN_FOR_INFO", scheduledAt: a.connection?.scheduledAt ?? null, guardianApprovedAt: a.connection?.guardianTimeApprovedAt ?? null, mentorShort: a.connection ? shortName(a.connection.mentor.user.name) : null, connectionStatus: a.connection?.status ?? null, handMatching: a.reasonCode === "R_NOONE" || a.reasonCode === "R_QUIET", sessionLength: parseAnswers(a.answers).sessionLength })) };
 }
 

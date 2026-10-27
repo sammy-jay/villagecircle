@@ -494,6 +494,7 @@ model Ask {
   redirectLinks    Json? // [{title, note, url?}] shown on the Redirected screen
   exitedAt         DateTime?
   pausedForCrisis  Boolean     @default(false)
+  deletedAt        DateTime? // a draft the participant deleted: hidden everywhere, answers wiped, state history kept
   submittedAt      DateTime?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt

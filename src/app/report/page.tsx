@@ -23,7 +23,7 @@ async function reportable(userId: string, role: "PARTICIPANT" | "MENTOR" | "GUAR
   let rows: AskRow[] = [];
   if (role === "PARTICIPANT") {
     const p = await db.participantProfile.findUnique({ where: { userId } });
-    if (p) rows = await db.ask.findMany({ where: { participantId: p.id }, include, orderBy: { updatedAt: "desc" }, take: 12 });
+    if (p) rows = await db.ask.findMany({ where: { participantId: p.id, deletedAt: { isSet: false } }, include, orderBy: { updatedAt: "desc" }, take: 12 });
   } else if (role === "GUARDIAN") {
     const g = await db.guardian.findUnique({ where: { userId }, include: { links: { where: { active: true } } } });
     if (g) rows = await db.ask.findMany({ where: { participantId: { in: g.links.map((l) => l.participantId) } }, include, orderBy: { updatedAt: "desc" }, take: 12 });

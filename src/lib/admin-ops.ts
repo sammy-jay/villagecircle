@@ -148,7 +148,7 @@ export async function globalSearch(actor: { id: string; roles: Role[] }, q: stri
   const has = (w: string) => ({ contains: w, mode: "insensitive" as const });
   const ws = words.length ? words : [q];
   const userWhere: Prisma.UserWhereInput = { AND: ws.map((w) => ({ OR: [{ name: has(w) }, { email: has(w) }] })) };
-  const askWhere: Prisma.AskWhereInput = { AND: ws.map((w) => ({ OR: [{ topic: { name: has(w) } }, { participant: { user: { name: has(w) } } }] })) };
+  const askWhere: Prisma.AskWhereInput = { deletedAt: { isSet: false }, AND: ws.map((w) => ({ OR: [{ topic: { name: has(w) } }, { participant: { user: { name: has(w) } } }] })) };
   const incidentWhere: Prisma.IncidentWhereInput = { AND: ws.map((w) => ({ description: has(w) })) };
   const people = showScope(scope, "people") || showScope(scope, "mentors") || showScope(scope, "guardians")
     ? await db.user.findMany({
