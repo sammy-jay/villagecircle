@@ -53,6 +53,7 @@ export async function trackerView(userId: string, askId: string) {
     id: ask.id, state: ask.state, topic: ask.topic.name, answers: parseAnswers(ask.answers), minor, guardianName: g ? firstName(g.name) : null, minorsGuardianAttends: !!conn?.guardianAttends,
     marks: { submitted: ask.submittedAt, authorized: at("SUBMITTED"), reviewed: at("OPEN_TO_MENTORS"), stepped: at("MENTOR_STEPPED_FORWARD"), approved: at("CONNECTION_APPROVED") },
     mentor: conn && ["CONNECTION_APPROVED", "SCHEDULED", "HELD", "COMPLETE", "FOLLOW_UP_REQUESTED", "ONGOING_MENTORSHIP"].includes(ask.state) ? mentorCardOf(conn) : null,
+    lastMentor: conn && ["CANCELLED", "MISSED"].includes(conn.status) && !conn.hoursCounted ? firstName(conn.mentor.user.name) : null, // a call that did not happen
     connection: conn ? { id: conn.id, status: conn.status, scheduledAt: conn.scheduledAt, offered: conn.offeredTimes, minutes: conn.durationMinutes, guardianTimeApprovedAt: conn.guardianTimeApprovedAt, rescheduleCount: conn.rescheduleCount, paused: conn.pausedByConcern, attendance: conn.attendance } : null,
     notes: notes.map((n) => ({ title: n.title, at: n.createdAt })), teamNote: ask.teamNote, redirectLinks: Array.isArray(ask.redirectLinks) ? (ask.redirectLinks as { title: string; note?: string; url?: string }[]) : [], reason: ask.reasonCode,
     handMatching: ask.reasonCode === "R_NOONE" || ask.reasonCode === "R_QUIET", exitedAt: ask.exitedAt, calendarUrl: conn?.scheduledAt ? googleCalendarLink({ uid: conn.id, title: `Village Circle: ${ask.topic.name}`, startsAt: conn.scheduledAt, minutes: conn.durationMinutes, description: "Join from your dashboard.", organizerEmail: "" }) : null,
@@ -261,6 +262,33 @@ export async function askTeamForDifferentMentor(userId: string, askId: string): 
   await moveAsk(askId, "IN_TEAM_REVIEW", "SYSTEM", { reason: "R_MISS", data: { serviceWindowDue: addHours(new Date(), 72) } });
   return { ok: true };
 }
+/**
+ * Team rebook: a call that did not happen (missed, handed back, or a second miss) goes back to the same mentor, who offers new
+ * times. The guardian approves the new time again; the mentor approval still stands. The earlier attempt stays in the history.
+ */
+export async function teamRebook(actorId: string, askId: string): Promise<R> {
+  const ask = await db.ask.findUnique({ where: { id: askId }, include: { connection: { include: { mentor: { include: { user: true } } } } } });
+  const c = ask?.connection;
+  if (!ask || !c) return fail("There is no earlier conversation to rebook.");
+  if (ask.state !== "IN_TEAM_REVIEW" || !["CANCELLED", "MISSED"].includes(c.status) || c.hoursCounted) return fail("This Ask is not waiting for a rebook.");
+  if (c.mentor.user.status !== "ACTIVE") return fail("This mentor's account is not active. Find another mentor instead.");
+  const mv = await moveAsk(askId, "CONNECTION_APPROVED", "ADMIN", { actorId, note: "Team rebooked with the same mentor" }); if (!mv.ok) return mv;
+  await db.connection.update({ where: { id: c.id }, data: { status: "PROPOSED", scheduledAt: null, offeredTimes: [], guardianTimeApprovedAt: null, attendance: "UNKNOWN", mentorJoinedAt: null, participantJoinedAt: null, guardianJoinedAt: null, endedAt: null, participantOutcome: null, mentorOutcome: null, guardianOutcome: null, changeRequestedBy: null, changeReason: null } });
+  await audit(actorId, "ask.rebook", "Ask", askId, { connection: c.status }, { connection: "PROPOSED" });
+  const mentorFirst = firstName(c.mentor.user.name);
+  await notify(c.mentor.userId, "connection.new_times_needed", "The team rebooked a conversation with you", "Please offer up to three new times.", { link: `/mentor/conversations/${askId}/change` });
+  const p = await db.participantProfile.findUnique({ where: { id: c.participantId } });
+  if (p) await notify(p.userId, "connection.rebooked", `We are rebooking with ${mentorFirst}`, `${mentorFirst} will offer new times. We will tell you when they arrive.`, { link: `/asks/${askId}` });
+  for (const g of await guardiansOf(c.participantId)) await notify(g.userId, "connection.rebooked", "A conversation is being rebooked", "You approve the new time before anything is booked.", { link: `/guardian/approvals/${askId}` });
+  return { ok: true };
+}
+/** The participant would like to try again with the same mentor. The team decides, because the mentor may have handed it back. */
+export async function requestTeamRebook(userId: string, askId: string): Promise<R> {
+  const r = await roleIn(userId, askId); if (!r || r.role !== "PARTICIPANT" || !r.conn) return fail("Not available.");
+  if (r.ask.state !== "IN_TEAM_REVIEW" || !["CANCELLED", "MISSED"].includes(r.conn.status)) return fail("Not available right now.");
+  for (const a of await db.user.findMany({ where: { roles: { has: "ADMIN" } }, select: { id: true } })) await notify(a.id, "team.attention", "A participant would like to rebook", "They would like to try again with the same mentor. Rebook from the Ask page if the mentor agrees.", { link: `/admin/asks/${askId}`, email: false, dedupeKey: `rebook-ask-${r.conn.id}-${a.id}` });
+  return { ok: true };
+}
 export async function stuckReport(userId: string, askId: string): Promise<R> {
   const r = await roleIn(userId, askId); if (!r?.conn) return fail("Not available.");
   await notifyTeam(askId, "Someone cannot connect", "Help them within 10 minutes or reschedule at no cost.");
@@ -365,6 +393,21 @@ export async function sweepPassedTimes(now: Date = new Date()) {
   return n;
 }
 
+/** Both people joined but nobody closed the call out: 30 minutes after the end it counts as held, and both are asked how it went. */
+export async function sweepEndedCalls(now: Date = new Date()) {
+  const due = await db.connection.findMany({ where: { status: "CONFIRMED", pausedByConcern: false, scheduledAt: { lte: now }, mentorJoinedAt: { not: null }, participantJoinedAt: { not: null }, ask: { state: "SCHEDULED" } }, include: { ask: { include: { participant: true } }, mentor: true } });
+  let n = 0;
+  for (const c of due) {
+    if (joinState(c.scheduledAt!, c.durationMinutes, now) !== "ENDED") continue;
+    const mv = await moveAsk(c.askId, "HELD", "SYSTEM", { note: "Both joined; the call ended without a close-out" }); if (!mv.ok) continue;
+    await db.connection.update({ where: { id: c.id }, data: { status: "HELD", attendance: "BOTH", endedAt: c.endedAt ?? now } });
+    await notify(c.mentor.userId, "conversation.close_out", "How did your conversation go?", "Add your notes and next steps so your hour is counted.", { link: `/mentor/conversations/${c.askId}`, dedupeKey: `closeout-${c.id}` });
+    await notify(c.ask.participant.userId, "conversation.complete", "How did it go?", "Say thanks or tell us if something was not right.", { link: `/asks/${c.askId}/after`, dedupeKey: `after-${c.id}` });
+    n++;
+  }
+  return n;
+}
+
 let lastSettle = 0;
 /**
  * The cron runs the sweeps every 10 minutes. Dashboards also run them (at most once a minute per server), so a call whose
@@ -373,6 +416,6 @@ let lastSettle = 0;
 export async function settleCalls() {
   if (Date.now() - lastSettle < 60_000) return;
   lastSettle = Date.now();
-  try { await sweepMisses(); await sweepPassedTimes(); } catch (e) { console.error("settleCalls", e); }
+  try { await sweepMisses(); await sweepPassedTimes(); await sweepEndedCalls(); } catch (e) { console.error("settleCalls", e); }
 }
 void sendEmail;

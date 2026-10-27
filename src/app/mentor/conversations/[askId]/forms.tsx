@@ -7,6 +7,7 @@ import { Icon } from "@/components/dc/icons";
 import { Select } from "@/components/dc/client";
 import { changeTimeAction, completeAction, mentorJoinAction, type MState } from "../../actions";
 import { TimePicker } from "../../time-picker";
+import { useConfirmSubmit } from "@/components/app/confirm";
 import { cn } from "@/lib/cn";
 
 function Btn({ label, busy, icon, disabled, className }: { label: string; busy: string; icon: "video" | "check" | "send"; disabled?: boolean; className?: string }) {
@@ -91,14 +92,17 @@ export function CloseOut({ askId, minutes, defaultNotes, minor, children }: { as
 }
 
 /** EX2 Can't make it: offer up to three new windows, or hand the conversation back. Everything goes through the team. */
-export function ChangeTime({ askId, suggestions }: { askId: string; suggestions: { iso: string; label: string; sub: string }[] }) {
+export function ChangeTime({ askId, suggestions, missed }: { askId: string; suggestions: { iso: string; label: string; sub: string }[]; missed?: boolean }) {
   const [state, action] = useFormState<MState, FormData>(changeTimeAction, {});
   const [mode, setMode] = useState<"OFFER" | "HAND_BACK">("OFFER");
+  // Handing back ends this match for good, so it asks first. Offering times never does.
+  const ask = useConfirmSubmit(mode === "HAND_BACK" ? { title: "Hand this conversation back?", body: "You will not be matched with this Ask again. The team finds another mentor, and the family is told kindly, with no blame on you. To rebook instead, offer new times.", confirmLabel: "Hand it back", cancelLabel: "Keep it", danger: true } : undefined);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} onSubmit={ask.onSubmit} className="flex flex-col gap-4">
+      {ask.dialog}
       <input type="hidden" name="askId" value={askId} /><input type="hidden" name="action" value={mode} />
       <div className="grid gap-2.5 lg:grid-cols-2" role="radiogroup" aria-label="What do you need?">
-        {([["OFFER", "Offer other times", "Pick up to three windows from your availability. The team and the family choose."], ["HAND_BACK", "Hand this conversation back", "The team finds another mentor. The family is told kindly, with no blame on you."]] as const).map(([v, t, b]) => (
+        {([["OFFER", missed ? "Offer new times to rebook" : "Offer other times", "Pick up to three windows from your availability. The family picks one."], ["HAND_BACK", "Hand this conversation back", "The team finds another mentor instead. This cannot be undone."]] as const).map(([v, t, b]) => (
           <button key={v} type="button" role="radio" aria-checked={mode === v} onClick={() => setMode(v)} className={cn("flex flex-col gap-1 rounded-[18px] border-2 p-4 text-left", mode === v ? "border-forest bg-mint/40" : "border-line bg-card")}>
             <span className="text-[15.5px] font-extrabold">{t}</span><span className="text-[13px] leading-snug text-bark">{b}</span>
           </button>
@@ -111,7 +115,7 @@ export function ChangeTime({ askId, suggestions }: { askId: string; suggestions:
         <span className="dc-hint">The participant never sees this.</span>
       </div>
       {state.error && <p role="alert" className="text-[14px] font-semibold text-clay">{state.error}</p>}
-      <div className="flex flex-wrap gap-2.5"><Btn label="Send to the team" busy="Sending…" icon="send" /><Link href={`/mentor/conversations/${askId}`} className="dc-btn dc-btn-soft h-[52px]">Back</Link></div>
+      <div className="flex flex-wrap gap-2.5"><Btn label={mode === "OFFER" ? "Send new times" : "Hand back to the team"} busy="Sending…" icon="send" /><Link href={`/mentor/conversations/${askId}`} className="dc-btn dc-btn-soft h-[52px]">Back</Link></div>
     </form>
   );
 }

@@ -34,6 +34,10 @@ describe("Ask state machine", () => {
     expect(canTransition({ from: "AWAITING_GUARDIAN", to: "SUBMITTED", actor: "PARTICIPANT", isMinor: true }).ok).toBe(false);
     expect(canTransition({ from: "AWAITING_GUARDIAN", to: "SUBMITTED", actor: "GUARDIAN", guardianAuthorized: true }).ok).toBe(true);
   });
+  it("only the team rebooks a call that did not happen with the same mentor", () => {
+    expect(canTransition({ from: "IN_TEAM_REVIEW", to: "CONNECTION_APPROVED", actor: "ADMIN" }).ok).toBe(true);
+    for (const actor of ["PARTICIPANT", "MENTOR", "GUARDIAN", "SYSTEM"] as const) expect(canTransition({ from: "IN_TEAM_REVIEW", to: "CONNECTION_APPROVED", actor }).ok).toBe(false);
+  });
   it("adult goes straight to submitted", () => {
     expect(canTransition({ from: "DRAFT", to: "SUBMITTED", actor: "PARTICIPANT" }).ok).toBe(true);
     expect(canTransition({ from: "DRAFT", to: "AWAITING_GUARDIAN", actor: "PARTICIPANT" }).ok).toBe(false);

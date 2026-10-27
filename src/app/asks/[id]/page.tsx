@@ -29,7 +29,7 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
   if (t.state === "DRAFT") redirect(`/asks/${params.id}/edit`);
   const ctx = { name: r.ctx.name, openCount: r.ctx.openCount, unread: r.ctx.unread };
   const title = t.answers.q1.split(/[.?!]/)[0]?.trim() || t.topic;
-  const exit = isExit(t.state as AskState) || t.handMatching || (t.state === "IN_TEAM_REVIEW" && t.reason === "R_THIN");
+  const exit = isExit(t.state as AskState) || t.handMatching || (t.state === "IN_TEAM_REVIEW" && (t.reason === "R_THIN" || !!t.lastMentor));
   if (exit) return <ExitView t={t} ctx={ctx} title={title} withdrawn={searchParams.withdrawn === "1"} withdraw={searchParams.withdraw === "1"} />;
 
   const mentor = t.mentor?.shortName ?? "your mentor";

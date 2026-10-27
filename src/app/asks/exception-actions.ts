@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { askTeamForDifferentMentor, requestChange, requestNewTimes, stuckReport } from "@/lib/connections";
+import { askTeamForDifferentMentor, requestChange, requestNewTimes, requestTeamRebook, stuckReport } from "@/lib/connections";
 import { giveBackInterest } from "@/lib/village";
 
 export type ExState = { ok?: boolean; error?: string; field?: string };
@@ -25,6 +25,12 @@ export async function missedAction(fd: FormData) {
   if (str(fd, "choice") === "other") await askTeamForDifferentMentor(id, askId); else await requestNewTimes(id, askId);
   revalidatePath(`/asks/${askId}`);
   redirect(`/asks/${askId}?rebook=1`);
+}
+
+/** After a call did not happen and went back to the team: "I would like to try again with the same mentor". */
+export async function rebookRequestAction(_: ExState, fd: FormData): Promise<ExState> {
+  const r = await requestTeamRebook(await uid(), str(fd, "askId"));
+  return r.ok ? { ok: true } : { error: r.error };
 }
 
 /** EX4: "Tell the team I am stuck". */

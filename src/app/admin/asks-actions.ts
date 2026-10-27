@@ -6,6 +6,7 @@ import type { ReasonCode } from "@prisma/client";
 import { adminActor } from "@/lib/admin-ctx";
 import { buildShortlist, claimReview, confirmMentor, decideAsk, getReviewDetail, handMatchOptions, overrideShortlist, releaseToMentors, saveReview, saveSummary } from "@/lib/review";
 import { audit } from "@/lib/audit";
+import { teamRebook } from "@/lib/connections";
 import { notifyAdmins } from "@/lib/insight-admin";
 
 export type QState = { ok?: boolean; error?: string; field?: string; done?: string; blocked?: string[] };
@@ -87,6 +88,15 @@ export async function confirmAction(_: QState, fd: FormData): Promise<QState> {
   if (!r.ok) return { error: r.error };
   if (str(fd, "why")) await audit(a.actor.id, "ask.mentor_choice_reason", "Ask", askId, null, { mentorId, why: str(fd, "why"), note: str(fd, "note") });
   touch(askId); return { ok: true, done: "confirmed" };
+}
+
+/* ───── Rebook a call that did not happen, with the same mentor ───── */
+export async function rebookAction(_: QState, fd: FormData): Promise<QState> {
+  const a = await adminActor("asks.release"); if (!a.ok) return { error: a.error };
+  const askId = str(fd, "askId");
+  const r = await teamRebook(a.actor.id, askId);
+  if (!r.ok) return { error: r.error };
+  touch(askId); return { ok: true };
 }
 
 /* ───── A26 hand-match ───── */

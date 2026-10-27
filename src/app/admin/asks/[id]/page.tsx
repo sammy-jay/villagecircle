@@ -12,7 +12,7 @@ import { ASK_FLAG_LABEL } from "@/lib/domain/ask-answers";
 import { EXPERTISE } from "@/lib/domain/expertise";
 import { getConfig } from "@/lib/config";
 import { cn } from "@/lib/cn";
-import { claimAction, decisionAction, overrideAction, scopeAction, shortlistAction, stepAction } from "../../asks-actions";
+import { claimAction, decisionAction, overrideAction, rebookAction, scopeAction, shortlistAction, stepAction } from "../../asks-actions";
 import { StepBar } from "./step-bar";
 
 export const metadata = { title: "Ask review" };
@@ -40,8 +40,21 @@ export default async function AskReview({ params }: { params: { id: string } }) 
   const flags = [...new Set([...d.flags, ...d.liveFlags])];
   const stepped = d.shortlist.filter((s) => s.response === "STEPPED_FORWARD");
 
+  const conn = d.connection;
+  const canRebook = inReview && release && !!conn && ["CANCELLED", "MISSED"].includes(conn.status) && !conn.held;
   const aside = (
     <>
+      {canRebook && (
+        <Panel className="border-2 border-clay">
+          <h2 className="font-display text-[21px] font-extrabold">The last conversation did not happen</h2>
+          <p className="mt-1.5 text-[14px] leading-normal text-bark">{conn!.attendance === "MENTOR_ABSENT" ? `${conn!.mentorFirst} did not join.` : conn!.attendance === "PARTICIPANT_ABSENT" ? `${conn!.mentorFirst} was there; the participant did not join.` : conn!.attendance === "NEITHER" ? "Neither of them joined." : `${conn!.mentorFirst} handed it back.`} Rebook with {conn!.mentorFirst}, or build a new shortlist below.</p>
+          <ActionForm action={rebookAction} className="mt-3" hideOnOk ok={`Rebooked. ${conn!.mentorFirst} is asked for new times, and everyone is told.`}
+            confirm={{ title: `Rebook with ${conn!.mentorFirst}?`, body: `${conn!.mentorFirst} is asked to offer new times. The participant picks one${d.participant.minor ? " and the guardian approves it" : ""}.`, confirmLabel: "Rebook" }}>
+            <input type="hidden" name="askId" value={id} />
+            {conn!.mentorActive ? <Submit variant="forest" icon="calendar">Rebook with {conn!.mentorFirst}</Submit> : <p className="text-[14px] font-semibold text-clay">{conn!.mentorFirst}&apos;s account is not active, so find another mentor.</p>}
+          </ActionForm>
+        </Panel>
+      )}
       {inReview && (release || triage) && (
         <Panel>
           <h2 className="font-display text-[21px] font-extrabold">Reason code</h2>

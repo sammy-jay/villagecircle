@@ -7,6 +7,8 @@ import { whenLong } from "@/components/app/ask-journey";
 import { APP_TZ } from "@/lib/domain/scheduling";
 import type { trackerView } from "@/lib/connections";
 import { reopenAction } from "@/app/asks/actions";
+import { rebookRequestAction } from "@/app/asks/exception-actions";
+import { ActionForm, Submit } from "@/components/app/action-form";
 import { cn } from "@/lib/cn";
 import { ReturnedForm } from "./returned-form";
 import { WithdrawDialog } from "./withdraw-dialog";
@@ -89,6 +91,30 @@ export function ExitView({ t, ctx, title, withdrawn, withdraw }: { t: T; ctx: Ct
         </Card>
         <section className="rounded-card bg-blush p-[18px] text-blush-ink"><h2 className="font-display text-[18px] font-extrabold">14 days to update</h2><p className="mt-1.5 text-[13.5px] leading-normal">If it is quiet after that, your Ask is saved as a draft and closes gently.</p></section>
       </>
+    );
+  } else if (t.state === "IN_TEAM_REVIEW" && t.lastMentor) {
+    // The conversation did not happen and the Ask went back to the team: rebook with the same mentor, or someone new.
+    body = (
+      <>
+        <Hero eyebrow="Rebooking" title="Your conversation did not happen" body={<><b>Nobody is blamed.</b> The team is sorting out what happens next: rebooking with {t.lastMentor}, or finding someone new. We will tell you{t.minor ? " and your guardian" : ""} within 2 working days.</>} tone="blush" />
+        <Card className="flex flex-col gap-3 p-5 lg:p-6">
+          <h2 className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">Would you like to try again with {t.lastMentor}?</h2>
+          <p className="text-[14.5px] text-bark">Tell the team. If {t.lastMentor} can, they offer new times and you pick one{t.minor ? ", and your guardian approves it" : ""}.</p>
+          <ActionForm action={rebookRequestAction} hideOnOk ok={`Done. The team knows you would like to rebook with ${t.lastMentor}.`}>
+            <input type="hidden" name="askId" value={t.id} />
+            <Submit variant="primary" icon="calendar" className="self-start">Rebook with {t.lastMentor}</Submit>
+          </ActionForm>
+          <p className="text-[13.5px] text-stone">Happy with someone new? You do not need to do anything.</p>
+        </Card>
+        <Card className="flex flex-col gap-3 p-5">
+          <h2 className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">Your options</h2>
+          <p className="text-[14.5px] text-bark">If you would rather stop, you can close your Ask. Closing never counts against you.</p>
+          <Link href={`${back}?withdraw=1`} className="dc-btn dc-btn-ghost h-[46px] self-start">Close my Ask</Link>
+        </Card>
+      </>
+    );
+    aside = (
+      <Card className="flex flex-col gap-2 p-[18px]"><h2 className="font-display text-[18px] font-extrabold leading-[1.12] tracking-[-.01em]">Your Ask</h2><p className="text-[13px] text-stone">{t.topic}. {t.answers.sessionLength} minutes.</p><p className="text-[14.5px] leading-normal text-bark">{t.answers.q1}</p></Card>
     );
   } else if (t.handMatching && !["WITHDRAWN", "LAPSED", "NOT_PROCEEDING"].includes(t.state)) {
     body = (
@@ -175,7 +201,7 @@ export function ExitView({ t, ctx, title, withdrawn, withdraw }: { t: T; ctx: Ct
       <Link href="/asks" className="dc-btn dc-btn-soft h-10 self-start px-4 text-[14.5px] max-lg:hidden"><Icon name="chevronLeft" size={18} />All my Asks</Link>
       {body}
       <div className="flex flex-col gap-4 lg:hidden">{aside}</div>
-      {t.handMatching && withdraw && <WithdrawDialog askId={t.id} back={back} minor={t.minor} shared={false} />}
+      {(t.handMatching || (t.state === "IN_TEAM_REVIEW" && t.lastMentor)) && withdraw && <WithdrawDialog askId={t.id} back={back} minor={t.minor} shared={false} />}
       {t.marks.submitted && <p className="text-center text-[12.5px] text-stone">Sent {whenLong(t.marks.submitted)}</p>}
     </ParticipantShell>
   );

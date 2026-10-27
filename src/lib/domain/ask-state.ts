@@ -5,7 +5,7 @@ const FORWARD: Record<AskState, AskState[]> = {
   DRAFT: ["AWAITING_GUARDIAN", "SUBMITTED"],
   AWAITING_GUARDIAN: ["SUBMITTED"], // guardian approval; decline is an exit
   SUBMITTED: ["IN_TEAM_REVIEW"],
-  IN_TEAM_REVIEW: ["OPEN_TO_MENTORS"],
+  IN_TEAM_REVIEW: ["OPEN_TO_MENTORS", "CONNECTION_APPROVED"], // the team rebooks a call that did not happen with the same mentor
   OPEN_TO_MENTORS: ["MENTOR_STEPPED_FORWARD", "IN_TEAM_REVIEW"], // BR-15: returns to team
   MENTOR_STEPPED_FORWARD: ["CONNECTION_APPROVED", "OPEN_TO_MENTORS"],
   CONNECTION_APPROVED: ["SCHEDULED", "IN_TEAM_REVIEW"], // team takes it back if a mentor hands the conversation back or a second miss happens
@@ -71,6 +71,7 @@ export function canTransition(c: TransitionCtx): TransitionResult {
     if (!c.summaryApproved) return { ok: false, error: "The mentor-facing summary must be approved before release." };
   }
   if (from === "SUBMITTED" && to === "IN_TEAM_REVIEW" && actor !== "ADMIN" && actor !== "SYSTEM") return { ok: false, error: "Not allowed." };
+  if (from === "IN_TEAM_REVIEW" && to === "CONNECTION_APPROVED" && actor !== "ADMIN") return { ok: false, error: "Only the team can rebook with the same mentor." };
   if (from === "MENTOR_STEPPED_FORWARD" && to === "CONNECTION_APPROVED" && actor !== "ADMIN")
     return { ok: false, error: "The team confirms who takes the Ask." };
   if (from === "CONNECTION_APPROVED" && to === "SCHEDULED" && c.isMinor && !c.guardianApprovedMentorAndTime)

@@ -37,7 +37,7 @@ export async function openAskCount() { return db.ask.count({ where: { state: { i
 
 // ───────── A2 / A8 review record ─────────
 export async function getReviewDetail(askId: string) {
-  const ask = await db.ask.findUnique({ where: { id: askId }, include: { topic: true, participant: { include: { user: true } }, review: true, shortlist: { include: { mentor: { include: { user: true } } }, orderBy: { rank: "asc" } }, connection: true, auths: true } });
+  const ask = await db.ask.findUnique({ where: { id: askId }, include: { topic: true, participant: { include: { user: true } }, review: true, shortlist: { include: { mentor: { include: { user: true } } }, orderBy: { rank: "asc" } }, connection: { include: { mentor: { include: { user: { select: { name: true, status: true } } } } } }, auths: true } });
   if (!ask) return null;
   const u = ask.participant.user;
   const answers = parseAnswers(ask.answers);
@@ -55,7 +55,7 @@ export async function getReviewDetail(askId: string) {
     review: ask.review ? { id: ask.review.id, decision: ask.review.decision, stepsDone: ask.review.stepsDone, expertiseNeeded: ask.review.expertiseNeeded, sessionLength: ask.review.sessionLength, summaryApprovedAt: ask.review.summaryApprovedAt, summary: summary as { question: string; whatWouldHelp: string } | null, withheld: ask.review.withheld, note: ask.review.note, reviewerId: ask.review.reviewerId } : null,
     withheldAuto: withheld,
     shortlist: ask.shortlist.map((s) => ({ id: s.id, mentorId: s.mentorId, name: s.mentor.user.name, headline: expertiseLabel(s.mentor.primaryExpertise), rank: s.rank, score: s.score, round: s.round, releasedAt: s.releasedAt, response: s.response, offeredTimes: s.offeredTimes, reason: s.reason, minorsOk: s.mentor.clearedForMinors, hoursLeft: Math.max(0, s.mentor.monthlyHours - s.mentor.hoursGivenThisMonth), monthlyHours: s.mentor.monthlyHours, hoursGiven: s.mentor.hoursGivenThisMonth })),
-    connection: ask.connection ? { id: ask.connection.id, status: ask.connection.status, mentorApproved: ask.connection.guardianMentorApprovedAt, timeApproved: ask.connection.guardianTimeApprovedAt, scheduledAt: ask.connection.scheduledAt, offered: ask.connection.offeredTimes } : null,
+    connection: ask.connection ? { id: ask.connection.id, status: ask.connection.status, mentorFirst: firstName(ask.connection.mentor.user.name), mentorActive: ask.connection.mentor.user.status === "ACTIVE", attendance: ask.connection.attendance, held: !!ask.connection.hoursCounted, mentorApproved: ask.connection.guardianMentorApprovedAt, timeApproved: ask.connection.guardianTimeApprovedAt, scheduledAt: ask.connection.scheduledAt, offered: ask.connection.offeredTimes } : null,
   };
 }
 const safeJson = (s: string) => { try { return JSON.parse(s); } catch { return null; } };

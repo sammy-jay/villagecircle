@@ -2,7 +2,7 @@
 import { db } from "./db";
 import { notify } from "./notify";
 import { moveAsk } from "./asks";
-import { sweepMisses, sweepPassedTimes } from "./connections";
+import { sweepEndedCalls, sweepMisses, sweepPassedTimes } from "./connections";
 import { createDueCheckIns, resetMonthlyHours, sendMonthlyDigests } from "./insight";
 import { sweepReaffirmations } from "./reaffirm";
 import { sweepDeletions } from "./safety-user";
@@ -58,10 +58,10 @@ export async function serviceWindowSweep(now: Date = new Date()) {
   return { warned, returned };
 }
 
-/** Every 10 minutes: missed calls (15 minutes after the start), times that passed before booking, and scheduled announcements. */
+/** Every 10 minutes: missed calls (15 minutes after the start), times that passed before booking, calls that ended without a close-out, and scheduled announcements. */
 export async function runSweeps() {
-  const [misses, passed, broadcasts] = [await sweepMisses(), await sweepPassedTimes(), await sendDueBroadcasts()];
-  return { misses, passed, broadcasts };
+  const [misses, passed, ended, broadcasts] = [await sweepMisses(), await sweepPassedTimes(), await sweepEndedCalls(), await sendDueBroadcasts()];
+  return { misses, passed, ended, broadcasts };
 }
 
 /** Daily: 30-day check-ins, annual re-affirmations, deletions whose 30 days are over, and the monthly hours reset (it runs once a month however often it is called). */
