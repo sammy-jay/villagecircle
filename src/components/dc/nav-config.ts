@@ -2,13 +2,14 @@ import type { IconName } from "./icons";
 
 /** Plain (server-safe) navigation data. Rendered by nav.tsx. */
 
-export type NavItem = { href: string; label: string; icon: IconName; count?: number; exact?: boolean };
+/** `also`: other pages that light up this item, such as a page you reach from it. */
+export type NavItem = { href: string; label: string; icon: IconName; count?: number; exact?: boolean; also?: string[] };
 export type NavGroup = { label: string; icon: IconName; href?: string; count?: number; items?: NavItem[] };
 
 export const isActive = (path: string, href: string, exact?: boolean) => (exact ? path === href : path === href || path.startsWith(href + "/"));
 /** Longest matching href wins, so /asks/new does not also light up /asks. */
-export const activeHref = (path: string, hrefs: { href: string; exact?: boolean }[]) =>
-  hrefs.filter((h) => isActive(path, h.href, h.exact)).sort((a, b) => b.href.length - a.href.length)[0]?.href;
+export const activeHref = (path: string, hrefs: { href: string; exact?: boolean; also?: string[] }[]) =>
+  hrefs.filter((h) => [h.href, ...(h.also ?? [])].some((x) => isActive(path, x, h.exact))).sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
 /* ───────── Route maps ───────── */
 
@@ -37,7 +38,7 @@ export const MENTOR_NAV: NavItem[] = [
   { href: "/mentor/impact", label: "My impact", icon: "chart" },
   { href: "/mentor/resources", label: "Resources", icon: "book" },
   { href: "/mentor/volunteer", label: "Community", icon: "users" },
-  { href: "/mentor/settings", label: "Profile and settings", icon: "user" }, // the same place as the person menu in the top bar
+  { href: "/mentor/profile", label: "Profile and settings", icon: "user", also: ["/mentor/settings"] }, // the same place as the person menu in the top bar
 ];
 
 export const ADMIN_NAV: NavGroup[] = [

@@ -93,7 +93,7 @@ const withCountsTabs = (approvals: number) => GUARDIAN_TABS.map((t) => ("ask" in
 export function MentorShell({ ctx, children, aside, phone, tabs = true, wide }: { ctx: { short: string; open: number; unread: boolean }; children: ReactNode; aside?: ReactNode; phone?: { back?: string; title?: ReactNode; right?: ReactNode }; tabs?: boolean; wide?: boolean }) {
   const counted = (items: TabBarItem[]) => items.map((t) => ("ask" in t || t.href !== "/mentor" ? t : { ...t, count: ctx.open }));
   return (
-    <AppShell nav={withCounts(MENTOR_NAV, { "/mentor": ctx.open })} cta={{ href: "/mentor/contribute", label: "Share something" }} user={{ name: ctx.short, roleLabel: "Mentor", tone: "mint", profileHref: "/mentor/settings" }} unread={ctx.unread} search="Search your conversations and resources" phone={phone} aside={aside} wide={wide} tabs={tabs ? counted(MENTOR_TABS) : undefined}>
+    <AppShell nav={withCounts(MENTOR_NAV, { "/mentor": ctx.open })} cta={{ href: "/mentor/contribute", label: "Share something" }} user={{ name: ctx.short, roleLabel: "Mentor", tone: "mint", profileHref: "/mentor/profile" }} unread={ctx.unread} search="Search your conversations and resources" phone={phone} aside={aside} wide={wide} tabs={tabs ? counted(MENTOR_TABS) : undefined}>
       {children}
     </AppShell>
   );

@@ -35,6 +35,11 @@ export default async function Profile() {
   return (
     <MentorShell ctx={r.ctx} phone={{ back: "/mentor/settings", title: "Profile and privacy" }}>
       <div><h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-[-.02em] max-lg:sr-only lg:text-[40px]">Profile and privacy</h1><p className="mt-1 text-[16px] text-bark">What participants see about you, and who can be matched with you.</p></div>
+      <Link href="/mentor/settings" className="flex items-center gap-3.5 rounded-card border border-line bg-card p-4 hover:bg-sand/50">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-[14px] bg-butter text-butter-ink"><Icon name="settings" size={22} /></span>
+        <span className="min-w-0 flex-1"><b className="block text-[15.5px]">Settings</b><span className="text-[13.5px] text-stone">Your hours, the yearly promise, notifications and your data</span></span>
+        <Icon name="chevronRight" size={18} className="text-stone" />
+      </Link>
       <Card className="flex flex-col gap-4 p-5 lg:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display text-[22px] font-extrabold">Your profile</h2><span className={cn("rounded-full px-3 py-1.5 text-[12.5px] font-semibold", p.bioCleared ? "bg-mint text-mint-ink" : "bg-butter text-butter-ink")}>{p.bioCleared ? "Bio cleared" : "Bio with the team"}</span></div>
         <ProfileForm p={p} options={EXPERTISE.map(([value, label]) => ({ value, label }))} />
