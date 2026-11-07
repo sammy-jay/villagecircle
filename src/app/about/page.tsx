@@ -1,105 +1,100 @@
 import Link from "next/link";
-import { Icon } from "@/components/dc/icons";
+import { Icon, type IconName } from "@/components/dc/icons";
 import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
-import { CtaBand, Gutter, H, Hero, NumberDot, RingAvatar, StatCard, TONE, cycle, type Tone, PAGE_STACK, SECTION_STACK } from "@/components/public/kit";
+import { CtaBand, Eyebrow, Gutter, H, IconTile, RingAvatar, TONE, type Tone, PAGE_STACK, SECTION_STACK } from "@/components/public/kit";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "About us" };
 
-const BELIEFS: { title: string; body: string; phone?: string }[] = [
-  { title: "Experience is a gift", body: "Mentors are doctors, teachers, founders and tradespeople. A grand title is not required. Willingness is." },
-  { title: "Safety comes first", body: "Every question is read by a person. Young people are only ever introduced with a guardian's say-so, at every step.", phone: "Every question is read by a person. Young people are only introduced with a guardian's say-so." },
-  { title: "Gratitude is the reward", body: "No star ratings and no leaderboards. We count hours given, and we say thank you." },
-];
-const OTHERS = ["Message strangers directly", "Phone numbers and emails swapped", "Software matches you", "Stars and leaderboards"];
-const OURS = ["Nobody can contact anyone directly", "Nothing like that is ever exchanged", "A team member reads every Ask and every application", "Hours given, and a thank you"];
-const PEOPLE: { initials: string; tone: Tone; name: string; role: string }[] = [
-  { initials: "MR", tone: "blush", name: "Maya R.", role: "Program lead" },
-  { initials: "SL", tone: "mint", name: "Safeguarding lead", role: "Reviews every concern" },
-  { initials: "TR", tone: "butter", name: "Team reviewers", role: "Read every Ask" },
+/** The client's four points on how The Village Circle differs from other mentoring communities. */
+const DIFFERENT: { icon: IconName; tone: Tone; title: string; body: string }[] = [
+  { icon: "users", tone: "butter", title: "African community identity", body: "We recreate the traditional African idea that raising and guiding the next generation is a shared community responsibility." },
+  { icon: "clock", tone: "mint", title: "Accessible professional mentorship", body: "Experienced African professionals can give as little as one hour a month, so more people can take part." },
+  { icon: "shieldCheck", tone: "blush", title: "Parent-led access for minors", body: "Parents and responsible adults can seek guidance on behalf of children under 18." },
+  { icon: "message", tone: "butter", title: "Ask the Village", body: "Practical advice for a specific education or career decision, without a long-term mentorship commitment." },
 ];
 
-/** HP1 About. */
+/** HP1 About: the client's story of the village, what we do, and how we are different. */
 export default function About() {
   return (
     <>
       <PublicHeader />
       <main id="main">
         <Gutter className={PAGE_STACK}>
-          <Hero eyebrow="About us" title="A village is how young people have always grown up." size={[40, 66]}
-            sub="The Village Circle connects people who have walked a road with people about to start it. One hour at a time, with a team reading every question and a guardian beside every young person."
-            aside={
-              <div className="flex gap-2.5 lg:w-[330px] lg:flex-none lg:flex-col lg:gap-3.5">
-                <StatCard tone="butter" icon="clock" value="1" label="hour at a time" className="flex-1 max-lg:[&>span]:hidden" />
-                <StatCard tone="mint" icon="eye" value="Every" label="Ask read by a person" className="flex-1 max-lg:hidden" />
-                <StatCard tone="blush" icon="lock" value="0" label="private messages" className="flex-1 max-lg:[&>span]:hidden" />
-              </div>
-            } />
+          {/* Hero: the promise, beside the proverb the whole idea grows from. */}
+          <section className="flex flex-col gap-8 pt-8 lg:flex-row lg:items-center lg:gap-14 lg:pt-14">
+            <div className="min-w-0 flex-1">
+              <Eyebrow>About us</Eyebrow>
+              <h1 className="mt-3 font-display text-[40px] font-extrabold leading-[1.05] tracking-[-.02em] lg:text-[64px] lg:leading-[1.02] lg:tracking-[-.025em]">
+                Rebuilding the Village.<br /><span className="text-clay">Empowering the Next Generation.</span>
+              </h1>
+              <p className="mt-5 max-w-[620px] text-[17px] leading-relaxed text-bark lg:text-[19px]">A community-driven mentorship initiative connecting students and young adults with experienced African professionals who are willing to share their knowledge, experience and networks.</p>
+            </div>
+            <figure className="relative flex flex-col gap-5 overflow-hidden rounded-[32px] bg-forest p-7 text-forest-ink lg:w-[400px] lg:flex-none lg:rounded-[36px] lg:p-9">
+              <span className="absolute -right-10 -top-10 size-40 rounded-full bg-white/10" aria-hidden="true" />
+              <div className="relative flex" aria-hidden="true"><RingAvatar initials="KM" tone="butter" size={52} /><RingAvatar initials="TA" tone="mint" size={52} className="-ml-3" /><RingAvatar initials="IB" tone="blush" size={52} className="-ml-3" /></div>
+              <blockquote className="relative font-display text-[30px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[36px]">&ldquo;It takes a village to raise a child.&rdquo;</blockquote>
+              <figcaption className="relative text-[14.5px] text-white/85">An African proverb, and the reason we exist.</figcaption>
+            </figure>
+          </section>
 
-          <section className={SECTION_STACK}>
-            <H className="text-[26px] lg:text-[40px]">What we believe</H>
-            <div className="flex flex-col gap-4 lg:flex-row lg:gap-[18px]">
-              {BELIEFS.map((b, i) => {
-                const t = TONE[cycle(i)];
-                return (
-                  <div key={b.title} className={cn("flex flex-1 gap-3.5 rounded-[26px] p-5 lg:flex-col lg:gap-0 lg:rounded-[30px] lg:p-7", t.bg, t.ink)}>
-                    <NumberDot n={i + 1} size={40} className="bg-card lg:hidden" />
-                    <NumberDot n={i + 1} size={44} className="bg-card max-lg:hidden" />
-                    <div className="min-w-0 flex-1">
-                      <H as="h3" className="text-[20px] lg:mt-[18px] lg:text-[27px]">{b.title}</H>
-                      <p className="mt-1.5 text-[14.5px] leading-normal opacity-90 lg:mt-2 lg:text-[16px]">
-                        {b.phone ? <><span className="lg:hidden">{b.phone}</span><span className="max-lg:hidden">{b.body}</span></> : b.body}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+          {/* The story: the village, the gap the diaspora feels, and why we were created. */}
+          <section className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+            <div>
+              <Eyebrow>Our story</Eyebrow>
+              <H className="mt-3 text-[30px] lg:text-[44px]">The village has always been there. Until it was not.</H>
+            </div>
+            <div className="flex flex-col gap-5 text-[17px] leading-relaxed text-bark lg:text-[18px]">
+              <p>In African communities, the village has always been a source of wisdom, guidance and opportunity.</p>
+              <p>But for many families living in the diaspora, these traditional support networks are no longer within reach.</p>
+              <p className="rounded-[22px] bg-butter px-6 py-5 font-display text-[22px] font-extrabold leading-[1.25] text-butter-ink lg:text-[26px]">The Village Circle was created to bridge that gap.</p>
             </div>
           </section>
 
+          {/* What we do: Ask the Village, and the belief behind it. */}
           <section className={SECTION_STACK}>
-            <H className="text-[26px] lg:text-[40px]">How we are different</H>
-            <div className="dc-card p-5 text-[15.5px] leading-[1.55] text-bark lg:hidden">
-              <p>Most mentoring sites let you message strangers. We do not. Nobody can contact anyone directly, and no phone numbers or emails are ever exchanged. Every connection runs through us.</p>
-              <p className="mt-6">We are small on purpose. A team member reads every Ask and every application. That is slower than software, and it is the point.</p>
+            <div>
+              <Eyebrow>What we do</Eyebrow>
+              <H className="mt-3 max-w-[820px] text-[30px] lg:text-[44px]">Trusted guidance, one conversation at a time</H>
             </div>
-            <p className="max-w-[760px] text-[18px] leading-relaxed text-bark max-lg:hidden">Most mentoring sites let you message strangers. We do not. Every connection runs through us. We are small on purpose, and that is slower than software. It is the point.</p>
-            <div className="flex gap-6 max-lg:hidden">
-              <div className="dc-card flex-1 p-7">
-                <p className="text-[13px] font-bold text-bark">MOST MENTORING SITES</p>
-                <ul>{OTHERS.map((o) => <li key={o} className="flex items-center gap-3 border-t border-line py-3.5 text-[16px] text-stone first:mt-0"><Icon name="x" size={18} />{o}</li>)}</ul>
+            <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
+              <div className="dc-card flex flex-col gap-4 p-6 lg:p-8">
+                <IconTile icon="message" tone="mint" size={52} iconSize={26} />
+                <H as="h3" className="text-[24px] lg:text-[28px]">&ldquo;Ask the Village&rdquo;</H>
+                <p className="text-[16px] leading-relaxed text-bark lg:text-[17px]">Through Ask the Village, we make it easier for young people and families to access trusted guidance on education, career choices and personal development.</p>
+                <Link href="/#how" className="inline-flex items-center gap-1.5 self-start text-[15px] font-bold text-clay">See how it works<Icon name="arrowRight" size={16} strokeWidth={2.5} /></Link>
               </div>
-              <div className="flex-1 rounded-card border-2 border-forest bg-card p-7">
-                <p className="text-[13px] font-bold text-forest">THE VILLAGE CIRCLE</p>
-                <ul>{OURS.map((o) => <li key={o} className="flex items-center gap-3 border-t border-line py-3.5 text-[16px] font-bold"><Icon name="check" size={18} strokeWidth={3} className="text-forest" />{o}</li>)}</ul>
+              <div className="flex flex-col justify-between gap-6 rounded-card bg-blush p-6 text-blush-ink lg:p-8">
+                <IconTile icon="heart" tone="blush" white size={52} iconSize={26} />
+                <div>
+                  <p className="text-[16px] leading-relaxed lg:text-[17px]">We believe mentorship does not have to be complicated or time-consuming.</p>
+                  <p className="mt-3 font-display text-[24px] font-extrabold leading-[1.2] lg:text-[28px]">Sometimes, one meaningful conversation can change the direction of someone&apos;s future.</p>
+                </div>
               </div>
             </div>
           </section>
 
+          {/* How we are different: the client's four points. */}
           <section className={SECTION_STACK}>
-            <H className="text-[26px] lg:text-[40px]">The people behind it</H>
-            <div className="dc-card px-5 py-0.5 lg:hidden">
-              {PEOPLE.map((p, i) => (
-                <div key={p.name} className={cn("flex items-center gap-3.5 py-3", i > 0 && "border-t border-line")}>
-                  <RingAvatar initials={p.initials} tone={p.tone} size={52} />
-                  <div><p className="text-[16px] font-extrabold">{p.name}</p><p className="text-[13.5px] text-stone">{p.role}</p></div>
+            <div>
+              <Eyebrow>How we are different</Eyebrow>
+              <H className="mt-3 max-w-[820px] text-[30px] lg:text-[44px]">Mentoring, the way the village always did it</H>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+              {DIFFERENT.map((d) => (
+                <div key={d.title} className={cn("flex flex-col gap-4 rounded-[26px] p-6 lg:rounded-[30px] lg:p-8", TONE[d.tone].bg, TONE[d.tone].ink)}>
+                  <IconTile icon={d.icon} tone={d.tone} white size={52} iconSize={26} />
+                  <H as="h3" className="text-[22px] lg:text-[26px]">{d.title}</H>
+                  <p className="text-[15.5px] leading-relaxed opacity-90 lg:text-[16.5px]">{d.body}</p>
                 </div>
               ))}
             </div>
-            <div className="flex gap-[18px] max-lg:hidden">
-              {PEOPLE.map((p) => (
-                <div key={p.name} className="dc-card flex flex-1 items-center gap-4 p-6">
-                  <RingAvatar initials={p.initials} tone={p.tone} size={64} />
-                  <div><p className="font-display text-[22px] font-extrabold">{p.name}</p><p className="mt-0.5 text-[15px] text-stone">{p.role}</p></div>
-                </div>
-              ))}
-            </div>
           </section>
 
-          <CtaBand tone="butter" title="Ready to ask, or to give an hour?" sub="Join free in two minutes. Under 18s join with a parent or guardian.">
+          <CtaBand tone="butter" title="Together, we're rebuilding the village, one connection at a time." sub="Join free in two minutes. Under 18s join with a parent or guardian.">
             <Link href="/register" className="dc-btn dc-btn-primary h-[54px] lg:h-14"><Icon name="arrowRight" size={18} />Start an Ask</Link>
-            <Link href="/become-a-mentor" className="dc-btn dc-btn-outline h-[50px] lg:h-14">Apply to mentor</Link>
+            <Link href="/become-a-mentor" className="dc-btn dc-btn-outline h-[50px] lg:h-14">Be a Mentor</Link>
           </CtaBand>
         </Gutter>
       </main>
