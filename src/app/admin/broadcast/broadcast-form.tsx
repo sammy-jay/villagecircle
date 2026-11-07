@@ -27,7 +27,7 @@ export function BroadcastForm({ action, audiences, zone }: { action: (s: CState,
           <div className="flex flex-wrap gap-2">{audiences.map((a) => <label key={a.value} className="cursor-pointer"><input type="radio" name="audience" value={a.value} checked={aud === a.value} onChange={() => setAud(a.value)} className="peer sr-only" /><span className="inline-block rounded-full bg-sand px-3.5 py-2 text-[14px] font-semibold peer-checked:bg-forest peer-checked:text-forest-ink peer-focus-visible:ring-2 peer-focus-visible:ring-ink">{a.label} · {a.n}</span></label>)}</div>
         </fieldset>
         <div><label htmlFor="subject" className="dc-label">Subject</label><input id="subject" name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={120} className="dc-input" /></div>
-        <div><label htmlFor="body" className="dc-label">Message</label><textarea id="body" name="body" rows={6} value={body} onChange={(e) => setBody(e.target.value)} maxLength={4000} className="dc-textarea" /><span className="dc-hint">{body.length} characters. No names of young people, no contact details.</span></div>
+        <div><label htmlFor="body" className="dc-label">Message</label><textarea id="body" name="body" rows={6} value={body} onChange={(e) => setBody(e.target.value)} maxLength={4000} className="dc-textarea" /><span className="dc-hint">{body.length} characters. No names of young adults, no contact details.</span></div>
         <fieldset><legend className="dc-label">When</legend>
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-[15px]"><input type="radio" checked={!later} onChange={() => setLater(false)} className="size-5 accent-[#2F6B4F]" />Send now</label>

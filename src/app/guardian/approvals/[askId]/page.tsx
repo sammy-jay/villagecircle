@@ -85,7 +85,7 @@ export default async function Approval({ params }: { params: { askId: string } }
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {m.verified && <span className="inline-flex items-center gap-1.5 rounded-full bg-mint px-[13px] py-[7px] text-[13.5px] font-semibold text-mint-ink"><Icon name="check" size={16} />Verified</span>}
-              {m.cleared && <span className="inline-flex items-center gap-1.5 rounded-full bg-mint px-[13px] py-[7px] text-[13.5px] font-semibold text-mint-ink"><Icon name="shieldCheck" size={16} />Cleared for young people</span>}
+              {m.cleared && <span className="inline-flex items-center gap-1.5 rounded-full bg-mint px-[13px] py-[7px] text-[13.5px] font-semibold text-mint-ink"><Icon name="shieldCheck" size={16} />Cleared for young adults</span>}
               {m.oriented && <span className="rounded-full bg-sand px-[13px] py-[7px] text-[13.5px] font-semibold">Safeguarding orientation done</span>}
             </div>
             <p className="mt-3 text-[14px] leading-normal text-bark">{m.first} is not given {f}&apos;s name, school or contact details. You see their profile, but no contact details either.</p>

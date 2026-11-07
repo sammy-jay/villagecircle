@@ -30,7 +30,7 @@ export default async function Ongoing({ params }: { params: { askId: string } })
         <h2 className="font-display text-[18px] font-extrabold leading-[1.12] tracking-[-.01em] max-lg:hidden">What is proposed</h2>
         <div className="mt-0 flex items-center gap-3.5 lg:mt-3">
           <span className="flex size-[52px] shrink-0 items-center justify-center rounded-full bg-mint font-display text-[19px] font-bold text-mint-ink">{v.mentorShort.split(" ").map((w) => w[0]).join("").slice(0, 2)}</span>
-          <div><p className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">{v.mentorShort}</p><p className="text-[14px] text-bark">{v.cleared ? "Cleared for young people" : "Verified mentor"}</p></div>
+          <div><p className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">{v.mentorShort}</p><p className="text-[14px] text-bark">{v.cleared ? "Cleared for young adults" : "Verified mentor"}</p></div>
         </div>
         <dl className="mt-2.5 divide-y divide-line text-[14.5px]">{rows.map(([k, val]) => <div key={k} className="flex justify-between gap-3.5 py-[11px]"><dt className="text-stone">{k}</dt><dd className="text-right font-bold">{val}</dd></div>)}</dl>
       </Card>

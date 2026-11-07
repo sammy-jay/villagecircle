@@ -105,9 +105,9 @@ export async function recordOrientation(reviewerId: string, id: string, note: st
 export async function remindMentor(reviewerId: string, id: string) {
   const x = await mentorFor(id); if (!x) return { ok: false as const, error: "Application not found." };
   const att = await db.attestation.findFirst({ where: { applicationId: id }, orderBy: { signedAt: "desc" } });
-  const todo = [!x.mentor.optedForMinors && "choose to mentor young people", !x.mentor.codeOfConductAt && "accept the Code of Conduct", (!att || att.nextDueAt < new Date()) && "sign your safeguarding statement again", !x.mentor.orientationDoneAt && "finish the safeguarding orientation"].filter(Boolean) as string[];
+  const todo = [!x.mentor.optedForMinors && "choose to mentor young adults", !x.mentor.codeOfConductAt && "accept the Code of Conduct", (!att || att.nextDueAt < new Date()) && "sign your safeguarding statement again", !x.mentor.orientationDoneAt && "finish the safeguarding orientation"].filter(Boolean) as string[];
   if (!todo.length) return { ok: false as const, error: "Nothing is waiting on the mentor." };
-  await notify(x.app.applicantId, "mentor.minors.reminder", "A few steps before you can mentor young people", `Please ${todo.join(", ")}. You can do all of it from Profile and privacy.`, { link: "/mentor/profile" });
+  await notify(x.app.applicantId, "mentor.minors.reminder", "A few steps before you can mentor young adults", `Please ${todo.join(", ")}. You can do all of it from Profile and privacy.`, { link: "/mentor/profile" });
   await audit(reviewerId, "application.minors.reminder", "Application", id, null, { todo });
   return { ok: true as const };
 }

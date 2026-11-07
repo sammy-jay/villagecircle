@@ -13,7 +13,7 @@ describe("directory safeguarding", () => {
     expect(mentorListable(ok)).toBe(true);
     for (const bad of [{ verification: "PENDING" }, { codeOfConductAt: null }, { orientationDoneAt: null }, { visibility: "PRIVATE" }, { userStatus: "SUSPENDED" }]) expect(mentorListable({ ...ok, ...bad })).toBe(false);
   });
-  it("shows under-18s only mentors cleared for young people", () => {
+  it("shows under-18s only mentors cleared for young adults", () => {
     expect(mentorVisibleTo({ ...ok, clearedForMinors: false }, { minor: true })).toBe(false);
     expect(mentorVisibleTo({ ...ok, clearedForMinors: false }, { minor: false })).toBe(true);
     expect(mentorVisibleTo({ ...ok, clearedForMinors: true }, { minor: true })).toBe(true);

@@ -1,13 +1,13 @@
 /** Reason codes the reviewer picks on A1 and A6. The applicant gets the plain words, never the code. Codes are counted in reports. */
 export const DECLINE_REASONS: [string, string][] = [
   ["D-01", "Not enough detail to assess the application"],
-  ["D-02", "Experience is not yet a fit for mentoring young people"],
+  ["D-02", "Experience is not yet a fit for mentoring young adults"],
   ["D-03", "Area of expertise not matched to a current need"],
   ["D-04", "We could not confirm the details given"],
   ["D-05", "Safeguarding: we cannot proceed"],
 ];
 export const INFO_REASONS: [string, string][] = [
-  ["I-01", "Tell us more about your experience with young people"],
+  ["I-01", "Tell us more about your experience with young adults"],
   ["I-02", "Tell us more about your area of expertise"],
   ["I-03", "Confirm a detail on your application"],
 ];

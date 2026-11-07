@@ -12,7 +12,7 @@ const APPLY = "/register?role=mentor";
 const ASKS: { icon: IconName; title: string; body: string }[] = [
   { icon: "user", title: "Tell us about you", body: "A short bio and the areas you know best. A resume or LinkedIn is optional and never counts against you." },
   { icon: "shieldCheck", title: "Sign a safeguarding commitment", body: "A short statement you re-affirm each year, and our code of conduct." },
-  { icon: "video", title: "Do a short orientation", body: "About an hour on how to talk with young people and what to avoid." },
+  { icon: "video", title: "Do a short orientation", body: "About an hour on how to talk with young adults and what to avoid." },
   { icon: "clock", title: "Choose your hours", body: "From one hour a month. You decide, and you can pause any time." },
 ];
 const SIGN = [
@@ -47,7 +47,7 @@ export default function BecomeAMentor() {
               <h1 className="mt-3.5 font-display text-[50px] font-extrabold leading-[.98] tracking-[-.03em] lg:mt-4 lg:text-[84px]">Give an hour.<br />Change a week.</h1>
               <p className="mt-3.5 max-w-[560px] text-[16.5px] leading-normal opacity-90 lg:mt-[18px] lg:text-[20px] lg:opacity-100">You do not need a grand title. You need experience worth sharing and the willingness to share it kindly.</p>
               <div className="mt-5 flex flex-col gap-3 lg:mt-7 lg:flex-row">
-                <Link href={APPLY} className="dc-btn dc-btn-primary h-[58px] max-lg:hidden"><Icon name="arrowRight" size={18} />Apply to mentor</Link>
+                <Link href={APPLY} className="dc-btn dc-btn-primary h-[58px] max-lg:hidden"><Icon name="arrowRight" size={18} />Be a Mentor</Link>
                 <Link href="#sign" className="dc-btn dc-btn-outline h-[52px] lg:h-[58px]">What mentors are asked to sign</Link>
               </div>
             </div>
@@ -106,13 +106,13 @@ export default function BecomeAMentor() {
               <H className="text-[38px] [text-wrap:balance]">One hour a month. Twelve a year.</H>
               <p className="mt-2 text-[16.5px] leading-normal opacity-90">No league tables and no star ratings. Gratitude is the reward.</p>
             </div>
-            <Link href={APPLY} className="dc-btn dc-btn-primary h-14"><Icon name="arrowRight" size={18} />Apply to mentor</Link>
+            <Link href={APPLY} className="dc-btn dc-btn-primary h-14"><Icon name="arrowRight" size={18} />Be a Mentor</Link>
             <Link href="/policies/code-of-conduct" className="dc-btn dc-btn-outline h-14">Read the code of conduct</Link>
           </section>
         </Gutter>
       </main>
       <PublicFooter />
-      <PhoneActionBar><Link href={APPLY} className="dc-btn dc-btn-primary h-14 w-full"><Icon name="arrowRight" size={18} />Apply to mentor</Link></PhoneActionBar>
+      <PhoneActionBar><Link href={APPLY} className="dc-btn dc-btn-primary h-14 w-full"><Icon name="arrowRight" size={18} />Be a Mentor</Link></PhoneActionBar>
     </>
   );
 }

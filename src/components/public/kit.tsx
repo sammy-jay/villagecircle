@@ -138,7 +138,7 @@ export function FactRows({ rows, compact }: { rows: [string, string][]; compact?
 }
 
 const SAMPLE_APPROVAL: [string, string][] = [
-  ["Mentor", "Emergency physician, cleared for young people"],
+  ["Mentor", "Emergency physician, cleared for young adults"],
   ["Proposed time", "Thursday 29 October, 6:00 pm WAT"],
   ["Length", "60 minutes"],
   ["Recording", "On, and you can ask for it any time"],

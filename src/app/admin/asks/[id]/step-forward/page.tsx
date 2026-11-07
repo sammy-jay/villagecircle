@@ -10,7 +10,7 @@ import { confirmAction } from "../../../asks-actions";
 export const metadata = { title: "Step forward" };
 export const dynamic = "force-dynamic";
 
-const WHY = ["Exact profession match", "Has worked with young people", "Earliest time offered", "Speaks the participant's language", "Something else"];
+const WHY = ["Exact profession match", "Has worked with young adults", "Earliest time offered", "Speaks the participant's language", "Something else"];
 const when = (d: Date) => day(d, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
 /** A9 Step forward: choose who takes the Ask, thank the others (never declined), then follow guardian approval and scheduling. */

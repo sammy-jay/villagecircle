@@ -19,7 +19,7 @@ export type InviteInfo = { token: string; firstName: string; age: number | null;
 
 const AUTHORIZING = [
   "Conversations of 30 to 60 minutes through the platform",
-  "Only mentors we have verified and cleared to work with young people",
+  "Only mentors we have verified and cleared to work with young adults",
   "You approve the specific mentor and the time before any contact",
   "You may attend, or stay reachable during the conversation",
   "Conversations are recorded, and you may request the recording",

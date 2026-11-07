@@ -24,7 +24,7 @@ export default async function Suspend({ params, searchParams }: { params: { id: 
     <AdminShell ctx={r.ctx} phone={{ back: `/admin/accounts/${a.id}`, title: a.short }}>
       <AdminHead eyebrow="People · Accounts" title={a.isMentor ? `Suspend ${a.first}'s eligibility` : `Suspend ${a.first}'s account`} sub={a.isMentor ? MENTOR_SUSPEND_BODY : "They cannot sign in until the account is restored. Nothing is deleted."} />
       <Panel className="flex flex-wrap items-center gap-6">
-        <Person name={a.short} size={52} tone="mint" sub={a.isMentor ? `Mentor${a.clearedForMinors ? " · cleared for young people" : ""}` : a.roles.join(", ").toLowerCase()} />
+        <Person name={a.short} size={52} tone="mint" sub={a.isMentor ? `Mentor${a.clearedForMinors ? " · cleared for young adults" : ""}` : a.roles.join(", ").toLowerCase()} />
         {a.hours && <p className="text-[14px] text-bark"><b className="font-display text-[22px] text-ink">{a.hours.given}</b> hours given this month</p>}
       </Panel>
       <Panel>

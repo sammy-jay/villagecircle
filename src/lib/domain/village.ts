@@ -22,7 +22,7 @@ export const LISTED = "LISTED";
 export function mentorListable(m: Pick<DirectoryMentorSource, "verification" | "codeOfConductAt" | "orientationDoneAt" | "visibility" | "userStatus">): boolean {
   return m.verification === "APPROVED" && !!m.codeOfConductAt && !!m.orientationDoneAt && m.visibility === LISTED && m.userStatus === "ACTIVE";
 }
-/** Under-18s only see mentors cleared for young people (BR-04). */
+/** Under-18s only see mentors cleared for young adults (BR-04). */
 export const mentorVisibleTo = (m: Pick<DirectoryMentorSource, "clearedForMinors"> & Parameters<typeof mentorListable>[0], viewer: { minor: boolean }) => mentorListable(m) && (!viewer.minor || m.clearedForMinors);
 
 /** Mentor-written bio with any contact detail removed, so the public card can never leak one. */

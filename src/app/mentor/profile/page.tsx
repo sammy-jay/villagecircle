@@ -50,7 +50,7 @@ export default async function Profile() {
           <Toggle name="listed" defaultChecked={p.listed} disabled={!p.canList} label="Show my first name and area of work" sub={p.canList ? "Participants see this in the directory and on your Ask answers." : "You can be listed once you are approved and have finished orientation."} />
           {p.canList && <button type="submit" className="mb-3 text-[13.5px] font-bold text-clay">Save</button>}
         </form>
-        <p className="border-t border-line py-4 text-[13.5px] text-bark">No photo is shown. Young people see your initials. Contact details are never shown.</p>
+        <p className="border-t border-line py-4 text-[13.5px] text-bark">No photo is shown. Young adults see your initials. Contact details are never shown.</p>
       </Card>
       <Card className="flex flex-col gap-3 p-5 lg:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display text-[22px] font-extrabold">Under-18 Asks</h2><span className={cn("rounded-full px-3 py-1.5 text-[12.5px] font-semibold", p.cleared ? "bg-mint text-mint-ink" : p.optedForMinors ? "bg-butter text-butter-ink" : "bg-sand")}>{p.cleared ? "Cleared" : p.optedForMinors ? "Opted in" : "Adults only"}</span></div>

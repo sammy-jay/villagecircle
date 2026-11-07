@@ -41,7 +41,7 @@ export default async function GuardianHome() {
       <Card className="p-5">
         <h2 className="font-display text-[19px] font-extrabold leading-[1.12] tracking-[-.01em]">What you&apos;re authorizing</h2>
         <dl className="mt-2 divide-y divide-line text-[14.5px]">
-          {[["Length", "30 to 60 minutes"], ["Mentors", "Verified, cleared for young people"], ["Contact details", "Never shared"], ["Recording", "On, available to you"]].map(([k, v]) => <div key={k} className="flex justify-between gap-3.5 py-[11px]"><dt className="text-stone">{k}</dt><dd className="text-right font-bold">{v}</dd></div>)}
+          {[["Length", "30 to 60 minutes"], ["Mentors", "Verified, cleared for young adults"], ["Contact details", "Never shared"], ["Recording", "On, available to you"]].map(([k, v]) => <div key={k} className="flex justify-between gap-3.5 py-[11px]"><dt className="text-stone">{k}</dt><dd className="text-right font-bold">{v}</dd></div>)}
         </dl>
       </Card>
       <Card className="p-5">

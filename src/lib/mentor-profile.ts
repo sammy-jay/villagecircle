@@ -68,7 +68,7 @@ export async function setMinorsOptIn(userId: string, on: boolean): Promise<R> {
 
 export async function startEnhancedScreening(userId: string): Promise<R> {
   const m = await db.mentorProfile.findUnique({ where: { userId }, include: { user: true } }); if (!m) return fail("Start your application first.");
-  if (!m.optedForMinors) return fail("Choose to mentor young people first.");
+  if (!m.optedForMinors) return fail("Choose to mentor young adults first.");
   if (m.verification !== "APPROVED") return fail("Screening for under-18 mentoring opens once your application is approved.");
   const app = await latestApplication(userId); if (!app) return fail("Application not found.");
   if (app.screeningState === "CLEAR") return fail("Your screening is already clear.");
@@ -95,7 +95,7 @@ export async function acceptCodeOfConduct(userId: string, ip: string): Promise<R
 export async function requestMinorsClearance(userId: string): Promise<R> {
   const v = await profileView(userId); if (!v) return fail("Start your application first.");
   if (!v.approved) return fail("Your application needs to be approved first.");
-  if (v.cleared) return fail("You are already cleared to mentor young people.");
+  if (v.cleared) return fail("You are already cleared to mentor young adults.");
   if (v.requested) return { ok: true };
   if (!v.req.ready) return fail("Finish every step in the list first. The request goes to the team once they are all done.");
   await db.mentorProfile.update({ where: { userId }, data: { minorsRequestedAt: new Date() } });
@@ -107,5 +107,5 @@ export async function requestMinorsClearance(userId: string): Promise<R> {
 /** Called by the admin checklist when the team clears or withdraws the flag. */
 export async function afterMinorsDecision(userId: string, cleared: boolean) {
   await db.mentorProfile.update({ where: { userId }, data: { minorsRequestedAt: null } }).catch(() => {});
-  await notify(userId, cleared ? "mentor.minors.cleared" : "mentor.minors.withdrawn", cleared ? "You are cleared to mentor young people" : "Your under-18 clearance was withdrawn", cleared ? "Our team has cleared you. Asks from participants under 18 can now reach you." : "Our team has withdrawn your clearance for participants under 18. A member of the team will contact you if there is anything to talk through.", { link: "/mentor/profile" }).catch(() => {});
+  await notify(userId, cleared ? "mentor.minors.cleared" : "mentor.minors.withdrawn", cleared ? "You are cleared to mentor young adults" : "Your under-18 clearance was withdrawn", cleared ? "Our team has cleared you. Asks from participants under 18 can now reach you." : "Our team has withdrawn your clearance for participants under 18. A member of the team will contact you if there is anything to talk through.", { link: "/mentor/profile" }).catch(() => {});
 }

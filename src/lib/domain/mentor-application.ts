@@ -32,7 +32,7 @@ export const step2 = z.object({
   monthlyHours: z.number().int().min(1).max(20),
   conversationLength: z.union([z.literal(30), z.literal(60)]),
   optedForMinors: z.boolean(),
-  // DK8 / M6: the help areas young people pick from, and seniority. Counts and matching only.
+  // DK8 / M6: the help areas young adults pick from, and seniority. Counts and matching only.
   areas: z.array(z.string().trim().min(2).max(40)).max(3, "Pick up to three areas").default([]),
   seniority: z.string().trim().max(60).optional(),
 }).superRefine((v, ctx) => {
@@ -73,7 +73,7 @@ export function canGrantClearedForMinors(m: { optedForMinors: boolean; screening
 export type MinorsInput = { optedForMinors: boolean; screening: ScreeningState; orientationDone: boolean; codeOfConduct: boolean; attestationCurrent: boolean };
 export function minorsRequirements(m: MinorsInput) {
   const items = [
-    { key: "optIn", label: "You chose to mentor young people", done: m.optedForMinors },
+    { key: "optIn", label: "You chose to mentor young adults", done: m.optedForMinors },
     { key: "screening", label: "Enhanced background screening is clear", done: m.screening === "CLEAR" },
     { key: "orientation", label: "Safeguarding orientation is complete", done: m.orientationDone },
     { key: "conduct", label: "You accepted the Code of Conduct", done: m.codeOfConduct },

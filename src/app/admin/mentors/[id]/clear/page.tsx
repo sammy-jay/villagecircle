@@ -13,7 +13,7 @@ import { SignOff } from "./sign-off";
 export const metadata = { title: "Clear for under-18" };
 export const dynamic = "force-dynamic";
 
-const DECLINE = ["Screening result needs a conversation first", "Orientation not completed", "Not the right fit for young people yet", "Something else"];
+const DECLINE = ["Screening result needs a conversation first", "Orientation not completed", "Not the right fit for young adults yet", "Something else"];
 
 /** A32 Clear for under-18: the five requirements, what only the mentor can do, what the team records, and the reviewer's signed sign-off. */
 export default async function ClearMinors({ params }: { params: { id: string } }) {

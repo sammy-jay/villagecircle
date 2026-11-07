@@ -286,7 +286,7 @@ export function FinalCta() {
           <p className="mt-5 text-center text-[16px] leading-relaxed text-white/85 lg:text-[19px]">Free, private and safe. Under 18? Join with a parent or guardian.</p>
           <div className="mt-8 flex flex-col gap-3 lg:mt-10 lg:flex-row lg:justify-center">
             <Link href="/register" className="dc-btn dc-btn-primary h-[58px] lg:h-[60px]"><Icon name="arrowRight" size={18} />Start an Ask</Link>
-            <Link href="/become-a-mentor" className={outline}>Apply to mentor</Link>
+            <Link href="/become-a-mentor" className={outline}>Be a Mentor</Link>
             <Link href="/register?role=guardian" className={outline}>Set up as guardian</Link>
           </div>
         </div>

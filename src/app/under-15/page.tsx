@@ -39,7 +39,7 @@ export default function Under15() {
               <p className="mt-3 text-[18px] leading-normal">Thanks for stopping by. The Village Circle starts at {MIN_AGE}. We cannot make an account for you, and we have not kept your details.</p>
             </div>
           </section>
-          <div className="dc-card p-6 text-[16px] leading-[1.55] text-bark">We can only welcome young people aged {MIN_AGE} and over, with or without a parent&apos;s permission. This keeps every conversation safe and age-appropriate.</div>
+          <div className="dc-card p-6 text-[16px] leading-[1.55] text-bark">We can only welcome young adults aged {MIN_AGE} and over, with or without a parent&apos;s permission. This keeps every conversation safe and age-appropriate.</div>
           <div className="flex gap-5">
             <section className="flex flex-1 flex-col gap-3 rounded-[28px] bg-mint p-[26px] text-mint-ink">
               <TiltTile icon="book" tone="mint" size={56} rotate={-5} white />

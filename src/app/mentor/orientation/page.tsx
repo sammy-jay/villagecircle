@@ -12,7 +12,7 @@ import { JoinShell } from "../mentor-kit";
 export const metadata = { title: "Before your first conversation" };
 export const dynamic = "force-dynamic";
 
-const MODULES: [string, string][] = [["Why we do this", "4 min"], ["Talking with young people", "8 min"], ["Spotting a worry", "7 min"], ["What to do if something feels wrong", "6 min"]];
+const MODULES: [string, string][] = [["Why we do this", "4 min"], ["Talking with young adults", "8 min"], ["Spotting a worry", "7 min"], ["What to do if something feels wrong", "6 min"]];
 const day = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: APP_TZ(), day: "numeric", month: "long" }).format(d);
 
 /** M15 / DK12 Orientation: the Code of Conduct, safeguarding orientation, and the enhanced check for mentors who chose under-18s. */

@@ -192,7 +192,7 @@ export async function guardianContext(userId: string) {
 async function guardianAsk(userId: string, askId: string) {
   const g = await guardianContext(userId); if (!g) return null;
   const ask = await db.ask.findUnique({ where: { id: askId }, include: { participant: { include: { user: true } }, topic: true } });
-  if (!ask || !g.links.some((l) => l.participantId === ask.participantId)) return null; // only linked young people
+  if (!ask || !g.links.some((l) => l.participantId === ask.participantId)) return null; // only linked young adults
   return { g, ask };
 }
 export async function guardianAskView(userId: string, askId: string) {

@@ -18,7 +18,7 @@ export function AccountDetail({ a, canSuspend, canDelete }: { a: A; canSuspend: 
       <div className="flex flex-wrap items-center justify-between gap-3"><Person name={a.short} size={56} tone="mint" sub={`${rolesLabel(a.roles)}${a.age != null ? ` · ${a.age}` : ""}`} /><Pill tone={TONE[st.tone]}>{st.label}</Pill></div>
       <Panel className="py-2 lg:py-2"><KV rows={[
         ["Joined", day(a.joined, { day: "numeric", month: "short", year: "numeric" })],
-        ...(a.isMentor ? [["Mentor", `${a.expertise ?? ""}${a.clearedForMinors ? " · cleared for young people" : ""}`] as [string, string], ["Hours this month", `${a.hours?.given ?? 0} of ${a.hours?.monthly ?? 0}`] as [string, string]] : []),
+        ...(a.isMentor ? [["Mentor", `${a.expertise ?? ""}${a.clearedForMinors ? " · cleared for young adults" : ""}`] as [string, string], ["Hours this month", `${a.hours?.given ?? 0} of ${a.hours?.monthly ?? 0}`] as [string, string]] : []),
         ["Suspensions on record", String(a.suspensions)],
         ...(a.suspension ? [["Current suspension", `${a.suspension.reason}, since ${day(a.suspension.since)}`] as [string, string]] : []),
       ]} /></Panel>
