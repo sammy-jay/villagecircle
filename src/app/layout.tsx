@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   // The card shown when a link is shared on WhatsApp, X, LinkedIn and the rest.
   openGraph: { type: "website", siteName: "The Village Circle", title: "The Village Circle", description: DESCRIPTION, images: [{ url: "/brand/logo.png", alt: "The Village Circle" }] },
   twitter: { card: "summary", title: "The Village Circle", description: DESCRIPTION, images: ["/brand/logo.png"] },
+  // The mark on clay, from the brand board. The web manifest (app/manifest.ts) adds the home-screen icons.
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icons/icon-32.png", sizes: "32x32", type: "image/png" }, { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export const viewport: Viewport = { themeColor: "#F7F5F0", width: "device-width", initialScale: 1 };
