@@ -12,7 +12,7 @@ import { EXPERTISE, expertiseLabel } from "@/lib/domain/expertise";
 import { ATTESTATION_VERSION } from "@/lib/domain/mentor-application";
 import { APP_TZ } from "@/lib/domain/scheduling";
 import { cn } from "@/lib/cn";
-import { AreaChips, ApplyForm, Commitments, SendForm } from "./apply-forms";
+import { AreaChips, ApplyForm, Commitments, SendForm, type CommitmentDoc } from "./apply-forms";
 import { NextSteps, Note, Panel, Review, Rows, Why } from "../mentor-kit";
 
 export const metadata = { title: "Become a mentor" };
@@ -20,9 +20,10 @@ export const dynamic = "force-dynamic";
 
 const STEPS = ["1. About you", "2. Your experience", "3. Safeguarding", "4. Review and send"];
 const SHORT = ["About you", "Your experience", "Safeguarding", "Review and send"];
-const COMMITMENTS: [string, string][] = [
+const COMMITMENTS: [string, string, CommitmentDoc?][] = [
   ["No child-safety history", "I have never been charged with or convicted of any offence involving child endangerment, abuse, neglect or exploitation, and I am on no child abuse or sex offender register anywhere. A false statement ends my place at once and may be reported to the authorities."],
-  ["Code of Conduct", "I accept the Mentor Code of Conduct and will finish safeguarding orientation before my first conversation."],
+  ["Code of Conduct", "I have read and accept the Mentor Code of Conduct, and will finish safeguarding orientation before my first conversation.",
+    { title: "Mentor Code of Conduct", meta: "Word document · 18 KB · please read before you tick", href: "/docs/mentor-code-of-conduct.docx" }],
   ["Background check", "I agree to the team running a background check through an approved provider, and to tell them straight away if my circumstances change."],
   ["No contact details", "I will never swap phone numbers, emails or social handles with a young person, or move a conversation off the platform."],
 ];
@@ -57,7 +58,7 @@ export default async function Apply({ searchParams }: { searchParams: { step?: s
         <Panel>
           <div className="flex items-center gap-4">
             <span className="flex size-[84px] shrink-0 items-center justify-center rounded-full border-[3px] border-dashed border-gold bg-butter font-display text-[30px] font-extrabold text-butter-ink">{initials(u.name)}</span>
-            <div><p className="text-[17px] font-extrabold">Your initials, {initials(u.name)}</p><p className="text-[14px] text-bark">This is what young people see. No photo is needed or shown.</p></div>
+            <div><p className="text-[17px] font-extrabold">Your initials, {initials(u.name)}</p><p className="text-[14px] text-bark">This is what young adults see. No photo is needed or shown.</p></div>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <Field label="Full legal name" htmlFor="name" hint="From your account."><Input id="name" value={u.name} readOnly aria-readonly /></Field>
@@ -72,7 +73,7 @@ export default async function Apply({ searchParams }: { searchParams: { step?: s
             <input name="languagesMore" defaultValue={s(s1, "languagesMore")} placeholder="Say more (optional), for example: I can switch to Pidgin" aria-label="Say more about languages (optional)" className="dc-saymore mt-[7px]" />
           </Field>
           <div className="grid gap-4 lg:grid-cols-2">
-            <Field label="Time zone" hint="Young people see your times in WAT."><Select name="timeZone" options={opts(TIME_ZONES)} defaultValue={s(s1, "timeZone")} /></Field>
+            <Field label="Time zone" hint="Young adults see your times in WAT."><Select name="timeZone" options={opts(TIME_ZONES)} defaultValue={s(s1, "timeZone")} /></Field>
             <Field label="Years of experience"><Select name="experience" options={opts(EXPERIENCE_YEARS)} defaultValue={s(s1, "experience")} /></Field>
           </div>
           <Field label="How did you hear about us?"><Select name="heard" options={opts(MENTOR_HEARD)} defaultValue={s(s1, "heard")} sayMore={{ name: "heardMore", defaultValue: s(s1, "heardMore"), show: "always" }} /></Field>
@@ -89,7 +90,7 @@ export default async function Apply({ searchParams }: { searchParams: { step?: s
     body = (
       <ApplyForm step={2} back="/mentor/apply?step=1">
         <Panel>
-          <Field label="Areas you can help with (pick up to three)" hint="Choose from our list so young people can find you."><AreaChips options={MENTOR_AREAS} defaultValue={Array.isArray(s2.areas) ? (s2.areas as string[]) : []} /></Field>
+          <Field label="Areas you can help with (pick up to three)" hint="Choose from our list so young adults can find you."><AreaChips options={MENTOR_AREAS} defaultValue={Array.isArray(s2.areas) ? (s2.areas as string[]) : []} /></Field>
           <div className="grid gap-4 lg:grid-cols-2">
             <Field label="Industry"><Select name="primaryExpertise" options={EXPERTISE.map(([value, label]) => ({ value, label }))} defaultValue={s(s2, "primaryExpertise")} sayMore={{ name: "expertiseOther", defaultValue: s(s2, "expertiseOther"), placeholder: "If Other, tell us your field", show: "selected" }} /></Field>
             <Field label="Seniority"><Select name="seniority" options={opts(SENIORITY)} defaultValue={s(s2, "seniority")} /></Field>
@@ -98,8 +99,8 @@ export default async function Apply({ searchParams }: { searchParams: { step?: s
           </div>
           <Field label="LinkedIn page (optional)" htmlFor="li" hint="A CV or LinkedIn never blocks you. If the team needs more, a person asks you."><Input id="li" name="linkedinUrl" placeholder="linkedin.com/in/yourname" defaultValue={s(s2, "linkedinUrl")} /></Field>
           <fieldset className="rounded-[20px] bg-sand p-4 lg:p-5">
-            <legend className="sr-only">Meet young people under 18</legend>
-            <p className="text-[16px] font-extrabold">Meet young people under 18, with a guardian?</p>
+            <legend className="sr-only">Meet young adults under 18</legend>
+            <p className="text-[16px] font-extrabold">Meet young adults under 18, with a guardian?</p>
             <p className="mt-1 text-[13.5px] leading-normal text-bark">A guardian approves every conversation and may stay for it. Conversations with under 18s are recorded. This adds an enhanced check of up to 10 business days. It is your choice, and you can change it later.</p>
             <div className="mt-3 flex gap-2">
               {[["yes", "Yes, I would like to"], ["no", "Adults only for now"]].map(([val, l]) => (
@@ -113,8 +114,8 @@ export default async function Apply({ searchParams }: { searchParams: { step?: s
       </ApplyForm>
     );
   } else if (step === 3) {
-    aside = <><Why icon="info" title="Why we ask">Every mentor makes the same promises, in the same words. It protects young people, and it protects you.</Why>
-      <section className="rounded-card border border-line bg-card p-5"><h2 className="font-display text-[18px] font-extrabold">What happens to your name</h2><p className="mt-1.5 text-[14px] leading-normal text-bark">Your legal name is kept by the team for the record. Young people only ever see your first name and your title.</p></section></>;
+    aside = <><Why icon="info" title="Why we ask">Every mentor makes the same promises, in the same words. It protects young adults, and it protects you.</Why>
+      <section className="rounded-card border border-line bg-card p-5"><h2 className="font-display text-[18px] font-extrabold">What happens to your name</h2><p className="mt-1.5 text-[14px] leading-normal text-bark">Your legal name is kept by the team for the record. Young adults only ever see your first name and your title.</p></section></>;
     body = (
       <ApplyForm step={3} back="/mentor/apply?step=2">
         {minors && <p className="flex items-start gap-3 rounded-[20px] bg-mint px-5 py-4 text-[14.5px] text-mint-ink"><Icon name="shieldCheck" size={20} className="mt-px shrink-0" />You chose to meet under 18s. That adds an enhanced check of up to 10 business days. A guardian approves every conversation.</p>}
@@ -148,9 +149,9 @@ export default async function Apply({ searchParams }: { searchParams: { step?: s
     );
   }
 
-  const titles = ["Tell us about yourself", "What do you do, and what could you help with?", "Keeping young people safe", "Ready to step into the village?"];
-  const subs = ["You do not need a perfect profile. We only ask what helps us place you well and keep young people safe.", "Pick from the list so the right Asks find you. Takes about two minutes.", "Someone will trust you with a real question. These four commitments are how we honour that trust.", "Have a last look. You can edit anything before you send."];
-  const phoneSubs = ["Only what helps us place you well and keep young people safe.", "Pick from the list so the right Asks find you.", "Four promises, then sign with your legal name.", "Have a last look before you send."];
+  const titles = ["Tell us about yourself", "What do you do, and what could you help with?", "Keeping young adults safe", "Ready to step into the village?"];
+  const subs = ["You do not need a perfect profile. We only ask what helps us place you well and keep young adults safe.", "Pick from the list so the right Asks find you. Takes about two minutes.", "Someone will trust you with a real question. These four commitments are how we honour that trust.", "Have a last look. You can edit anything before you send."];
+  const phoneSubs = ["Only what helps us place you well and keep young adults safe.", "Pick from the list so the right Asks find you.", "Four promises, then sign with your legal name.", "Have a last look before you send."];
   const saved = v.savedAt && v.state === "DRAFT";
   const closeBtn = step < 4
     ? <button type="submit" form="apply-form" name="intent" value="close" className="text-[15px] font-bold max-lg:text-clay">Save and close</button>

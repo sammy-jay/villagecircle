@@ -53,8 +53,11 @@ export function AreaChips({ options, defaultValue }: { options: string[]; defaul
   );
 }
 
+/** A document to read before ticking a commitment: a download, and optionally the same text as a web page. */
+export type CommitmentDoc = { title: string; href: string; meta: string; online?: string };
+
 /** DK9 / M7 the four commitments (never pre-ticked) and the signature. Continue stays off until all are done. */
-export function Commitments({ items, statement, accountName }: { items: [string, string][]; statement: string; accountName: string }) {
+export function Commitments({ items, statement, accountName }: { items: [string, string, CommitmentDoc?][]; statement: string; accountName: string }) {
   const [ticks, setTicks] = useState<boolean[]>(items.map(() => false));
   const [sig, setSig] = useState({ name: "", attested: false });
   const ready = ticks.every(Boolean) && sig.attested && sig.name.trim().length > 2;
@@ -63,7 +66,7 @@ export function Commitments({ items, statement, accountName }: { items: [string,
       <section className="rounded-card border border-line bg-card p-5 lg:px-[26px] lg:py-6">
         <div className="flex items-center justify-between gap-3"><h2 className="font-display text-[20px] font-extrabold leading-[1.12]">Your commitments</h2><span className="rounded-full bg-sand px-3 py-1.5 text-[12.5px] font-semibold">All required</span></div>
         <ul className="mt-3 divide-y divide-line">
-          {items.map(([t, body], i) => (
+          {items.map(([t, body, doc], i) => (
             <li key={t} className="py-3.5">
               <label className="flex cursor-pointer items-start gap-3">
                 <span className="relative mt-0.5 size-[30px] shrink-0">
@@ -72,6 +75,17 @@ export function Commitments({ items, statement, accountName }: { items: [string,
                 </span>
                 <span><span className="block text-[16px] font-bold">{t}</span><span className="mt-0.5 block text-[13.5px] leading-normal text-bark">{body}</span></span>
               </label>
+              {/* Outside the label, so opening the document never ticks the box by accident. */}
+              {doc && (
+                <div className="ml-[42px] mt-3 flex flex-wrap items-center gap-3 rounded-[16px] border border-line bg-paper px-3.5 py-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-butter text-butter-ink" aria-hidden="true"><Icon name="book" size={20} /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[14.5px] font-bold">{doc.title}</span><span className="block text-[12.5px] text-stone">{doc.meta}</span></span>
+                  <span className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <a href={doc.href} download className="dc-btn dc-btn-soft h-10 px-4 text-[14px]"><Icon name="download" size={16} />Download</a>
+                    {doc.online && <Link href={doc.online} target="_blank" rel="noopener" className="text-[14px] font-bold text-clay">Read it online<span className="sr-only"> (opens in a new tab)</span></Link>}
+                  </span>
+                </div>
+              )}
             </li>
           ))}
         </ul>
