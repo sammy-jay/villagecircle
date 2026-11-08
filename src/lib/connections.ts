@@ -50,7 +50,7 @@ export async function trackerView(userId: string, askId: string) {
   const at = (to: string) => history.find((h) => h.to === to)?.createdAt ?? null;
   const notes = await db.notification.findMany({ where: { userId, event: { in: ["connection.confirmed", "ask.guardian_approved_time", "connection.reminder"] } }, orderBy: { createdAt: "desc" }, take: 3 });
   return {
-    id: ask.id, state: ask.state, topic: ask.topic.name, answers: parseAnswers(ask.answers), minor, guardianName: g ? firstName(g.name) : null, minorsGuardianAttends: !!conn?.guardianAttends,
+    id: ask.id, state: ask.state, topic: ask.topic.name, topicSlug: ask.topic.slug, answers: parseAnswers(ask.answers), minor, guardianName: g ? firstName(g.name) : null, minorsGuardianAttends: !!conn?.guardianAttends,
     marks: { submitted: ask.submittedAt, authorized: at("SUBMITTED"), reviewed: at("OPEN_TO_MENTORS"), stepped: at("MENTOR_STEPPED_FORWARD"), approved: at("CONNECTION_APPROVED") },
     mentor: conn && ["CONNECTION_APPROVED", "SCHEDULED", "HELD", "COMPLETE", "FOLLOW_UP_REQUESTED", "ONGOING_MENTORSHIP"].includes(ask.state) ? mentorCardOf(conn) : null,
     lastMentor: conn && ["CANCELLED", "MISSED"].includes(conn.status) && !conn.hoursCounted ? firstName(conn.mentor.user.name) : null, // a call that did not happen

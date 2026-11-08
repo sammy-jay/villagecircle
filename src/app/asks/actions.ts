@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
-import { changeTopic, closeAsAnswered, deleteDraft, getOwnAsk, reopenAsk, saveAnswers, startAsk, submitAsk, withdrawAsk } from "@/lib/asks";
+import { changeTopic, deleteDraft, getOwnAsk, reopenAsk, saveAnswers, startAsk, submitAsk, withdrawAsk } from "@/lib/asks";
 import { CONTINUE_AT, PROMPTS } from "@/lib/domain/ask-answers";
 import { sendMessage } from "@/lib/ask-thread";
 import { joinCall, pickTime, reportOutcome, requestFollowUp, requestNewTimes, submitThanks } from "@/lib/connections";
@@ -63,16 +63,7 @@ export async function tellAction(_: AskFormState, fd: FormData): Promise<AskForm
     const thin = a ? PROMPTS.find((p) => (a.ask.answers[p.key] ?? "").trim().split(/\s+/).length < 5 || (a.ask.answers[p.key] ?? "").trim().length < 25) : undefined;
     return { error: thin?.nudge ?? "A little more please.", field: thin?.key, completeness: r.completeness };
   }
-  redirect(edit(askId, "read"));
-}
-
-/** D11 step 3: "Yes, close my Ask as answered". */
-export async function answeredAction(fd: FormData) {
-  const id = await uid(); const askId = str(fd, "askId");
-  const r = await closeAsAnswered(id, askId);
-  if (!r.ok) redirect(edit(askId, "read"));
-  revalidatePath("/asks");
-  redirect(`/asks/${askId}`);
+  redirect(edit(askId, "send"));
 }
 
 /** Delete a draft, then back to My Asks. */
@@ -82,7 +73,7 @@ export async function deleteDraftAction(fd: FormData) {
   redirect(r.ok ? "/asks?deleted=1" : "/asks");
 }
 
-/** D12 step 4: both promises ticked, then submit. Minors go to their guardian, adults to the team, crisis wording to EX9. */
+/** D12 step 3: both promises ticked, then submit. Minors go to their guardian, adults to the team, crisis wording to EX9. */
 export async function sendAction(_: AskFormState, fd: FormData): Promise<AskFormState> {
   const id = await uid(); const askId = str(fd, "askId");
   if (fd.has("sessionLength") || fd.has("soon") || fd.has("bestDays")) {
@@ -90,7 +81,7 @@ export async function sendAction(_: AskFormState, fd: FormData): Promise<AskForm
     await saveAnswers(id, askId, { sessionLength: len(fd), ...(soon ? { soon, timeBound: soon === "week" || soon === "month" } : {}), bestDays: opt(fd, "bestDays"), bestDaysMore: opt(fd, "bestDaysMore") });
   }
   if (fd.get("intent") === "save") { revalidatePath("/asks"); redirect("/asks"); }
-  if (fd.get("intent") === "back") redirect(edit(askId, "read"));
+  if (fd.get("intent") === "back") redirect(edit(askId, "tell"));
   if (fd.has("needsChecks") && (fd.get("noContact") !== "on" || fd.get("understand") !== "on")) return { error: "Tick both boxes before you send.", field: "checks" };
   const r = await submitAsk(id, askId);
   if (!r.ok) return { error: r.error };

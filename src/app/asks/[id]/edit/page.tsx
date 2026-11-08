@@ -6,11 +6,10 @@ import { Card, PASTEL } from "@/components/app/feed";
 import { WizardSteps } from "@/components/app/ask-kit";
 import { topicLook } from "@/components/app/topic-look";
 import { participantPage } from "@/lib/participant-ctx";
-import { getOwnAsk, listTopics, resourcesForTopic } from "@/lib/asks";
+import { getOwnAsk, listTopics } from "@/lib/asks";
 import { MAX_OPEN_ASKS } from "@/lib/domain/limits";
 import { PROMPTS, completeness, promptDone } from "@/lib/domain/ask-answers";
 import { db } from "@/lib/db";
-import { answeredAction } from "@/app/asks/actions";
 import { cn } from "@/lib/cn";
 import { EditLink, SendForm, TellAside, TellStep, TopicStep } from "./steps";
 import { DeleteDraft } from "../../delete-draft";
@@ -18,12 +17,13 @@ import { DeleteDraft } from "../../delete-draft";
 export const metadata = { title: "New Ask" };
 export const dynamic = "force-dynamic";
 
-const STEPS = ["topic", "tell", "read", "send"] as const;
+const STEPS = ["topic", "tell", "send"] as const;
 type Step = (typeof STEPS)[number];
 const SOON_LABEL: Record<string, string> = { week: "Within a week", month: "Within a month", term: "This term", flexible: "No rush" };
 
 /**
- * The Ask wizard: D10 Topic, D2 Tell us, D11 Read first, D12 Send. `/asks/start/edit` begins at the topic with no draft yet.
+ * The Ask wizard: D10 Topic, D2 Tell us, D12 Send. There is no "read first" step: the client did not want self-serve
+ * reads to put anyone off booking, so suggested reads show on the Ask page once a call is booked (or straight away when urgent). `/asks/start/edit` begins at the topic with no draft yet.
  * A returned Ask (EX5) reuses the tell and send steps.
  */
 export default async function EditAsk({ params, searchParams }: { params: { id: string }; searchParams: { step?: string } }) {
@@ -34,7 +34,8 @@ export default async function EditAsk({ params, searchParams }: { params: { id: 
   const own = fresh ? null : await getOwnAsk(c.userId, params.id);
   if (!fresh && !own) redirect("/asks");
   if (own && own.ask.state !== "DRAFT" && !own.ask.returnedForDetail) redirect(`/asks/${params.id}`);
-  const step: Step = fresh ? "topic" : (STEPS as readonly string[]).includes(searchParams.step ?? "") ? (searchParams.step as Step) : "tell";
+  const asked = searchParams.step === "read" ? "send" : searchParams.step; // old links to the removed step
+  const step: Step = fresh ? "topic" : (STEPS as readonly string[]).includes(asked ?? "") ? (asked as Step) : "tell";
   const idx = STEPS.indexOf(step);
 
   const topics = (await listTopics()).filter((t) => t.active && !t.later);
@@ -82,7 +83,7 @@ export default async function EditAsk({ params, searchParams }: { params: { id: 
     const big = topics.slice(0, 6).map((t) => ({ slug: t.slug, name: t.name, ...topicLook(t.slug, t.name) }));
     const more = topics.slice(6).map((t) => ({ value: t.slug, label: t.name }));
     const cur = own ? topics.find((t) => t.name === own.ask.topic)?.slug : undefined;
-    body = <>{head(fresh ? "NEW ASK" : "STEP 1 OF 4", "What is this about?", "Pick the closest one. Do not worry about getting it perfect. You will tell us more on the next step.")}<TopicStep askId={own?.ask.id} topics={big} more={more} current={cur} /></>;
+    body = <>{head(fresh ? "NEW ASK" : "STEP 1 OF 3", "What is this about?", "Pick the closest one. Do not worry about getting it perfect. You will tell us more on the next step.")}<TopicStep askId={own?.ask.id} topics={big} more={more} current={cur} /></>;
     aside = (
       <>
         <Card className="flex flex-col gap-2.5 p-[18px]">
@@ -107,61 +108,6 @@ export default async function EditAsk({ params, searchParams }: { params: { id: 
           <p className="rounded-saymore bg-mint px-3 py-2.5 text-[14px] leading-[1.4] text-mint-ink">I am choosing between... and want to talk it through.</p>
         </Card>
         {minorNote}{draftNote}
-      </>
-    );
-  } else if (step === "read" && own && a) {
-    const reads = await resourcesForTopic(own.topicSlug);
-    const tones = ["butter", "mint", "blush"] as const;
-    body = (
-      <>
-        {head("READ FIRST", "The village may already have an answer", "These come closest to your question. Take a look before you send. It can save everyone an hour, and nothing you wrote is lost.")}
-        {reads.length ? reads.map((x, i) => (
-          <Card key={x.id} className="flex items-center gap-4 p-[18px]">
-            <span className={cn("flex size-[52px] shrink-0 items-center justify-center rounded-[16px]", PASTEL[tones[i % 3]].both)}><Icon name={(x.type === "EVENT_RECORDING" || x.type === "VIDEO") ? "play" : x.type === "TEMPLATE" ? "doc" : "book"} size={24} /></span>
-            <div className="min-w-0 flex-1">
-              <p className="text-[12px] font-extrabold tracking-[.05em] text-clay">{x.type.replace("EVENT_", "").replace("ARTICLE", "ANSWER")}</p>
-              <p className="font-display text-[18px] font-extrabold leading-[1.15]">{x.title}</p>
-              <p className="mt-0.5 text-[13px] text-stone">{own.ask.topic}{x.reviewed && ` · Reviewed ${new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric" }).format(x.reviewed)}`}</p>
-            </div>
-            <Link href={`/village/library/${x.id}`} target="_blank" className="dc-btn dc-btn-soft h-11 shrink-0 px-[18px] max-lg:hidden">{(x.type === "EVENT_RECORDING" || x.type === "VIDEO") ? "Watch" : "Read it"}</Link>
-          </Card>
-        )) : <Card className="p-5 text-[15px] text-bark">Nothing in the library matches yet. Carry on and a mentor will help.</Card>}
-        <section className="flex flex-col gap-3 rounded-card border border-line bg-card p-5">
-          <h2 className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">Did one of these answer it?</h2>
-          {reads.length > 0 && (
-            <form action={answeredAction}>
-              <input type="hidden" name="askId" value={own.ask.id} />
-              <button type="submit" className="flex w-full items-start gap-3 rounded-field border-2 border-line p-4 text-left">
-                <Icon name="check" size={22} className="mt-0.5 shrink-0 text-forest" />
-                <span><span className="block text-[15.5px] font-bold">Yes, close my Ask as answered</span><span className="mt-0.5 block text-[13.5px] text-stone">No mentor time is used. It is saved as Answered by resource, and you can reopen it any time.</span></span>
-              </button>
-            </form>
-          )}
-          <Link href={`/asks/${own.ask.id}/edit?step=send`} className="flex items-start gap-3 rounded-field border-2 border-forest bg-mint/40 p-4">
-            <Icon name="arrowRight" size={22} className="mt-0.5 shrink-0 text-forest" />
-            <span><span className="block text-[15.5px] font-bold">Not quite. I still want to ask</span><span className="mt-0.5 block text-[13.5px] text-stone">Nothing is lost. Your answers move on to the final review.</span></span>
-          </Link>
-        </section>
-        <div className="flex items-center justify-between pb-7 max-lg:hidden">
-          <Link href={back} className="dc-btn dc-btn-soft h-[52px]"><Icon name="chevronLeft" size={18} />Back</Link>
-          <Link href={`/asks/${own.ask.id}/edit?step=send`} className="dc-btn dc-btn-primary h-[52px]"><Icon name="arrowRight" size={18} />Continue to review</Link>
-        </div>
-        <div className="h-[104px] lg:hidden" aria-hidden="true" />
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper px-4 pb-4 pt-3 lg:hidden"><Link href={`/asks/${own.ask.id}/edit?step=send`} className="dc-btn dc-btn-primary h-14 w-full">Continue to review</Link></div>
-      </>
-    );
-    aside = (
-      <>
-        <Card className="flex flex-col gap-2.5 p-[18px]">
-          <div className="flex items-baseline justify-between"><h2 className="font-display text-[18px] font-extrabold leading-[1.12] tracking-[-.01em]">Your Ask so far</h2><EditLink href={`/asks/${own.ask.id}/edit?step=tell`} /></div>
-          <p className="font-display text-[17px] font-bold leading-[1.3]">&ldquo;{a.q1}&rdquo;</p>
-          <div className="flex flex-wrap gap-1.5">{[own.ask.topic, a.stage, `${a.sessionLength} min`].filter(Boolean).map((t) => <span key={t} className="rounded-full bg-sand px-[13px] py-[7px] text-[12.5px] font-semibold">{t}</span>)}</div>
-        </Card>
-        <section className="rounded-card bg-butter p-5 text-butter-ink">
-          <h2 className="font-display text-[18px] font-extrabold leading-[1.12]">Why read first?</h2>
-          <p className="mt-2 text-[13.5px] leading-normal">Mentors give their own time for free. If a tip already covers your question, you get your answer today and their hour goes to someone else.</p>
-        </section>
-        {minorNote}
       </>
     );
   } else if (own && a) {

@@ -7,7 +7,7 @@ export { topicLook } from "./topic-look";
 
 /* Shared pieces of the Ask wizard (D2a, D2, D10 to D12). */
 
-export const ASK_STEPS = ["1. Topic", "2. Tell us", "3. Read first", "4. Send"];
+export const ASK_STEPS = ["1. Topic", "2. Tell us", "3. Send"];
 /** 8px progress bars with labels. Steps up to `current` are filled. */
 export function WizardSteps({ current }: { current: number }) {
   return (

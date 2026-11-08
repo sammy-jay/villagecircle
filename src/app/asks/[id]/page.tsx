@@ -7,12 +7,14 @@ import { Card } from "@/components/app/feed";
 import { Journey, whenLong } from "@/components/app/ask-journey";
 import { participantPage } from "@/lib/participant-ctx";
 import { trackerView } from "@/lib/connections";
+import { resourcesForTopic } from "@/lib/asks";
 import { APP_TZ } from "@/lib/domain/scheduling";
 import { isExit } from "@/lib/domain/ask-state";
 import type { AskState } from "@prisma/client";
 import { cn } from "@/lib/cn";
 import { WithdrawInline } from "./withdraw-dialog";
 import { ExitView } from "./exit-views";
+import { SuggestedReads } from "./suggested-reads";
 
 export const metadata = { title: "Your Ask" };
 export const dynamic = "force-dynamic";
@@ -43,6 +45,11 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
   const rebooking = !!c && c.rescheduleCount > 0;
   const joinOpen = booked && c!.scheduledAt!.getTime() - Date.now() < 10 * 60_000;
   const g = t.guardianName ?? "your guardian";
+  // Suggested reads come after booking, never before: they are extra preparation, not a replacement for the call.
+  // An urgent Ask ("within a week") also gets them while it waits, worded so nobody thinks they should stop.
+  const urgent = t.answers.soon === "week";
+  const readsMode = booked ? "booked" : urgent && !["HELD", "COMPLETE"].includes(t.state) ? "urgent" : null;
+  const reads = readsMode ? await resourcesForTopic(t.topicSlug) : [];
   const outlook = booked ? `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(`Village Circle: ${t.topic}`)}&startdt=${c!.scheduledAt!.toISOString()}&enddt=${new Date(c!.scheduledAt!.getTime() + c!.minutes * 60_000).toISOString()}&body=${encodeURIComponent("Join from My Asks.")}` : "";
 
   const hero = booked ? (
@@ -139,6 +146,7 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
       {searchParams.thanked === "1" && <p role="status" className="rounded-[18px] bg-mint px-4 py-3 text-[15px] font-semibold text-mint-ink">Thank you. The team reads it first, then your mentor sees it.</p>}
       {searchParams.picked === "1" && <p role="status" className="rounded-[18px] bg-mint px-4 py-3 text-[15px] font-semibold text-mint-ink">{t.minor ? `Time sent to ${g} to approve.` : "Booked. We sent you the details."}</p>}
       {hero}
+      {readsMode && reads.length > 0 && <SuggestedReads mode={readsMode} mentor={mentor} reads={reads} />}
       <Card className="p-5 lg:p-6">
         <h2 className="mb-[18px] font-display text-[22px] font-extrabold leading-[1.12] tracking-[-.01em]">Where things are</h2>
         <Journey j={t} full />
