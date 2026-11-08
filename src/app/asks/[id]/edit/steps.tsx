@@ -12,7 +12,7 @@ import { sendAction, tellAction, topicAction, type AskFormState } from "@/app/as
 import { cn } from "@/lib/cn";
 
 const TONES = ["bg-butter text-butter-ink", "bg-mint text-mint-ink", "bg-blush text-blush-ink"];
-export const STAGES = ["JSS3", "SS1 (Year 10)", "SS2 (Year 11)", "SS3 (Year 12)", "Finished secondary school", "At university", "Graduated", "Working"].map((s) => ({ value: s, label: s }));
+export const STAGES = ["Grade 9", "Grade 10", "Grade 11", "Grade 12", "Finished secondary school", "At university", "Graduated", "Working"].map((s) => ({ value: s, label: s }));
 export const MENTOR_TYPES = ["A doctor or health worker", "An engineer or scientist", "Someone in business or finance", "A teacher or lecturer", "Someone in tech", "Someone who studied abroad", "No preference"].map((s) => ({ value: s, label: s }));
 export const BEST_DAYS = ["Weekday evenings after 5:00 pm", "Weekday afternoons", "Saturdays", "Sundays", "Any time"].map((s) => ({ value: s, label: s }));
 
