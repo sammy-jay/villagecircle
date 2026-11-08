@@ -26,7 +26,7 @@ export default async function Contact() {
         <p className="text-[13.5px] leading-normal">If a mentor or a message made you feel uncomfortable, report it. Nobody is told it was you.</p>
         <Link href="/report" className="inline-flex items-center gap-1.5 self-start rounded-full border-[1.5px] border-current px-[13px] py-[7px] text-[13.5px] font-semibold"><Icon name="flag" size={16} />Report a concern</Link>
       </section>
-      <p className="text-[12.5px] text-stone">We are not an emergency service. In an emergency call 112.</p>
+      <p className="text-[12.5px] text-stone">We are not an emergency service. In an emergency call 911.</p>
     </>
   );
   return (
@@ -35,7 +35,7 @@ export default async function Contact() {
       <h1 className="sr-only lg:hidden">Talk to the team</h1>
       <section className="flex gap-3 rounded-card bg-blush p-5 text-blush-ink">
         <Icon name="heart" size={24} className="shrink-0" />
-        <div><p className="font-display text-[19px] font-extrabold">Need help right now? Do not wait for us</p><p className="mt-1 text-[14.5px] leading-normal">If you are in danger or may hurt yourself, get help now. In Nigeria call <b>112</b>. You do not need to explain everything. Then tell an adult you trust.</p><Link href="/crisis" className="mt-2 inline-block font-bold underline">Get support now</Link></div>
+        <div><p className="font-display text-[19px] font-extrabold">Need help right now? Do not wait for us</p><p className="mt-1 text-[14.5px] leading-normal">If you are in danger or may hurt yourself, get help now. In the US call <b>911</b>. You do not need to explain everything. Then tell an adult you trust.</p><Link href="/crisis" className="mt-2 inline-block font-bold underline">Get support now</Link></div>
       </section>
       <ContactForm />
       <div className="flex flex-col gap-4 lg:hidden">{aside}</div>

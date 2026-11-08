@@ -89,7 +89,7 @@ export default async function Report({ searchParams }: { searchParams: { ask?: s
       )}
       <section className="rounded-card bg-butter p-5 text-butter-ink">
         <h2 className="font-display text-[19px] font-extrabold leading-[1.02] tracking-[-.02em]">Not an emergency service</h2>
-        <p className="mt-2 text-[13.5px] leading-normal">A mentor cannot help with a crisis, and that is okay. Real help is a call away: 112 at any hour.</p>
+        <p className="mt-2 text-[13.5px] leading-normal">A mentor cannot help with a crisis, and that is okay. Real help is a call away: 911 at any hour.</p>
       </section>
     </>
   );
@@ -105,9 +105,9 @@ export default async function Report({ searchParams }: { searchParams: { ask?: s
       <div className="flex gap-3 rounded-[22px] bg-blush px-4 py-3.5 text-[14px] leading-[1.45] text-blush-ink lg:gap-3.5 lg:rounded-card lg:px-5 lg:py-[18px] lg:text-[15px] lg:leading-normal">
         <Icon name="heart" size={24} className="shrink-0" />
         <div>
-          <p className="lg:hidden"><b>In danger right now?</b> Call 112, or get support straight away.</p>
+          <p className="lg:hidden"><b>In danger right now?</b> Call 911, or get support straight away.</p>
           <p className="mb-[3px] font-display text-[19px] font-extrabold max-lg:hidden">In danger right now?</p>
-          <p className="max-lg:hidden">Call <b>112</b> for the police or an ambulance in Nigeria. Outside Nigeria, call 988 in the US or your local emergency number. Then get support here straight away.</p>
+          <p className="max-lg:hidden">Call <b>911</b> for the police or an ambulance in the US. To talk to someone, call or text 988. Outside the US, call your local emergency number (112 in Nigeria). Then get support here straight away.</p>
           <Link href="/crisis" className="mt-2 inline-block font-extrabold underline lg:hidden">Get support now</Link>
           <Link href="/crisis" className="mt-2.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] border-current px-[13px] py-[7px] text-[13.5px] font-semibold max-lg:hidden"><Icon name="phone" size={16} />Get support now</Link>
         </div>

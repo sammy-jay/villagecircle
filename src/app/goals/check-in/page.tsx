@@ -23,7 +23,7 @@ export default async function CheckIn() {
     <ParticipantShell ctx={{ name: r.ctx.name, openCount: r.ctx.openCount, unread: r.ctx.unread }} phone={{ back: "/goals", title: "Check-in" }}
       aside={<>
         <Card className="flex flex-col gap-2 p-[18px]"><h2 className="font-display text-[18px] font-extrabold leading-[1.12] tracking-[-.01em]">Next month</h2><p className="text-[14px] text-bark">Pick a goal to work on, or ask a mentor something new.</p><Link href="/goals" className="dc-btn dc-btn-soft h-11">Open my goals</Link></Card>
-        <section className="rounded-card bg-blush p-[18px] text-[13.5px] leading-normal text-blush-ink"><b>Need to talk to someone right now?</b> Real help is there at any hour. In danger? Call 112. <Link href="/crisis" className="font-bold underline">Get support</Link></section>
+        <section className="rounded-card bg-blush p-[18px] text-[13.5px] leading-normal text-blush-ink"><b>Need to talk to someone right now?</b> Real help is there at any hour. In danger? Call 911. <Link href="/crisis" className="font-bold underline">Get support</Link></section>
       </>}>
       <div>
         <p className="text-[12.5px] font-extrabold uppercase tracking-[.04em] text-clay lg:text-[13px]">{m.month} check-in</p>

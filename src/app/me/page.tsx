@@ -47,7 +47,7 @@ export default async function Me() {
     ["Notification preferences", "Email and in-app", "mail", "blush", "/settings/notifications"],
     ["Settings and account", "Guardian, data, turning 18", "settings", "butter", "/settings"],
     ["Help and contact the team", "We reply within 1 working day", "info", "mint", "/settings/contact"],
-    ["Safety and crisis help", "Call 112 now, or report a concern", "shieldCheck", "blush", "/crisis"],
+    ["Safety and crisis help", "Call 911 now, or report a concern", "shieldCheck", "blush", "/crisis"],
   ];
 
   return (
@@ -96,7 +96,7 @@ export default async function Me() {
         ))}
       </div>
       <SignOutButton className="h-[50px] w-full" />
-      <p className="px-3 pt-0.5 text-center text-[12.5px] leading-[1.4] text-stone">The Village Circle · Not an emergency service. Call 112 in an emergency.</p>
+      <p className="px-3 pt-0.5 text-center text-[12.5px] leading-[1.4] text-stone">The Village Circle · Not an emergency service. Call 911 in an emergency.</p>
     </ParticipantShell>
   );
 }

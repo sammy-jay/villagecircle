@@ -67,8 +67,8 @@ export default function Help() {
                   <IconTile icon="phone" tone="mint" size={44} iconSize={22} radius={16} className="max-lg:hidden" />
                   <H className="text-[21px] lg:text-[22px]">Safety line</H>
                 </div>
-                <p className="mt-2.5 text-[15px] leading-normal text-bark lg:mt-3 lg:text-[15.5px]">Call or text 112 if someone is in danger.<span className="max-lg:hidden"> You can also call your local police or the nearest hospital.</span></p>
-                <p className="mt-2.5 text-caption leading-[1.4] text-stone max-lg:hidden">Emergency number for Nigeria. Local police and hospitals can also help.</p>
+                <p className="mt-2.5 text-[15px] leading-normal text-bark lg:mt-3 lg:text-[15.5px]">Call or text 911 if someone is in danger.<span className="max-lg:hidden"> You can also call your local police or the nearest hospital.</span></p>
+                <p className="mt-2.5 text-caption leading-[1.4] text-stone max-lg:hidden">Emergency number in the US. In Nigeria, call 112. Local police and hospitals can also help.</p>
               </section>
             </aside>
           </div>

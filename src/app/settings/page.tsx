@@ -80,7 +80,7 @@ export default async function Settings() {
         <Row href="/settings/contact" icon="message" tone="butter" title="Talk to the team" sub="A real person replies within 1 working day" />
         <Row href="/faq" icon="info" tone="mint" title="FAQ" sub="Answers to common questions" />
         <Row href="/report" icon="flag" tone="blush" title="Report a concern" sub="Goes straight to our safeguarding lead" />
-        <Row href="/crisis" icon="heart" tone="blush" title="Get support" sub="Call 112 in an emergency" />
+        <Row href="/crisis" icon="heart" tone="blush" title="Get support" sub="Call 911 in an emergency" />
       </Section>
       <SignOutButton className="h-[50px] w-full lg:w-auto lg:self-start" />
     </>

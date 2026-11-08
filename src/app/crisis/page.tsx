@@ -65,10 +65,10 @@ function AfterAsk() {
         <section className="flex flex-col gap-5 rounded-[30px] bg-blush px-[22px] py-6 text-blush-ink lg:flex-row lg:items-center lg:gap-7 lg:rounded-[32px] lg:px-[34px] lg:py-[30px]">
           <div className="min-w-0 flex-1">
             <h2 className="font-display text-[22px] font-extrabold leading-[1.15] lg:text-[26px]">If you are in danger or may hurt yourself, get help now</h2>
-            <p className="mt-2.5 text-[16px] leading-normal">Call <b>112</b>, the national emergency number in Nigeria. It is free, any hour. Tell them where you are.</p>
-            <p className="mt-2.5 text-[14px] leading-normal opacity-90">Outside Nigeria? In the United States you can call or text 988 at any time. In other countries, search for your local crisis line.</p>
+            <p className="mt-2.5 text-[16px] leading-normal">Call <b>911</b>, the emergency number in the US. It is free, any hour. Tell them where you are.</p>
+            <p className="mt-2.5 text-[14px] leading-normal opacity-90">Want to talk to someone? In the US you can call or text 988 at any time. In Nigeria, call 112. In other countries, search for your local crisis line.</p>
           </div>
-          <a href="tel:112" className="dc-btn dc-btn-primary h-[62px] whitespace-nowrap px-9 text-[19px]"><Icon name="phone" size={18} />Call 112</a>
+          <a href="tel:911" className="dc-btn dc-btn-primary h-[62px] whitespace-nowrap px-9 text-[19px]"><Icon name="phone" size={18} />Call 911</a>
         </section>
         <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
           <section className="flex-1 rounded-card border border-line bg-card p-[22px] lg:p-7">

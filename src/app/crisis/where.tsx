@@ -7,8 +7,8 @@ import { FieldWrap, SelectField } from "@/components/forms/fields";
 /** Emergency numbers by country. Only used to pick the number shown; never sent or saved. */
 const PLACES: Record<string, { label: string; call: string; note: string; more: string }> = {
   NG: { label: "Nigeria", call: "112", note: "Nigeria emergency number. Free, any hour", more: "In the US? Call or text 988, the Suicide and Crisis Lifeline. In another country, ask a trusted adult or search for your local helpline." },
-  GH: { label: "Ghana", call: "112", note: "Ghana emergency number. Free, any hour", more: "In Nigeria, call 112. In another country, ask a trusted adult or search for your local helpline." },
-  KE: { label: "Kenya", call: "999", note: "Kenya emergency number. 112 also works", more: "In Nigeria, call 112. In another country, ask a trusted adult or search for your local helpline." },
+  GH: { label: "Ghana", call: "112", note: "Ghana emergency number. Free, any hour", more: "In the US, call 911. In another country, ask a trusted adult or search for your local helpline." },
+  KE: { label: "Kenya", call: "999", note: "Kenya emergency number. 112 also works", more: "In the US, call 911. In another country, ask a trusted adult or search for your local helpline." },
   GB: { label: "United Kingdom", call: "999", note: "UK emergency number. Free, any hour", more: "To talk to someone, call Samaritans free on 116 123, any hour." },
   US: { label: "United States", call: "988", note: "Suicide and Crisis Lifeline. Call or text, any hour", more: "If someone is in immediate danger, call 911." },
   XX: { label: "Somewhere else", call: "112", note: "Works on most mobile phones in many countries", more: "Ask a trusted adult or search for your local helpline. In the US, call or text 988." },

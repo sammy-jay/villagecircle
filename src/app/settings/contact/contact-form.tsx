@@ -18,7 +18,7 @@ export function ContactForm() {
   if (state.ok) return (
     <section role="status" className="flex flex-col gap-2 rounded-card bg-mint p-5 text-mint-ink">
       <h2 className="font-display text-[22px] font-extrabold">Sent. Thank you.</h2>
-      <p className="text-[15px]">{state.escalated ? "This sounds serious, so our safeguarding lead has it now and will reply within 24 hours. If you are in danger, call 112." : "A team member reads it within 1 working day and replies here in the app."}</p>
+      <p className="text-[15px]">{state.escalated ? "This sounds serious, so our safeguarding lead has it now and will reply within 24 hours. If you are in danger, call 911." : "A team member reads it within 1 working day and replies here in the app."}</p>
       <Link href="/home" className="dc-btn dc-btn-soft mt-1 h-11 self-start bg-card">Back to Home</Link>
     </section>
   );
