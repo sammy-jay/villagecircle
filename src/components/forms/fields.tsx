@@ -4,7 +4,7 @@ import { useState, type ComponentProps, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { cn } from "@/lib/cn";
 import { Icon, type IconName } from "@/components/dc/icons";
-import { Select, type Option } from "@/components/dc/client";
+import { MultiSelect, Select, type Option } from "@/components/dc/client";
 
 /* Form parts at the size every account and app board uses: 54px fields, 13px bold labels, 12.5px hints. */
 
@@ -52,6 +52,10 @@ export function PasswordField({ className, ...rest }: Omit<ComponentProps<"input
 
 export function SelectField(props: { id?: string; name?: string; options: Option[]; value?: string; defaultValue?: string; onChange?: (v: string) => void; placeholder?: string; invalid?: boolean; sayMore?: { name?: string; placeholder?: string; defaultValue?: string; show?: "always" | "selected" } }) {
   return <Select {...props} className="[&>button]:h-[54px] [&>input.dc-saymore]:min-h-[46px] [&>input.dc-saymore]:rounded-saymore" />;
+}
+
+export function MultiSelectField(props: ComponentProps<typeof MultiSelect>) {
+  return <MultiSelect {...props} className="[&>button]:h-[54px] [&>input.dc-saymore]:min-h-[46px] [&>input.dc-saymore]:rounded-saymore" />;
 }
 
 /** 26px square checkbox from the account boards. */

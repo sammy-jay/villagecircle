@@ -4,15 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { useFormState } from "react-dom";
 import { Icon } from "@/components/dc/icons";
-import { ChipPicker, FieldError, FieldWrap, SelectField, SubmitButton, TextField, sayMoreClass } from "@/components/forms/fields";
+import { ChipPicker, FieldError, FieldWrap, MultiSelectField, SelectField, SubmitButton, TextField, sayMoreClass } from "@/components/forms/fields";
 import { StepBars } from "@/components/account/shells";
 import { RingAvatar } from "@/components/public/kit";
 import { initials } from "@/components/dc";
-import { BACKGROUNDS, GOALS, INTERESTS, LANGUAGES, STAGES, opts, regionsFor } from "@/components/account/options";
+import { BACKGROUNDS, BACKGROUND_EXCLUSIVE, GOALS, INTERESTS, LANGUAGES, STAGES, opts, regionsFor } from "@/components/account/options";
 import { onboardingAction, type ActionState } from "@/app/account-actions";
 import { cn } from "@/lib/cn";
 
-export type OnboardingData = { first: string; band: string; cohort?: string | null; country?: string | null; region?: string | null; town?: string | null; interests: string[]; goal?: string; goalMore?: string; background?: string; languages: string[] };
+export type OnboardingData = { first: string; band: string; cohort?: string | null; country?: string | null; region?: string | null; town?: string | null; interests: string[]; goal?: string; goalMore?: string; background?: string[]; backgroundMore?: string; languages: string[] };
 
 const HEAD: Record<number, { eyebrow: (f: string) => string; title: string; sub: string; subPhone: string }> = {
   1: { eyebrow: () => "STEP 1 OF 3", title: "Tell us a little about you", sub: "Only your name and age are needed. Everything else helps us find the right person and is up to you.", subPhone: "Only your name and age are needed. The rest is up to you." },
@@ -66,8 +66,8 @@ export function OnboardingStep({ step, data }: { step: 1 | 2 | 3; data: Onboardi
           )}
           {step === 3 && (
             <>
-              <FieldWrap label="Community background (optional)" htmlFor="o-bg">
-                <SelectField id="o-bg" name="background" options={opts(BACKGROUNDS)} defaultValue={data.background} placeholder="Choose one" sayMore={{ name: "backgroundMore", show: "always" }} />
+              <FieldWrap label="Community background (optional)" htmlFor="o-bg" hint="Pick any that apply.">
+                <MultiSelectField id="o-bg" name="background" options={opts(BACKGROUNDS)} exclusive={BACKGROUND_EXCLUSIVE} defaultValue={data.background} placeholder="Choose any that apply" sayMore={{ name: "backgroundMore", defaultValue: data.backgroundMore }} />
               </FieldWrap>
               <div className="flex items-start gap-2.5 rounded-field bg-mint px-3.5 py-3 text-[13.5px] leading-[1.45] text-mint-ink">{lock}<p>Used only for anonymous counts, so the team can see who the village is reaching. It is never shown on your profile or to mentors.</p></div>
               <FieldWrap label="Languages you speak (optional)"><ChipPicker name="languages" options={LANGUAGES} defaultValue={data.languages} /></FieldWrap>

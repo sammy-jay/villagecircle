@@ -93,6 +93,78 @@ export function Select({ name, options, value: controlled, defaultValue, onChang
   );
 }
 
+/**
+ * Multi-select version of Select: the list stays open while you tick rows, and the closed field
+ * reads "A, B" or "3 chosen". An `exclusive` option (like "Prefer not to say") clears the others.
+ * Posts one hidden `name` input per choice.
+ */
+export function MultiSelect({ name, options, defaultValue = [], onChange, placeholder = "Choose any that apply", exclusive = [], sayMore, id, className }: {
+  name?: string; options: Option[]; defaultValue?: string[]; onChange?: (v: string[]) => void; placeholder?: string; exclusive?: string[];
+  sayMore?: { name?: string; placeholder?: string; defaultValue?: string }; id?: string; className?: string;
+}) {
+  const auto = useId();
+  const btnId = id ?? auto;
+  const [sel, setSel] = useState<string[]>(defaultValue);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const wrap = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const toggle = (v: string) => {
+    const next = sel.includes(v) ? sel.filter((x) => x !== v) : exclusive.includes(v) ? [v] : [...sel.filter((x) => !exclusive.includes(x)), v];
+    setSel(next); onChange?.(next);
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") return setOpen(false);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) { setOpen(true); setActive(0); return; }
+      setActive((a) => (a + (e.key === "ArrowDown" ? 1 : -1) + options.length) % options.length);
+    }
+    if ((e.key === "Enter" || e.key === " ") && open) { e.preventDefault(); toggle(options[active]!.value); }
+  };
+  const labels = options.filter((o) => sel.includes(o.value)).map((o) => o.label);
+  const summary = labels.length === 0 ? placeholder : labels.length <= 2 ? labels.join(", ") : `${labels.length} chosen`;
+
+  return (
+    <div ref={wrap} className={cn("relative", className)}>
+      {name && sel.map((v) => <input key={v} type="hidden" name={name} value={v} />)}
+      <button id={btnId} type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)} onKeyDown={onKey}
+        className="dc-input flex items-center justify-between gap-3 text-left">
+        <span className={cn("truncate", !labels.length && "text-stone")}>{summary}</span>
+        <Icon name="chevronDown" size={20} className={cn("shrink-0 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="dc-menu absolute inset-x-0 top-[calc(100%+7px)] z-30">
+          <ul role="listbox" aria-multiselectable="true" aria-labelledby={btnId} className="max-h-72 overflow-y-auto">
+            {options.map((o, i) => {
+              const on = sel.includes(o.value);
+              return (
+                <li key={o.value} role="option" aria-selected={on} onMouseDown={(e) => e.preventDefault()} onClick={() => toggle(o.value)} onMouseEnter={() => setActive(i)}
+                  className={cn("dc-option cursor-pointer", i === active && !on && "bg-sand")}>
+                  <span className={cn("flex size-5 shrink-0 items-center justify-center rounded-[6px] border-2", on ? "border-forest bg-forest text-forest-ink" : "border-line bg-card")}>{on && <Icon name="check" size={13} strokeWidth={3} />}</span>
+                  {o.label}
+                </li>
+              );
+            })}
+          </ul>
+          <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5">
+            <span className="text-[13px] text-stone">{labels.length ? `${labels.length} chosen` : "Pick any that apply"}</span>
+            <button type="button" onClick={() => setOpen(false)} className="dc-btn dc-btn-soft h-9 px-4 text-[14px]">Done</button>
+          </div>
+        </div>
+      )}
+      {sayMore && <input name={sayMore.name} defaultValue={sayMore.defaultValue} placeholder={sayMore.placeholder ?? "Say more (optional)"} className="dc-saymore mt-[7px]" aria-label="Say more (optional)" />}
+    </div>
+  );
+}
+
 /* ───────── §7 Toggles and choices ───────── */
 
 /** 46×28 switch, forest when on. Renders a hidden input when name is set. */

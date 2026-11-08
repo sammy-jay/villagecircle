@@ -1,5 +1,6 @@
 "use server";
 
+import { formatBackground } from "@/components/account/options";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -76,7 +77,7 @@ export async function onboardingAction(_: ActionState, fd: FormData): Promise<Ac
       const goal = [str(fd, "goal"), str(fd, "goalMore")].filter(Boolean);
       await db.participantProfile.update({ where: { id: u.participant.id }, data: { interests, goalsText: goal } });
     } else {
-      const bg = [str(fd, "background"), str(fd, "backgroundMore")].filter(Boolean).join(": ");
+      const bg = formatBackground(fd.getAll("background").map(String), str(fd, "backgroundMore")).slice(0, 300);
       await db.participantProfile.update({ where: { id: u.participant.id }, data: { communityBackground: bg || null } });
       await db.user.update({ where: { id }, data: { languages: fd.getAll("languages").map(String) } });
     }

@@ -9,11 +9,23 @@ export const regionsFor = (country?: string | null) => (country === "Nigeria" ? 
 export const COUNTRIES = ["Nigeria", "Ghana", "Kenya", "South Africa", "United Kingdom", "United States", "Canada", "Other"];
 export const HEARD_FROM = ["A teacher or school", "At school or church", "A friend or family member", "A mentor", "Social media", "An event", "Other"];
 export const RELATIONSHIPS = ["Parent", "Guardian", "Grandparent", "Aunt or uncle", "Older sibling", "Other relative"];
-export const STAGES: [string, string][] = [["HIGH_SCHOOL", "Secondary school (JSS1 to SS3)"], ["COLLEGE", "University or polytechnic"], ["GRADUATE", "Finished studying, looking for work"], ["EARLY_CAREER", "Working"], ["OTHER", "Something else"]];
+export const STAGES: [string, string][] = [["HIGH_SCHOOL", "Secondary school (Grade 7 to Grade 12)"], ["COLLEGE", "University or polytechnic"], ["GRADUATE", "Finished studying, looking for work"], ["EARLY_CAREER", "Working"], ["OTHER", "Something else"]];
 export const INTERESTS = ["Careers", "University and courses", "Internships", "CVs", "Interviews", "Starting a business", "Leadership", "Money skills", "Wellbeing", "Study skills", "Tech", "Medicine and health", "Law", "Creative work", "Studying abroad"];
 export const GOALS = ["Choose a course or university", "Get my first job", "Find an internship", "Start a business", "Prepare for exams", "Figure out what I want", "Something else"];
 export const BACKGROUNDS = ["First in my family to go to college", "Rural or small town", "Single-parent home", "Migrant or relocated", "Neurodivergent", "Disability", "Refugee background", "Prefer not to say", "Other"];
 export const LANGUAGES = ["English", "Yoruba", "Igbo", "Hausa", "Pidgin", "French", "Other"];
+/** Community background is stored as one string: "Choice; Choice: say more". These read and write it. */
+export const BACKGROUND_EXCLUSIVE = ["Prefer not to say"];
+export function parseBackground(raw: string | null | undefined): { picks: string[]; more: string } {
+  const s = raw ?? ""; const i = s.indexOf(": ");
+  const head = i < 0 ? s : s.slice(0, i);
+  return { picks: head.split("; ").map((x) => x.trim()).filter((x) => BACKGROUNDS.includes(x)), more: i < 0 ? "" : s.slice(i + 2) };
+}
+export function formatBackground(picks: string[], more: string): string {
+  const head = Array.from(new Set(picks.filter((p) => BACKGROUNDS.includes(p))));
+  const tail = more.trim();
+  return head.length ? (tail ? `${head.join("; ")}: ${tail}` : head.join("; ")) : tail ? `Other: ${tail}` : "";
+}
 export const opts = (xs: string[]) => xs.map((x) => ({ value: x, label: x }));
 
 /* Mentor sign-up (DK7 / DK8, M5 / M6) */

@@ -5,9 +5,9 @@ import { useState } from "react";
 import { useFormState } from "react-dom";
 import { Toggle } from "@/components/dc/client";
 import { Icon } from "@/components/dc/icons";
-import { ChipPicker, FieldWrap, SelectField, SubmitButton } from "@/components/forms/fields";
+import { ChipPicker, FieldWrap, MultiSelectField, SelectField, SubmitButton } from "@/components/forms/fields";
 import { PhoneBar } from "@/components/account/shells";
-import { BACKGROUNDS, GOALS, INTERESTS, STAGES, opts, regionsFor } from "@/components/account/options";
+import { BACKGROUNDS, BACKGROUND_EXCLUSIVE, GOALS, INTERESTS, STAGES, opts, parseBackground, regionsFor } from "@/components/account/options";
 import { profileAction, type SelfState } from "@/app/self-actions";
 
 type P = { first: string; band: string; cohort: string | null; country: string | null; region: string | null; interests: string[]; goal: string; goalMore: string; background: string; show: Record<string, boolean>; updatedAt: string };
@@ -22,7 +22,7 @@ export function ProfileForm({ p, minor }: { p: P; minor: boolean }) {
   const [interests, setInterests] = useState(p.interests);
   const [goal, setGoal] = useState(p.goal);
   const stage = STAGES.find(([v]) => v === cohort)?.[1];
-  const [bg, bgMore] = p.background.split(": ");
+  const bg = parseBackground(p.background);
   const sw: [string, string, string][] = [
     ["ageBand", "Show my age band", `Mentors see "${p.band}", never your exact age`],
     ["stage", "Show my stage", stage ?? "Not set"],
@@ -53,7 +53,7 @@ export function ProfileForm({ p, minor }: { p: P; minor: boolean }) {
         <FieldWrap label="What are you curious about? Pick any"><ChipPicker name="interests" options={[...new Set([...INTERESTS, ...p.interests])]} defaultValue={p.interests} max={8} onChange={setInterests} /></FieldWrap>
         <FieldWrap label="Your goal" htmlFor="pf-goal"><SelectField id="pf-goal" name="goal" options={opts([...new Set([...(p.goal ? [p.goal] : []), ...GOALS])])} value={goal} onChange={setGoal} placeholder="Choose one" sayMore={{ name: "goalMore", defaultValue: p.goalMore, placeholder: "Say more (optional). For example: medicine or engineering?", show: "always" }} /></FieldWrap>
         <FieldWrap label="Community background (optional)" htmlFor="pf-bg" hint="Anonymous counts only, never shown. Mentors never see it.">
-          <SelectField id="pf-bg" name="background" options={opts(["Prefer not to say", ...BACKGROUNDS])} defaultValue={bg || undefined} placeholder="Prefer not to say" sayMore={{ name: "backgroundMore", defaultValue: bgMore, show: "always" }} />
+          <MultiSelectField id="pf-bg" name="background" options={opts(BACKGROUNDS)} exclusive={BACKGROUND_EXCLUSIVE} defaultValue={bg.picks} placeholder="Choose any that apply" sayMore={{ name: "backgroundMore", defaultValue: bg.more }} />
         </FieldWrap>
       </section>
       <section className="flex flex-col rounded-card border border-line bg-card px-5 pb-2 pt-5 lg:px-[22px]">

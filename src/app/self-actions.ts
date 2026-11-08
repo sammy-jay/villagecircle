@@ -1,5 +1,6 @@
 "use server";
 
+import { formatBackground } from "@/components/account/options";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
@@ -48,7 +49,7 @@ export async function profileAction(_: SelfState, fd: FormData): Promise<SelfSta
   const cohort = str(fd, "cohort");
   const r = await saveProfile(await uid(), {
     cohort: cohort || null, region: str(fd, "region") || null, interests: fd.getAll("interests").map(String),
-    goal: str(fd, "goal"), goalMore: str(fd, "goalMore"), background: [str(fd, "background"), str(fd, "backgroundMore")].filter(Boolean).join(": "),
+    goal: str(fd, "goal"), goalMore: str(fd, "goalMore"), background: formatBackground(fd.getAll("background").map(String), str(fd, "backgroundMore")),
     show: Object.fromEntries(SHOW_KEYS.map((k) => [k, fd.get(`show_${k}`) === "on"])),
   });
   if (!r.ok) return { error: r.error };
