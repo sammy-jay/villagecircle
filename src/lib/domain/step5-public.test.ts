@@ -18,8 +18,8 @@ describe("cookie consent (HP5)", () => {
   it("ignores junk stored values", () => { expect(parseConsent("yes")).toBeNull(); expect(parseConsent("needed")).toBe("needed"); });
 });
 describe("public content", () => {
-  it("has eight FAQ answers and every chip returns something", () => { expect(FAQ).toHaveLength(8); for (const a of ["all", "young", "parents", "mentors", "safety"]) expect(filterFaq(FAQ, { aud: a }).length).toBeGreaterThan(0); });
+  it("has seven FAQ answers and every chip returns something", () => { expect(FAQ).toHaveLength(7); for (const a of ["all", "young", "parents", "mentors", "safety"]) expect(filterFaq(FAQ, { aud: a }).length).toBeGreaterThan(0); });
   it("filters by search and topic", () => { expect(filterFaq(FAQ, { q: "recorded" }).map((f) => f.q)).toContain("Is the conversation recorded?"); expect(filterFaq(FAQ, { topic: "privacy" }).length).toBe(2); expect(filterFaq(FAQ, { q: "zzzz" })).toHaveLength(0); });
-  it("never promises contact details or money", () => { const all = FAQ.map((f) => f.a).join(" "); expect(all).toMatch(/no phone numbers or emails/i); expect(all).toMatch(/No money changes hands/); });
+  it("never promises contact details", () => { const all = FAQ.map((f) => f.a).join(" "); expect(all).toMatch(/no phone numbers or emails/i); });
   it("has five versioned policies with unique slugs", () => { expect(POLICIES).toHaveLength(5); expect(new Set(POLICIES.map((p) => p.slug)).size).toBe(5); expect(policyBySlug("code-of-conduct")?.version).toBe("1.2"); expect(policyBySlug("nope")).toBeUndefined(); });
 });

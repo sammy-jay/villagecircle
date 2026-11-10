@@ -24,7 +24,7 @@ const MENU_EXTRA = [
   { href: "/help/report", label: "Report a concern" },
 ];
 
-/** Public header, the same on every public page: sticky, six links, Log in and Join free. */
+/** Public header, the same on every public page: sticky, six links, Log in and Join now. */
 export function PublicHeader() {
   const path = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
@@ -52,7 +52,7 @@ export function PublicHeader() {
         </nav>
         <div className="flex gap-2.5">
           <Link href="/login" className="dc-btn dc-btn-soft h-11">Log in</Link>
-          <Link href="/register" className="dc-btn dc-btn-primary h-11">Join free</Link>
+          <Link href="/register" className="dc-btn dc-btn-primary h-11">Join now</Link>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export function PublicHeader() {
           <Image src="/brand/mark.png" alt="" width={38} height={37} priority />
           <span className="truncate font-display text-[19px] font-extrabold tracking-[-.01em]">Village Circle</span>
         </Link>
-        <Link href="/register" className="dc-btn dc-btn-primary h-[42px] px-[18px]">Join free</Link>
+        <Link href="/register" className="dc-btn dc-btn-primary h-[42px] px-[18px]">Join now</Link>
         <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}
           className="flex size-11 items-center justify-center rounded-full bg-sand text-ink">
           <Icon name="menu" size={22} />
@@ -83,7 +83,7 @@ export function PublicHeader() {
               ))}
             </nav>
             <div className="mt-4 flex flex-col gap-2.5">
-              <Link href="/register" className="dc-btn dc-btn-primary h-[54px] w-full">Join free</Link>
+              <Link href="/register" className="dc-btn dc-btn-primary h-[54px] w-full">Join now</Link>
               <Link href="/login" className="dc-btn dc-btn-soft h-[50px] w-full">Log in</Link>
             </div>
           </div>

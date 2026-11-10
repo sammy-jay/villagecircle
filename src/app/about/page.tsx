@@ -92,7 +92,7 @@ export default function About() {
             </div>
           </section>
 
-          <CtaBand tone="butter" title="Together, we're rebuilding the village, one connection at a time." sub="Join free in two minutes. Under 18s join with a parent or guardian.">
+          <CtaBand tone="butter" title="Together, we're rebuilding the village, one connection at a time." sub="Join in two minutes. Under 18s join with a parent or guardian.">
             <Link href="/register" className="dc-btn dc-btn-primary h-[54px] lg:h-14"><Icon name="arrowRight" size={18} />Start an Ask</Link>
             <Link href="/become-a-mentor" className="dc-btn dc-btn-outline h-[50px] lg:h-14">Be a Mentor</Link>
           </CtaBand>

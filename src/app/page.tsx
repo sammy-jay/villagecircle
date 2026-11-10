@@ -25,8 +25,8 @@ async function safe<T>(f: () => Promise<T>, fallback: T): Promise<T> {
 
 const faqA = (q: string) => FAQ.find((f) => f.q === q)?.a ?? "";
 const HOME_FAQ = [
-  { title: "Is it really free?", body: "Yes. Joining, asking and meeting a mentor cost nothing. Mentors give their hour as a gift." },
   { title: "Who can join?", body: faqA("Who can join?") },
+  { title: "Who sees my question?", body: faqA("Who sees my question?") },
   { title: "Can a mentor message me or see my school?", body: faqA("Can a mentor contact me directly?") },
   { title: "What if something goes wrong?", body: "Report a concern from any page. The connection pauses straight away and our safeguarding lead is told. We resolve every report within 48 hours." },
 ];

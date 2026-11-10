@@ -55,7 +55,7 @@ export default async function Events({ searchParams }: { searchParams: { tab?: s
             <Link href={`/village/events/${e.id}`} className="flex items-start gap-3.5">
               <DateTile month={e.month} day={e.day} tone={e.registered ? "mint" : "butter"} />
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap gap-1.5"><span className="rounded-full bg-sand px-[11px] py-1 text-[12px] font-semibold">{rest.length ? kind : "Event"}</span><span className="rounded-full bg-sand px-[11px] py-1 text-[12px] font-semibold">Free</span></div>
+                <div className="flex flex-wrap gap-1.5"><span className="rounded-full bg-sand px-[11px] py-1 text-[12px] font-semibold">{rest.length ? kind : "Event"}</span></div>
                 <p className="mt-1.5 font-display text-[19px] font-extrabold leading-[1.15] tracking-[-.01em]">{rest.length ? rest.join(": ") : e.title}</p>
                 <p className="mt-1 text-[13px] text-stone">{e.meta}</p>
               </div>

@@ -5,10 +5,10 @@ import { MIN_AGE } from "@/lib/domain/age";
 import type { SignupRole } from "@/lib/register";
 import { RegisterForm } from "./register-form";
 
-export const metadata = { title: "Join free" };
+export const metadata = { title: "Join now" };
 
 const COPY: Record<SignupRole, { eyebrow: string; sub: string }> = {
-  participant: { eyebrow: "Join free", sub: "Two minutes. Free. Mentors see your first name and age band, nothing else." },
+  participant: { eyebrow: "Join now", sub: "Two minutes. Mentors see your first name and age band, nothing else." },
   mentor: { eyebrow: "Join as a mentor", sub: "Create your account first. Next you tell us about yourself and sign the safeguarding commitment." },
   guardian: { eyebrow: "Join as a parent or guardian", sub: "Create your guardian account. Your young person can then invite you, or you can set them up together." },
 };
@@ -48,7 +48,7 @@ export default function Register({ searchParams }: { searchParams: { role?: stri
   const role: SignupRole = searchParams.role === "mentor" || searchParams.role === "guardian" ? searchParams.role : "participant";
   const c = COPY[role];
   return (
-    <SplitShell width="half" panel="mint" art={<Art />} phone={{ back: "/", title: "Join free", mark: false }}>
+    <SplitShell width="half" panel="mint" art={<Art />} phone={{ back: "/", title: "Join now", mark: false }}>
       <div className="lg:mt-1.5">
         <p className="text-[13px] font-extrabold uppercase tracking-[.04em] text-clay max-lg:hidden">{c.eyebrow}</p>
         <h1 className="font-display text-[36px] font-extrabold leading-[1.12] tracking-[-.01em] lg:mt-2 lg:text-[46px] lg:leading-[1.02] lg:tracking-[-.02em]">Make your space.</h1>

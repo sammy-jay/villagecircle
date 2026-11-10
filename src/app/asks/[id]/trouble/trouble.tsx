@@ -35,7 +35,7 @@ export function Trouble({ askId, mentor }: { askId: string; mentor: string }) {
         {state.ok ? <p role="status" className="rounded-[16px] bg-mint px-4 py-3 text-[14.5px] font-semibold text-mint-ink">The team knows. Someone will help you within 10 minutes.</p>
           : <SubmitButton variant="forest" icon="send" className="h-[52px]" pendingText="Sending…">Tell the team I am stuck</SubmitButton>}
         {state.error && <p role="alert" className="text-[14px] font-semibold text-clay">{state.error}</p>}
-        <p className="text-[12.5px] leading-[1.4] text-stone">If it cannot be fixed within 10 minutes, we reschedule at no cost.</p>
+        <p className="text-[12.5px] leading-[1.4] text-stone">If it cannot be fixed within 10 minutes, we reschedule it for you.</p>
         <Link href={`/asks/${askId}/room`} className="dc-btn dc-btn-primary h-[50px]"><Icon name="refresh" size={18} />Try again</Link>
       </form>
     </div>

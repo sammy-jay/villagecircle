@@ -291,7 +291,7 @@ export async function requestTeamRebook(userId: string, askId: string): Promise<
 }
 export async function stuckReport(userId: string, askId: string): Promise<R> {
   const r = await roleIn(userId, askId); if (!r?.conn) return fail("Not available.");
-  await notifyTeam(askId, "Someone cannot connect", "Help them within 10 minutes or reschedule at no cost.");
+  await notifyTeam(askId, "Someone cannot connect", "Help them within 10 minutes or reschedule.");
   return { ok: true };
 }
 

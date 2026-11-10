@@ -24,7 +24,7 @@ export default async function EventPage({ params }: { params: { id: string } }) 
       {e.capacity != null && (
         <>
           <div className="h-2.5 overflow-hidden rounded-[10px] bg-sand"><div className="h-full rounded-[inherit] bg-forest" style={{ width: `${e.percent}%` }} /></div>
-          <p className="text-[13.5px] text-bark">{e.taken} of {e.capacity} places taken. {e.full ? "Full." : `${e.capacity - e.taken} places left.`} Free for everyone.</p>
+          <p className="text-[13.5px] text-bark">{e.taken} of {e.capacity} places taken. {e.full ? "Full." : `${e.capacity - e.taken} places left.`}</p>
         </>
       )}
       {!e.past && (!e.full || e.registered) && <GoingButton id={e.id} going={e.registered} />}
@@ -50,7 +50,7 @@ export default async function EventPage({ params }: { params: { id: string } }) 
         </div>
       </section>
       {e.description && <Card className="p-5 lg:p-6"><h2 className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">What to expect</h2><p className="mt-2 whitespace-pre-line text-[15px] leading-normal text-bark">{e.description}</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">{[e.audience || "All ages", "Free", e.recording].map((x) => <span key={x} className="rounded-full bg-sand px-[13px] py-[7px] text-[12.5px] font-semibold">{x}</span>)}</div></Card>}
+        <div className="mt-3 flex flex-wrap gap-1.5">{[e.audience || "All ages", e.recording].map((x) => <span key={x} className="rounded-full bg-sand px-[13px] py-[7px] text-[12.5px] font-semibold">{x}</span>)}</div></Card>}
       {hosts.length > 0 && (
         <Card className="p-5"><h2 className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">Your hosts</h2>
           <ul className="mt-3 flex flex-wrap gap-4">{hosts.map((h, i) => <li key={h} className="flex items-center gap-2.5"><span className={["flex size-11 items-center justify-center rounded-full font-display text-[15px] font-bold", ["bg-mint text-mint-ink", "bg-butter text-butter-ink", "bg-blush text-blush-ink"][i % 3]].join(" ")}>{h.split(" ").map((w) => w[0]).join("").slice(0, 2)}</span><span className="text-[14.5px] font-bold">{h}</span></li>)}</ul></Card>

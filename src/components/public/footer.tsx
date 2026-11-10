@@ -7,7 +7,7 @@ const TAGLINE = "Rebuilding the Village. Empowering the Next Generation.";
 
 const COLS: [string, [string, string][]][] = [
   ["Explore", [["About us", "/about"], ["How it works", "/#how"], ["Library", "/library"], ["FAQ", "/faq"]]],
-  ["Get involved", [["Join free", "/register"], ["Become a mentor", "/become-a-mentor"], ["For families", "/families"]]],
+  ["Get involved", [["Join now", "/register"], ["Become a mentor", "/become-a-mentor"], ["For families", "/families"]]],
   ["Help", [["Help centre", "/help"], ["Crisis support", "/crisis"], ["Contact the team", "/help#contact"]]],
 ];
 const LEGAL: [string, string][] = [["Privacy", "/policies/privacy"], ["Terms", "/policies/terms"], ["Code of conduct", "/policies/code-of-conduct"], ["Safeguarding", "/policies/safeguarding"], ["Family guidelines", "/policies/family-guidelines"]];

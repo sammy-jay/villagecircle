@@ -115,16 +115,15 @@ export function HomeHero({ minAge }: { minAge: number }) {
 }
 
 const TRUST: { icon: IconName; tone: Tone; title: string; sub: string }[] = [
-  { icon: "coin", tone: "butter", title: "Free to join", sub: "No fees, ever" },
   { icon: "user", tone: "mint", title: "Guardian approved", sub: "Under 18s join with a guardian" },
   { icon: "lock", tone: "blush", title: "No contact details shared", sub: "No numbers, no emails, no DMs" },
   { icon: "video", tone: "butter", title: "Recorded for under 18s", sub: "Guardians can ask to see it" },
 ];
 export function TrustStrip() {
   return (
-    <section aria-label="Promises" className={cn("mx-auto grid max-w-[1280px] grid-cols-2 gap-3 py-4 lg:grid-cols-4 lg:gap-4 lg:py-8", HOME_X)}>
+    <section aria-label="Promises" className={cn("mx-auto grid max-w-[1280px] grid-cols-2 gap-3 py-4 lg:grid-cols-3 lg:gap-4 lg:py-8", HOME_X)}>
       {TRUST.map((t) => (
-        <div key={t.title} className={cn("flex flex-col items-start gap-2 rounded-[22px] px-4 py-3.5 lg:flex-row lg:items-center lg:gap-3", TONE[t.tone].bg, TONE[t.tone].ink)}>
+        <div key={t.title} className={cn("flex flex-col items-start gap-2 rounded-[22px] px-4 py-3.5 max-lg:last:col-span-2 lg:flex-row lg:items-center lg:gap-3", TONE[t.tone].bg, TONE[t.tone].ink)}>
           <IconTile icon={t.icon} tone={t.tone} white size={38} iconSize={19} className="lg:hidden" />
           <IconTile icon={t.icon} tone={t.tone} white size={46} iconSize={23} className="max-lg:hidden" />
           <div><p className="text-[14.5px] font-extrabold leading-[1.2] lg:text-[15.5px]">{t.title}</p><p className="mt-0.5 text-caption opacity-85 lg:text-[13px]">{t.sub}</p></div>
@@ -200,8 +199,7 @@ export function WhoItIsFor({ minAge }: { minAge: number }) {
           );
         })}
       </Rail>
-      <p className="mt-8 max-w-[760px] text-[17px] font-semibold leading-relaxed lg:mt-12">Mentors are doctors, engineers, teachers, lawyers, founders, tradespeople and community leaders. A grand title is not required. Willingness is.</p>
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-8 flex flex-wrap gap-3 lg:mt-12">
         <Link href="/families" className="dc-btn dc-btn-soft h-11">For families</Link>
         <Link href="/become-a-mentor" className="dc-btn dc-btn-soft h-11">For mentors</Link>
       </div>
@@ -283,7 +281,7 @@ export function FinalCta() {
         <div className="relative">
           <div className="mb-5 flex justify-center" aria-hidden="true"><RingAvatar initials="KM" tone="butter" size={56} /><RingAvatar initials="TA" tone="mint" size={56} className="-ml-3.5" /><RingAvatar initials="IB" tone="blush" size={56} className="-ml-3.5" /></div>
           <H className="mx-auto max-w-[820px] text-center text-[36px] text-white [text-wrap:balance] lg:text-[58px]">Your question already has a village waiting for it.</H>
-          <p className="mt-5 text-center text-[16px] leading-relaxed text-white/85 lg:text-[19px]">Free, private and safe. Under 18? Join with a parent or guardian.</p>
+          <p className="mt-5 text-center text-[16px] leading-relaxed text-white/85 lg:text-[19px]">Private and safe. Under 18? Join with a parent or guardian.</p>
           <div className="mt-8 flex flex-col gap-3 lg:mt-10 lg:flex-row lg:justify-center">
             <Link href="/register" className="dc-btn dc-btn-primary h-[58px] lg:h-[60px]"><Icon name="arrowRight" size={18} />Start an Ask</Link>
             <Link href="/become-a-mentor" className={outline}>Be a Mentor</Link>

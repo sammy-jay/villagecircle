@@ -34,7 +34,7 @@ export default async function Missed({ params }: { params: { id: string } }) {
       </>}>
       <section className="flex flex-col gap-3 rounded-[30px] bg-blush p-6 text-blush-ink lg:rounded-[32px] lg:p-8">
         <h1 className="font-display text-[30px] font-extrabold leading-[1.08] tracking-[-.02em] lg:text-[38px]">{mentorAbsent ? `We are sorry. ${v.mentorFirst} did not join.` : "You missed the conversation"}</h1>
-        <p className="text-[15.5px] leading-normal">{mentorAbsent ? `It was not your fault. We have told the team${v.minor ? " and your guardian" : ""}, and you have one free reschedule.` : `It happens. ${v.mentorFirst} was there and has been thanked for their time.${v.minor ? " We have told your guardian." : ""}`}</p>
+        <p className="text-[15.5px] leading-normal">{mentorAbsent ? `It was not your fault. We have told the team${v.minor ? " and your guardian" : ""}, and you can reschedule once.` : `It happens. ${v.mentorFirst} was there and has been thanked for their time.${v.minor ? " We have told your guardian." : ""}`}</p>
       </section>
       <Card className="flex flex-col gap-3 p-5">
         <p className="text-[14.5px] text-bark">{mentorAbsent ? `You waited ${v.waitedMin} minutes. The room has closed and nothing was recorded of the empty call.` : "You can rebook once. If it happens again, the team will talk to you first."}</p>

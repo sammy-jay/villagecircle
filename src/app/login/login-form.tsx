@@ -31,10 +31,10 @@ export function LoginForm({ next, notice }: { next?: string; notice?: string }) 
       <Link href="/forgot" className="self-end text-[14.5px] font-bold text-clay">Forgot password?</Link>
       {error && <p role="alert" className="text-[14px] font-semibold text-clay">{error}</p>}
       <button type="submit" disabled={pending} className="dc-btn dc-btn-primary h-14 w-full max-lg:hidden">{pending ? "Logging in…" : "Log in"}</button>
-      <p className="text-center text-[14.5px] text-stone max-lg:hidden">New here? <Link href="/register" className="font-bold text-clay">Join free</Link></p>
+      <p className="text-center text-[14.5px] text-stone max-lg:hidden">New here? <Link href="/register" className="font-bold text-clay">Join now</Link></p>
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper px-4 pb-4 pt-3 lg:hidden">
         <button type="submit" disabled={pending} className="dc-btn dc-btn-primary h-14 w-full">{pending ? "Logging in…" : "Log in"}</button>
-        <p className="mt-3 text-center text-[14.5px] text-stone">New here? <Link href="/register" className="font-bold text-clay">Join free</Link></p>
+        <p className="mt-3 text-center text-[14.5px] text-stone">New here? <Link href="/register" className="font-bold text-clay">Join now</Link></p>
       </div>
     </form>
   );

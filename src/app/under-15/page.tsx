@@ -23,7 +23,7 @@ export default function Under15() {
             <h2 className="font-display text-[19px] font-extrabold leading-[1.12]">What you can do now</h2>
             <LinkRows className="border-0 px-0" rows={[
               { href: "/families", icon: "users", tone: "mint", title: "Ask a parent or teacher", sub: "They can help you find something for your age" },
-              { href: "/library", icon: "calendar", tone: "butter", title: `Come back on your ${MIN_AGE}th birthday`, sub: "You can join free then" },
+              { href: "/library", icon: "calendar", tone: "butter", title: `Come back on your ${MIN_AGE}th birthday`, sub: "You can join then" },
               { href: "/register", icon: "message", tone: "blush", title: "Picked the wrong age?", sub: "Go back and try again" },
             ]} />
           </section>
