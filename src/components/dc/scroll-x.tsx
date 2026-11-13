@@ -59,7 +59,8 @@ export function ScrollX({ children, variant = "cards", className, wrapClassName,
   const arrow = "flex size-10 items-center justify-center rounded-full border-2 border-line bg-card text-ink transition-opacity disabled:opacity-35";
 
   if (variant === "chips") return (
-    <div className={cn("relative", wrapClassName)}>
+    // min-w-0 / max-w-full: inside a wrapping flex row the wrapper must not grow to the width of all the chips, or the whole page widens.
+    <div className={cn("relative min-w-0 max-w-full", wrapClassName)}>
       {row}
       {s.over && !s.start && (
         <div className={cn("pointer-events-none absolute inset-y-0 flex w-14 items-center bg-gradient-to-r to-transparent pl-1", LEFT[bleed], fade)}>
@@ -75,7 +76,7 @@ export function ScrollX({ children, variant = "cards", className, wrapClassName,
   );
 
   if (variant === "table") return (
-    <div className={wrapClassName}>
+    <div className={cn("min-w-0 max-w-full", wrapClassName)}>
       {row}
       {s.over && (
         <p className={cn("mt-2 flex items-center justify-end gap-1.5 text-[12.5px] font-semibold text-stone", controlsClassName)} aria-hidden="true">
@@ -86,7 +87,7 @@ export function ScrollX({ children, variant = "cards", className, wrapClassName,
   );
 
   return (
-    <div className={wrapClassName}>
+    <div className={cn("min-w-0 max-w-full", wrapClassName)}>
       {row}
       {s.over && (
         <div className={cn("mt-4 flex items-center justify-between gap-4", controlsClassName)}>
