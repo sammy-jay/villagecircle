@@ -13,13 +13,13 @@ import { Icon, type IconName } from "@/components/dc/icons";
 export type Pastel = "butter" | "mint" | "blush";
 const PANEL: Record<Pastel | "sand", string> = { butter: "bg-butter", mint: "bg-mint", blush: "bg-blush", sand: "bg-[#F2E8DA]" };
 
-export function PhoneHeader({ back, title, right, mark }: { back?: string; title?: ReactNode; right?: ReactNode; mark?: boolean }) {
+export function PhoneHeader({ back, title, right, mark, home = "/" }: { back?: string; title?: ReactNode; right?: ReactNode; mark?: boolean; home?: string }) {
   return (
     <div className="flex h-[60px] items-center gap-2 px-4 lg:hidden">
       {back ? (
         <Link href={back} aria-label="Back" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sand text-ink"><Icon name="chevronLeft" size={20} /></Link>
       ) : mark !== false ? (
-        <Link href="/" aria-label="The Village Circle, home"><Image src="/brand/mark.png" alt="" width={38} height={37} /></Link>
+        <Link href={home} aria-label="The Village Circle, home"><Image src="/brand/mark.png" alt="" width={38} height={37} /></Link>
       ) : null}
       <p className="ml-2.5 min-w-0 flex-1 truncate font-display text-[20px] font-extrabold tracking-[-.01em]">{title}</p>
       {right}

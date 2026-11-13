@@ -17,19 +17,22 @@ const TONE = { blush: "bg-blush text-blush-ink", butter: "bg-butter text-butter-
  * Signed-in frame from the D-series boards: 68px top bar (logo, search, bell, person) and a 262px side menu.
  * On the phone it collapses to the 60px header; the tab bar is added by the section that owns it.
  */
-export function AppShell({ nav, cta, user, unread, search = "Search mentors, tips and events", searchAction = "/search", phone, children, aside, wide, tabs, sidebar, phoneSub }: {
+export function AppShell({ nav, cta, user, unread, search = "Search mentors, tips and events", searchAction = "/search", phone, children, aside, wide, tabs, sidebar, phoneSub, home }: {
   nav: NavItem[]; cta?: { href: string; label: string }; user: ShellUser; unread?: boolean; search?: string; searchAction?: string;
   phone?: { back?: string; title?: ReactNode; right?: ReactNode }; children: ReactNode; aside?: ReactNode; wide?: boolean; tabs?: TabBarItem[];
   /** The team console swaps the side menu for its nested menu, and adds the "Group › Page" bar under the phone header. */
   sidebar?: ReactNode; phoneSub?: ReactNode;
+  /** Where the logo goes: this dashboard's home. Defaults to the first side-menu item. */
+  home?: string;
 }) {
   const tone = TONE[user.tone ?? "blush"];
+  const homeHref = home ?? nav[0]?.href ?? "/";
   return (
     <div className="min-h-screen">
       {/* The top bar is split like the page below: a 262px block over the side menu, then the same gutter as the content, so the search box lines up with the main column. */}
       <header className="sticky top-0 z-20 hidden h-[68px] items-center border-b border-line bg-card lg:flex">
         <div className="flex w-[262px] flex-none items-center px-8">
-          <Link href="/" aria-label="The Village Circle, home"><Image src="/brand/logo.png" alt="The Village Circle" width={51} height={46} priority /></Link>
+          <Link href={homeHref} aria-label="Dashboard home"><Image src="/brand/logo.png" alt="The Village Circle" width={51} height={46} priority /></Link>
         </div>
         <div className="flex min-w-0 flex-1 items-center gap-[18px] px-10">
           <form action={searchAction} role="search" className={`flex h-11 w-full max-w-[460px] items-center gap-2.5 rounded-full bg-sand px-[18px] text-[15px] text-stone focus-within:ring-2 focus-within:ring-ink`}>
@@ -42,7 +45,7 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
           </div>
         </div>
       </header>
-      <PhoneHeader back={phone?.back} title={phone?.title} right={phone?.right ?? (phone?.back ? undefined : <PhoneIcons unread={unread} />)} />
+      <PhoneHeader home={homeHref} back={phone?.back} title={phone?.title} right={phone?.right ?? (phone?.back ? undefined : <PhoneIcons unread={unread} />)} />
       {phoneSub && <div className="px-4 pb-1 pt-1 lg:hidden">{phoneSub}</div>}
       <div className="flex lg:min-h-[calc(100vh-68px)]">
         <div className="hidden w-[262px] flex-none border-r border-line bg-card px-3 py-5 lg:block">

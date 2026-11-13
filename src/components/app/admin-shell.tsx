@@ -28,7 +28,7 @@ export function AdminShell({ ctx, children, aside, phone, wide = true }: { ctx: 
   const nav = adminNav(ctx);
   const tabs = ADMIN_TABS.filter((t) => "ask" in t || t.href === "/admin/more" || ctx.perms.includes(permForPath(t.href)));
   return (
-    <AppShell nav={[]} sidebar={<AdminMenu groups={nav} />} phoneSub={<AdminBreadcrumb groups={nav} />} user={{ name: ctx.short, roleLabel: "Team console", tone: "butter", profileHref: "/admin/profile", signOutTo: "/admin/sign-in" }}
+    <AppShell nav={[]} home="/admin" sidebar={<AdminMenu groups={nav} />} phoneSub={<AdminBreadcrumb groups={nav} />} user={{ name: ctx.short, roleLabel: "Team console", tone: "butter", profileHref: "/admin/profile", signOutTo: "/admin/sign-in" }}
       search="Search Asks, people, mentors" searchAction="/admin/search" phone={phone} aside={aside} wide={wide && !aside} tabs={tabs}>
       {children}
     </AppShell>

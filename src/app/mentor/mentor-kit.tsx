@@ -50,14 +50,14 @@ export function JoinShell({ name, role = "Mentor to be", title, children, aside 
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 hidden h-[68px] items-center justify-between border-b border-line bg-card px-8 lg:flex">
-        <Link href="/" aria-label="The Village Circle, home"><Image src="/brand/logo.png" alt="The Village Circle" width={51} height={46} priority /></Link>
+        <Link href="/mentor" aria-label="Dashboard home"><Image src="/brand/logo.png" alt="The Village Circle" width={51} height={46} priority /></Link>
         <div className="flex items-center gap-5">
           <SignOutButton className="text-[14px] font-bold text-stone hover:text-ink" />
           <div className="flex items-center gap-2.5"><span className="flex size-11 items-center justify-center rounded-full bg-mint font-display text-[16px] font-bold text-mint-ink" aria-hidden="true">{initials(name)}</span><p className="text-[14px] leading-[1.25]"><b>{name}</b><br /><span className="text-stone">{role}</span></p></div>
         </div>
       </header>
       <div className="flex h-[60px] items-center gap-2 px-4 lg:hidden">
-        <Link href="/" aria-label="The Village Circle, home"><Image src="/brand/mark.png" alt="" width={38} height={37} /></Link>
+        <Link href="/mentor" aria-label="Dashboard home"><Image src="/brand/mark.png" alt="" width={38} height={37} /></Link>
         <p className="ml-2 flex-1 font-display text-[20px] font-extrabold">{title}</p>
         <SignOutButton className="text-[14px] font-bold text-clay" />
       </div>

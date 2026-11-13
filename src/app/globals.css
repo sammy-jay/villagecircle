@@ -67,6 +67,14 @@
 
 @keyframes dc-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+@layer base {
+  /* Phone: hide the bar on anything that scrolls sideways. Swiping still works, and rows show their own "more" hint. */
+  @media (max-width: 1023.98px) {
+    .overflow-x-auto, .overflow-x-scroll, .overflow-auto { scrollbar-width: none; -ms-overflow-style: none; }
+    .overflow-x-auto::-webkit-scrollbar, .overflow-x-scroll::-webkit-scrollbar, .overflow-auto::-webkit-scrollbar { display: none; height: 0; }
+  }
+}
+
 @layer components {
   /* ST3 loading skeleton: a soft sweep over the block. Reduced motion stops it (see above). */
   .dc-shimmer { background: linear-gradient(90deg, rgb(var(--sand)) 0%, rgb(var(--line)) 50%, rgb(var(--sand)) 100%); background-size: 200% 100%; animation: dc-shimmer 1.4s ease-in-out infinite; }
