@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { cronAllowed } from "@/lib/domain/jobs";
-import { callReminders, runDaily, runMonthly, runSweeps, serviceWindowSweep } from "@/lib/jobs";
+import { callReminders, runAll, runDaily, runMonthly, runSweeps, serviceWindowSweep } from "@/lib/jobs";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const JOBS: Record<string, () => Promise<unknown>> = {
+  all: () => runAll(),
   "service-windows": () => serviceWindowSweep(),
   reminders: () => callReminders(),
   sweeps: () => runSweeps(),
@@ -13,7 +14,10 @@ const JOBS: Record<string, () => Promise<unknown>> = {
   monthly: () => runMonthly(),
 };
 
-/** Vercel Cron (vercel.json) calls these with `Authorization: Bearer $CRON_SECRET`. Each job is safe to run twice. */
+/**
+ * Called with `Authorization: Bearer $CRON_SECRET`. Vercel Cron (vercel.json) calls "all" once a day; the GitHub workflow
+ * (.github/workflows/cron.yml) calls "sweeps" and "reminders" every 10 minutes and "service-windows" every 30. Each job is safe to run twice.
+ */
 export async function GET(req: Request, { params }: { params: { job: string } }) {
   if (!cronAllowed(req.headers.get("authorization"), process.env.CRON_SECRET, process.env.NODE_ENV === "production")) return NextResponse.json({ error: "Not allowed." }, { status: 401 });
   const run = JOBS[params.job]; if (!run) return NextResponse.json({ error: "Unknown job." }, { status: 404 });

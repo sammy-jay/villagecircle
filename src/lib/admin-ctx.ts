@@ -1,7 +1,7 @@
 import type { Role } from "@prisma/client";
 import { getSession } from "./auth";
 import { db } from "./db";
-import { settleCalls } from "./connections";
+import { settleJobs } from "./jobs";
 import { adminCounts } from "./admin-counts";
 import { safetyCounts } from "./admin-counts-5a";
 import { moderationCounts } from "./admin-counts-4";
@@ -36,7 +36,7 @@ export async function adminPage(path: string, perm?: Perm): Promise<{ to: string
   const a = await actorFor();
   if ("to" in a) return { to: a.to === "/admin/sign-in" ? `/admin/sign-in?next=${encodeURIComponent(path)}` : a.to! };
   const { actor } = a;
-  await settleCalls(); // the console must not list a passed call as booked
+  await settleJobs(); // the console must not list a passed call as booked
   const need = perm ?? permForPath(path);
   if (!allows(actor.teamRole, actor.roles, need)) return { to: need === "overview" ? "/after-login" : "/admin?denied=1" };
   const [c, s, m] = await Promise.all([adminCounts(), safetyCounts(), moderationCounts()]);

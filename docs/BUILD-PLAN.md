@@ -20,7 +20,7 @@ Per board:
 | App components | `src/components/dc` | Button, Tag, AskTag, Field, Input, Select with Say more, CountedTextarea, CodeInput, Signature, Toggle, Checkbox, RadioCard, tabs, Modal/bottom sheet, toasts, Timeline, Avatar, StoryRing, Banner, EmptyState, SidebarNav, AdminMenu, AdminBreadcrumb, TabBar, icons. Route maps are in `nav-config.ts`. |
 | Public kit | `src/components/public` | Header and footer, Hero, CtaBand, LinkRows, StepTrail, ApprovalSample, accordion, the help and report forms, the cookie banner. |
 | Logic | `src/lib` | The rules and data access for every section. Domain rules have 285 passing tests (`npx vitest run`). |
-| Background jobs | `src/lib/jobs.ts`, `src/app/api/cron/[job]` | `vercel.json` runs `service-windows` (every 30 minutes), `reminders` (hourly), `sweeps` (every 10 minutes), `daily` and `monthly`, each with `CRON_SECRET`. |
+| Background jobs | `src/lib/jobs.ts`, `src/app/api/cron/[job]` | `vercel.json` runs `all` once a day (the Vercel free plan limit). `sweeps` and `reminders` run every 10 minutes and `service-windows` every 30 from `.github/workflows/cron.yml` (needs the `APP_URL` and `CRON_SECRET` repository secrets), and the signed-in page guards run them too (`settleJobs`). Every call carries `CRON_SECRET`. |
 | Webhooks | `src/app/api/webhooks/screening`, `src/app/api/webhooks/daily` | Screening results (signed with `CHECKR_WEBHOOK_SECRET`) and call recordings (signed with `DAILY_WEBHOOK_SECRET`). `/api/health` checks the database. |
 | Styleguide | `/styleguide` | Every component, for side-by-side checks against the DSF board. |
 

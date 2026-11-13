@@ -1,8 +1,12 @@
-/** The scheduled jobs behind /api/cron/* (see vercel.json). Each one is safe to run again: notifications carry dedupe keys and the sweeps check state first. */
+/**
+ * The scheduled jobs behind /api/cron/*. Each one is safe to run again: notifications carry dedupe keys and the sweeps check state first.
+ * The Vercel free plan allows one run a day, so vercel.json calls /api/cron/all once a day, and the jobs that need to run more often
+ * also run from page loads (settleJobs) and, once the repo is on GitHub, every 10 minutes from .github/workflows/cron.yml.
+ */
 import { db } from "./db";
 import { notify } from "./notify";
 import { moveAsk } from "./asks";
-import { sweepEndedCalls, sweepMisses, sweepPassedTimes } from "./connections";
+import { settleCalls, sweepEndedCalls, sweepMisses, sweepPassedTimes } from "./connections";
 import { createDueCheckIns, resetMonthlyHours, sendMonthlyDigests } from "./insight";
 import { sweepReaffirmations } from "./reaffirm";
 import { sweepDeletions } from "./safety-user";
@@ -78,4 +82,35 @@ export async function runMonthly(now: Date = new Date()) {
   const hoursReset = await resetMonthlyHours(now);
   const digests = await sendMonthlyDigests(now);
   return { hoursReset, digests };
+}
+
+/** Once a day (vercel.json): every job in turn. One failing job does not stop the others. */
+export async function runAll(now: Date = new Date()) {
+  const out: Record<string, unknown> = {};
+  const steps: [string, () => Promise<unknown>][] = [
+    ["sweeps", () => runSweeps()], ["serviceWindows", () => serviceWindowSweep(now)], ["reminders", () => callReminders(now)],
+    ["daily", () => runDaily(now)], ["monthly", () => runMonthly(now)],
+  ];
+  for (const [name, run] of steps) {
+    try { out[name] = await run(); } catch (e) { console.error(`[cron:all:${name}]`, e); out[name] = "failed"; }
+  }
+  return out;
+}
+
+let lastQuick = 0, lastWindows = 0;
+/**
+ * Called by the signed-in page guards. Settles calls (at most once a minute), and runs the reminders and announcements every
+ * 10 minutes and the service-window check every 30, so they keep working between the daily cron runs while people use the app.
+ */
+export async function settleJobs() {
+  await settleCalls();
+  const now = Date.now();
+  if (now - lastQuick >= 10 * 60_000) {
+    lastQuick = now;
+    try { await callReminders(); await sendDueBroadcasts(); } catch (e) { console.error("settleJobs:quick", e); }
+  }
+  if (now - lastWindows >= 30 * 60_000) {
+    lastWindows = now;
+    try { await serviceWindowSweep(); } catch (e) { console.error("settleJobs:windows", e); }
+  }
 }
