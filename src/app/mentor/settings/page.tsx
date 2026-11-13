@@ -66,7 +66,7 @@ export default async function MentorSettings() {
           {rows.map(([t, sub, href, cta]) => <li key={t}><Link href={href} className="flex items-center gap-3 py-4"><span className="flex-1"><b className="block text-[15.5px]">{t}</b><span className="text-[13px] text-stone">{sub}</span></span><span className="text-[14px] font-bold text-clay">{cta}</span></Link></li>)}
         </ul>
       </Card>
-      <SignOutButton className="self-start px-0" />
+      <SignOutButton className="self-start px-2" />
     </MentorShell>
   );
 }
