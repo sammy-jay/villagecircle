@@ -2,6 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 import { Icon } from "@/components/dc/icons";
 import { FAQ_AUDIENCES, filterFaq, type FAQ } from "@/lib/public-content";
 
@@ -67,14 +68,14 @@ export function FaqBrowser({ items, initialQ = "", topic }: { items: typeof FAQ;
   const [t, setT] = useState(topic);
   const shown = filterFaq(items, { aud, q, topic: t });
   const chips = (phone: boolean) => (
-    <div role="group" aria-label="Who is asking" className={cn("flex gap-2", phone ? "-mx-4 overflow-x-auto px-4 lg:hidden [scrollbar-width:none]" : "flex-wrap max-lg:hidden")}>
+    <ScrollX variant="chips" bleed={phone ? 4 : 0} label="groups" wrapClassName={phone ? "lg:hidden" : undefined} role="group" aria-label="Who is asking" className={cn("flex gap-2", phone ? "-mx-4 overflow-x-auto px-4 [scrollbar-width:none]" : "flex-wrap max-lg:hidden")}>
       {FAQ_AUDIENCES.map((a) => (
         <button key={a.id} type="button" aria-pressed={aud === a.id} onClick={() => setAud(a.id)}
           className={cn("dc-pill", aud === a.id ? "bg-forest text-forest-ink" : "bg-sand text-ink")}>
           {phone && aud === a.id && <Icon name="check" size={16} />}{a.label}
         </button>
       ))}
-    </div>
+    </ScrollX>
   );
   return (
     <div className="flex flex-col gap-4 lg:gap-3">

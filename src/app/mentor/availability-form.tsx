@@ -6,6 +6,7 @@ import { Icon } from "@/components/dc/icons";
 import { Select, Toggle } from "@/components/dc/client";
 import { availabilityAction, raiseHourAction, type MState } from "./actions";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const SLOTS: [number, string][] = [[8, "8 am"], [12, "12 pm"], [18, "6 pm"], [20, "8 pm"]];
@@ -26,7 +27,7 @@ export function AvailabilityForm({ grid, monthlyHours, length, paused, lastSaved
       {on.map((k) => <input key={k} type="hidden" name="grid" value={k} />)}
       <section className="flex flex-col gap-3 rounded-card border border-line bg-card p-5 lg:p-6">
         <div className="flex items-center justify-between gap-3"><h2 className="font-display text-[21px] font-extrabold">Weekly windows</h2><span className="rounded-full bg-mint px-3 py-1.5 text-[12.5px] font-semibold text-mint-ink">{on.length} window{on.length === 1 ? "" : "s"} set</span></div>
-        <div className="-mx-1 overflow-x-auto px-1">
+        <ScrollX variant="table" label="days" className="-mx-1 overflow-x-auto px-1">
           <table className="w-full min-w-[420px] border-separate border-spacing-1.5 text-center">
             <thead><tr><th scope="col" className="w-14"><span className="sr-only">Time</span></th>{DAYS.map((d) => <th key={d} scope="col" className="text-[13px] font-bold text-bark">{d}</th>)}</tr></thead>
             <tbody>
@@ -41,7 +42,7 @@ export function AvailabilityForm({ grid, monthlyHours, length, paused, lastSaved
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollX>
         <p className="text-[13px] text-stone">Green is when you are usually free. Tap a block to change it. Times are West Africa Time (WAT).</p>
       </section>
       {!compact && (

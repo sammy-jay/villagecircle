@@ -6,6 +6,7 @@ import { Card, PASTEL, pastelAt } from "@/components/app/feed";
 import { participantPage } from "@/lib/participant-ctx";
 import { libraryFor } from "@/lib/village";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 
 export const metadata = { title: "Library" };
 export const dynamic = "force-dynamic";
@@ -46,7 +47,7 @@ export default async function Library({ searchParams }: { searchParams: { q?: st
         <Icon name="search" size={20} className="text-stone" />{searchParams.topic && <input type="hidden" name="topic" value={searchParams.topic} />}
         <input name="q" defaultValue={searchParams.q} placeholder="Search the library" aria-label="Search the library" className="min-w-0 flex-1 bg-transparent text-[16px] placeholder:text-stone focus:outline-none" />
       </form>
-      <nav aria-label="Topics" className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">{chip(undefined, "All")}{topics.map(([slug, name]) => chip(slug, name))}</nav>
+      <ScrollX as="nav" variant="chips" bleed={5} label="topics" aria-label="Topics" className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">{chip(undefined, "All")}{topics.map(([slug, name]) => chip(slug, name))}</ScrollX>
       {lead ? (
         <>
           <Link href={`/village/library/${lead.id}`} className="flex flex-col gap-2 rounded-[28px] bg-butter p-5 text-butter-ink lg:p-7">

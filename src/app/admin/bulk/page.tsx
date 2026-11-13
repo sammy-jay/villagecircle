@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ScrollX } from "@/components/dc/scroll-x";
 import { Icon } from "@/components/dc/icons";
 import { Select } from "@/components/dc/client";
 import { AdminHead, AdminShell } from "@/components/app/admin-shell";
@@ -36,7 +37,7 @@ export default async function Bulk({ searchParams }: { searchParams: { reason?: 
       </nav>
       {rows.length ? (
         <ActionForm action={bulkAction} ok={{ ASSIGN: "Assigned.", SET_EXPERTISE: "Expertise set.", REMIND: "Reminders sent." }}>
-          <div className="overflow-x-auto rounded-card border border-line bg-card">
+          <ScrollX variant="table" label="columns" className="overflow-x-auto rounded-card border border-line bg-card">
             <table className="w-full min-w-[720px] text-left text-[14.5px]">
               <caption className="sr-only">Asks you can organise</caption>
               <thead className="bg-sand"><tr>{["", "Ask", "Reason", "Waiting", "Reviewer"].map((h) => <th key={h} scope="col" className="px-5 py-3.5 text-[12px] font-extrabold uppercase tracking-[.06em] text-bark">{h}</th>)}</tr></thead>
@@ -52,7 +53,7 @@ export default async function Bulk({ searchParams }: { searchParams: { reason?: 
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollX>
           <div className="grid gap-4 lg:grid-cols-3">
             <Panel className="flex flex-col gap-2.5"><h2 className="font-display text-[18px] font-extrabold">Assign reviewer</h2><Select name="reviewerId" placeholder="Choose a reviewer" options={q.reviewers.map((v) => ({ value: v.id, label: `${v.name} (${load(v.name)} open)` }))} /><Submit name="action" value="ASSIGN" variant="forest">Assign to selected</Submit></Panel>
             <Panel className="flex flex-col gap-2.5"><h2 className="font-display text-[18px] font-extrabold">Set expertise needed</h2><Select name="expertise" placeholder="Choose a field" options={EXPERTISE.map(([value, label]) => ({ value, label }))} /><span className="text-[12.5px] text-stone">Same list as the Taxonomy page.</span><Submit name="action" value="SET_EXPERTISE" variant="soft">Set expertise</Submit></Panel>

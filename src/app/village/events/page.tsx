@@ -9,6 +9,7 @@ import { upcomingEvents } from "@/lib/village";
 import { db } from "@/lib/db";
 import { APP_TZ } from "@/lib/domain/scheduling";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 
 export const metadata = { title: "Events" };
 export const dynamic = "force-dynamic";
@@ -37,9 +38,9 @@ export default async function Events({ searchParams }: { searchParams: { tab?: s
         {TABS.map(([k, l]) => <Link key={k} href={href({ tab: k === "upcoming" ? undefined : k })} aria-current={tab === k ? "page" : undefined} className={cn("rounded-full px-4 py-2 text-[14px] font-semibold", tab === k ? "bg-forest text-forest-ink" : "bg-sand")}>{l}{k === "mine" && mine ? ` ${mine}` : ""}</Link>)}
       </nav>
       {tab !== "past" && types.length > 1 && (
-        <nav aria-label="Type" className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">
+        <ScrollX as="nav" variant="chips" bleed={5} label="event types" aria-label="Type" className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">
           {[undefined, ...types].map((t) => <Link key={t ?? "all"} href={href({ type: t })} className={cn("whitespace-nowrap rounded-full px-[13px] py-[7px] text-[13.5px] font-semibold", (searchParams.type ?? undefined) === t ? "bg-ink text-paper" : "bg-sand")}>{t ?? "All events"}</Link>)}
-        </nav>
+        </ScrollX>
       )}
       {tab === "past" ? (
         past.length ? past.map((e) => (

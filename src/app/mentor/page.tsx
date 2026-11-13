@@ -10,6 +10,7 @@ import { mentorHours } from "@/lib/insight";
 import { relativeTime } from "@/lib/domain/insight";
 import { APP_TZ } from "@/lib/domain/scheduling";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 import { passAction } from "./actions";
 import { InboxFilters } from "./inbox-filters";
 import { HoursAside, ageLabel } from "./mentor-kit";
@@ -52,9 +53,9 @@ export default async function MentorInbox({ searchParams }: { searchParams: { ta
         <h2 className="font-display text-[28px] font-extrabold leading-[1.1] tracking-[-.02em] lg:text-[36px]">{greet()}, {c.first}</h2>
         <p className="mt-2 text-[15.5px] leading-normal lg:text-[16.5px]">{n ? `${NUM[n] ?? n} Ask${n === 1 ? "" : "s"} from the team match${n === 1 ? "es" : ""} your background. Step forward only where it feels right.` : "No Asks are waiting for you right now. The team sends one when it fits your background."}</p>
       </section>
-      <nav aria-label="Inbox sections" className="-mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:px-0">
+      <ScrollX as="nav" variant="chips" bleed={5} label="sections" aria-label="Inbox sections" className="-mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:px-0">
         {counts.map(([t, l, k]) => <Link key={t} href={t === "open" ? "/mentor" : `/mentor?tab=${t}`} aria-current={tab === t ? "page" : undefined} className={cn("whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-bold", tab === t ? "bg-forest text-forest-ink" : "bg-sand")}>{l} {k}</Link>)}
-      </nav>
+      </ScrollX>
 
       {tab === "open" && (
         <>

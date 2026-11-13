@@ -6,6 +6,7 @@ import { Eyebrow, Gutter, H, IconTile, OTag, Pill, TONE, cycle, PAGE_STACK } fro
 import { MIN_AGE } from "@/lib/domain/age";
 import { publicLibrary, type ResourceCard } from "@/lib/village";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 
 export const metadata = { title: "Public library" };
 export const dynamic = "force-dynamic";
@@ -25,13 +26,13 @@ export default async function Library({ searchParams }: { searchParams: { q?: st
   const href = (k: string) => { const p = new URLSearchParams(); if (q) p.set("q", q); if (k !== "all") p.set("kind", k); const s = p.toString(); return s ? `/library?${s}` : "/library"; };
 
   const chips = (phone: boolean) => (
-    <nav aria-label="Kind" className={cn("flex gap-2", phone ? "-mx-4 overflow-x-auto px-4 [scrollbar-width:none] lg:hidden" : "flex-wrap max-lg:hidden")}>
+    <ScrollX as="nav" variant="chips" bleed={4} label="kinds" aria-label="Kind" className={cn("flex gap-2", phone ? "-mx-4 overflow-x-auto px-4 [scrollbar-width:none] lg:hidden" : "flex-wrap max-lg:hidden")}>
       {KINDS.map(([k, l]) => (
         <Link key={k} href={href(k)} aria-current={kind === k ? "page" : undefined} className={cn("dc-pill", kind === k ? "bg-forest text-forest-ink" : "bg-sand text-ink")}>
           {phone && kind === k && <Icon name="check" size={16} />}{l}
         </Link>
       ))}
-    </nav>
+    </ScrollX>
   );
   const checked = <Pill tone="mint" icon="shieldCheck">Checked by the team</Pill>;
 

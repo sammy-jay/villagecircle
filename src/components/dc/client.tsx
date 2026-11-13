@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ComponentProps, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Icon, type IconName } from "./icons";
+import { ScrollX } from "./scroll-x";
 
 /* ───────── §4 Chips ───────── */
 
@@ -237,7 +238,7 @@ export function PillTabs<T extends string>({ items, value, onChange, label, clas
 /** Underline tabs switch a panel on the same page. Counts sit after the label. */
 export function UnderlineTabs<T extends string>({ items, value, onChange, label, className }: { items: TabItem<T>[]; value: T; onChange: (v: T) => void; label: string; className?: string }) {
   return (
-    <div role="tablist" aria-label={label} className={cn("flex gap-[22px] overflow-x-auto border-b border-line", className)}>
+    <ScrollX variant="chips" label="tabs" role="tablist" aria-label={label} className={cn("flex gap-[22px] overflow-x-auto border-b border-line [scrollbar-width:none]", className)}>
       {items.map((t) => {
         const on = t.value === value;
         return (
@@ -248,7 +249,7 @@ export function UnderlineTabs<T extends string>({ items, value, onChange, label,
           </button>
         );
       })}
-    </div>
+    </ScrollX>
   );
 }
 

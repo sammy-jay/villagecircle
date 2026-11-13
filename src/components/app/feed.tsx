@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/dc/icons";
 import { initials, StoryRing } from "@/components/dc";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 import { GoingButton, HelpfulButton, SaveButton } from "./feed-actions";
 
 /* Pieces of the participant Home feed (D1, N09). Server components; buttons that change data live in feed-actions. */
@@ -40,9 +41,9 @@ export function Composer({ first, chips = true }: { first: string; chips?: boole
         <span className="flex h-[46px] min-w-0 flex-1 items-center rounded-full bg-sand px-[18px] text-[15.5px] text-stone">What is on your mind, {first}?</span>
       </Link>
       {chips && (
-        <div className="mt-3.5 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+        <ScrollX variant="chips" fade="from-card" label="starters" wrapClassName="mt-3.5" className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
           {starters.map((s) => <Link key={s} href={`/asks/new?q=${encodeURIComponent(s)}`} className="whitespace-nowrap rounded-full bg-sand px-[13px] py-[7px] text-[13.5px] font-semibold">{s}</Link>)}
-        </div>
+        </ScrollX>
       )}
     </Card>
   );
@@ -51,11 +52,11 @@ export function Composer({ first, chips = true }: { first: string; chips?: boole
 /** Row of story rings: your Ask first, then mentors, then the next live event. */
 export function Stories({ first, askId, mentors, live }: { first: string; askId?: string; mentors: { id: string; name: string }[]; live?: string }) {
   return (
-    <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:px-0">
+    <ScrollX variant="chips" bleed={5} label="stories" className="-mx-5 flex gap-1.5 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:px-0">
       {askId && <StoryRing name={first} caption="Your Ask" href={`/asks/${askId}`} tone="blush" />}
       {mentors.map((m, i) => <StoryRing key={m.id} name={m.name} caption={m.name.startsWith("Dr ") ? m.name.split(" ").slice(0, 2).join(" ") : m.name} href={`/village/directory/${m.id}`} tone={pastelAt(i)} ring={i < 3 ? "gold" : "none"} />)}
       {live && <StoryRing name="Live" caption="Live Q&A" href={live} tone="blush" ring="none" />}
-    </div>
+    </ScrollX>
   );
 }
 
@@ -239,7 +240,7 @@ export function VillagerRail({ mentors }: { mentors: { id: string; name: string;
   return (
     <section>
       <CardHead title="Villagers to meet" href="/village/directory" link="See all" />
-      <div className="-mx-5 mt-2.5 flex gap-3 overflow-x-auto px-5 [scrollbar-width:none]">
+      <ScrollX label="mentor" className="-mx-5 mt-2.5 flex gap-3 overflow-x-auto px-5 [scrollbar-width:none]">
         {mentors.map((m, i) => (
           <Link key={m.id} href={`/village/directory/${m.id}`} className={cn("flex w-[150px] shrink-0 flex-col items-start gap-2 rounded-[22px] p-4", PASTEL[pastelAt(i)].both)}>
             <span className="flex size-12 items-center justify-center rounded-full bg-card font-display text-[17px] font-bold">{initials(m.name)}</span>
@@ -248,7 +249,7 @@ export function VillagerRail({ mentors }: { mentors: { id: string; name: string;
             <span className="mt-1 text-[13px] font-bold underline">See profile</span>
           </Link>
         ))}
-      </div>
+      </ScrollX>
     </section>
   );
 }

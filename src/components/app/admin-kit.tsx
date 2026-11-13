@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/dc/icons";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 import { APP_TZ } from "@/lib/domain/scheduling";
 
 /* Pieces shared by the team console boards (A-series). Server components only. */
@@ -43,22 +44,22 @@ export function Ring({ pct, size = 64, label, track = "#E4DFD5", color = "#4A7E6
 /** Filter pills that are links, so the filter is in the address. */
 export function FilterPills({ items, label = "Filter" }: { items: { href: string; label: string; n?: number; on: boolean }[]; label?: string }) {
   return (
-    <nav aria-label={label} className="-mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:flex-wrap lg:px-0">
+    <ScrollX as="nav" variant="chips" bleed={5} label="filters" aria-label={label} className="-mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:flex-wrap lg:px-0">
       {items.map((i) => <Link key={i.href} href={i.href} aria-current={i.on ? "page" : undefined} className={cn("whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-bold", i.on ? "bg-forest text-forest-ink" : "bg-sand")}>{i.label}{i.n != null ? ` ${i.n}` : ""}</Link>)}
-    </nav>
+    </ScrollX>
   );
 }
 
 /** Table on a white card with a sand header row; scrolls sideways on the phone. */
 export function Table({ head, children, minWidth = 720, caption }: { head: ReactNode[]; children: ReactNode; minWidth?: number; caption?: string }) {
   return (
-    <div className="overflow-x-auto rounded-card border border-line bg-card">
+    <ScrollX variant="table" label="columns" className="overflow-x-auto rounded-card border border-line bg-card">
       <table className="w-full text-left text-[14.5px]" style={{ minWidth }}>
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead className="bg-sand"><tr>{head.map((h, i) => <th key={i} scope="col" className="px-5 py-3.5 text-[12px] font-extrabold uppercase tracking-[.06em] text-bark">{h}</th>)}</tr></thead>
         <tbody className="divide-y divide-line">{children}</tbody>
       </table>
-    </div>
+    </ScrollX>
   );
 }
 export const Td = ({ children, className }: { children?: ReactNode; className?: string }) => <td className={cn("px-5 py-3.5 align-middle", className)}>{children}</td>;

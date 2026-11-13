@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 import { Icon, type IconName } from "@/components/dc/icons";
 import { ApprovalSample, CheckDot, H, IconTile, Pill, RingAvatar, StatCard, TONE, cycle, type Tone } from "./kit";
 
@@ -11,14 +12,14 @@ export const HOME_X = "px-[18px] lg:px-14";
 export const HOME_Y = "py-12 lg:py-24";
 
 /** Row that scrolls sideways on the phone and becomes a grid on desktop. */
-export function Rail({ cols, children, className }: { cols: 3 | 4 | 5; children: ReactNode; className?: string }) {
+export function Rail({ cols, children, className, label }: { cols: 3 | 4 | 5; children: ReactNode; className?: string; label: string }) {
   return (
-    <div className={cn(
+    <ScrollX label={label} controlsClassName="lg:hidden" className={cn(
       "-mx-[18px] flex snap-x scroll-px-[18px] gap-3 overflow-x-auto px-[18px] py-1.5 [mask-image:linear-gradient(90deg,#000_88%,transparent)] [scrollbar-width:none]",
       "lg:mx-0 lg:grid lg:overflow-visible lg:px-0 lg:py-0 lg:[mask-image:none]",
       cols === 3 && "lg:grid-cols-3", cols === 4 && "lg:grid-cols-4", cols === 5 && "lg:grid-cols-5", className)}>
       {children}
-    </div>
+    </ScrollX>
   );
 }
 const railItem = (w: string) => cn("flex-none snap-start lg:w-auto", w);
@@ -160,7 +161,7 @@ export function HowItWorks() {
   return (
     <section id="how" className={cn("mx-auto max-w-[1280px] scroll-mt-20", HOME_Y, HOME_X)}>
       <SectionHead eyebrow="HOW IT WORKS" title="From a question to a conversation in four plain steps" sub="Every Ask shows one plain status and what happens next, so nobody is left wondering." />
-      <Rail cols={4} className="lg:gap-[18px]">
+      <Rail cols={4} label="step" className="lg:gap-[18px]">
         {STEPS.map((s, i) => (
           <div key={s.title} className={cn(railItem("w-[300px]"), "rounded-[28px] p-[18px]", TONE[s.tone].bg, TONE[s.tone].ink, s.rot)}>
             <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-[22px] bg-white/40 lg:h-[140px]" aria-hidden="true"><Bubbles />{s.art}</div>
@@ -187,7 +188,7 @@ export function WhoItIsFor({ minAge }: { minAge: number }) {
   return (
     <section className={cn("mx-auto max-w-[1280px]", HOME_Y, HOME_X)}>
       <SectionHead eyebrow="WHO IT IS FOR" title="A mentor for every stage of the road" />
-      <Rail cols={4} className="lg:gap-4">
+      <Rail cols={4} label="stage" className="lg:gap-4">
         {STAGES.map(([icon, age, title, body], i) => {
           const tone = cycle(i);
           return (
@@ -219,7 +220,7 @@ export function ThanksWall({ cards }: { cards: WallCard[] }) {
           <SectionHead eyebrow="THANK-YOU WALL" title="Said by the village" />
           <div className="mb-7 lg:mb-12"><Pill tone="mint" icon="shieldCheck" className="text-[13px]">Reviewed by the team</Pill></div>
         </div>
-        <Rail cols={3} className="lg:gap-[22px] [&>*:nth-child(n+4)]:lg:hidden">
+        <Rail cols={3} label="thank-you" className="lg:gap-[22px] [&>*:nth-child(n+4)]:lg:hidden">
           {cards.map((c, i) => {
             const tone = cycle(i);
             return (

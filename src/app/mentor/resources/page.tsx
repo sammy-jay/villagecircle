@@ -7,6 +7,7 @@ import { mentorPage } from "@/lib/mentor-ctx";
 import { myResources } from "@/lib/mentor-resources";
 import { CREDIT_LABEL, RESOURCE_STATUS, TYPE_LABEL, matchesResourceFilter, parseFilter, resourceCounts, type ResourceFilter } from "@/lib/domain/mentor-resources";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 
 export const metadata = { title: "Resources" };
 export const dynamic = "force-dynamic";
@@ -37,9 +38,9 @@ export default async function Resources({ searchParams }: { searchParams: { tab?
     <MentorShell ctx={r.ctx} aside={aside} phone={{ title: "Resources" }}>
       <div><h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-[-.02em] max-lg:sr-only lg:text-[40px]">Resources</h1><p className="mt-1 text-[16px] text-bark">Everything you have sent to the village, and where it is now. The team reads each one before it is published.</p></div>
       {searchParams.sent === "1" && <p role="status" className="flex items-center gap-2.5 rounded-[18px] bg-mint px-4 py-3 text-[14.5px] font-semibold text-mint-ink"><Icon name="check" size={18} />Sent to the team. We will tell you when it is live.</p>}
-      <nav aria-label="Filter" className="-mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:px-0">
+      <ScrollX as="nav" variant="chips" bleed={5} label="filters" aria-label="Filter" className="-mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:px-0">
         {TABS.map(([k, l]) => <Link key={k} href={k === "ALL" ? "/mentor/resources" : `/mentor/resources?tab=${k}`} aria-current={f === k ? "page" : undefined} className={cn("whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-bold", f === k ? "bg-forest text-forest-ink" : "bg-sand")}>{l} {counts[k]}</Link>)}
-      </nav>
+      </ScrollX>
       {!rows.length ? (
         <Card className="flex flex-col items-center gap-3 p-8 text-center">
           <span className="flex size-14 items-center justify-center rounded-[18px] bg-butter text-butter-ink"><Icon name="book" size={26} /></span>

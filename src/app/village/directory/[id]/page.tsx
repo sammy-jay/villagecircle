@@ -8,6 +8,7 @@ import { participantPage } from "@/lib/participant-ctx";
 import { mentorProfileFor } from "@/lib/village";
 import { askMentorAction } from "@/app/participant-actions";
 import { cn } from "@/lib/cn";
+import { ScrollX } from "@/components/dc/scroll-x";
 
 export const metadata = { title: "Mentor profile" };
 export const dynamic = "force-dynamic";
@@ -75,9 +76,9 @@ export default async function MentorProfile({ params, searchParams }: { params: 
       {p.tips.length > 0 && (
         <section>
           <div className="flex items-baseline justify-between"><h2 className="font-display text-[19px] font-extrabold leading-[1.12] tracking-[-.01em]">Tips by {first}</h2><Link href={`/village/library?q=${encodeURIComponent(m.name)}`} className="text-[13.5px] font-bold text-clay">See all</Link></div>
-          <div className="-mx-5 mt-2.5 flex gap-3 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0">
+          <ScrollX label="tip" controlsClassName="lg:hidden" className="-mx-5 mt-2.5 flex gap-3 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0">
             {p.tips.map((t, i) => <Link key={t.id} href={`/village/library/${t.id}`} className={cn("min-h-[104px] w-[220px] shrink-0 rounded-[22px] p-4 lg:w-auto", PASTEL[(["butter", "blush", "mint"] as const)[i % 3]].both)}><span className="block font-display text-[17px] font-extrabold leading-[1.12]">{t.title}</span>{t.helped > 0 && <span className="mt-2 block text-[12.5px] opacity-80">{t.helped} found this helpful</span>}</Link>)}
-          </div>
+          </ScrollX>
         </section>
       )}
       {p.thanks[0] && (
