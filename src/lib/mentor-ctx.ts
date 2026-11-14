@@ -1,5 +1,6 @@
 import { requireRole } from "./auth";
 import { db } from "./db";
+import { UNREAD } from "./notifications";
 import { settleJobs } from "./jobs";
 import { firstName, shortName } from "./domain/views";
 import { gateFor, mentorHome, type MentorGate } from "./domain/mentor-gate";
@@ -21,7 +22,7 @@ export async function mentorPage(next: string, need: "any" | "profile" | "active
   const [app, m, unread, hold] = await Promise.all([
     db.application.findFirst({ where: { applicantId: u.id, type: "MENTOR" }, orderBy: { createdAt: "desc" }, select: { state: true } }),
     db.mentorProfile.findUnique({ where: { userId: u.id }, select: { id: true, verification: true, codeOfConductAt: true, orientationDoneAt: true } }),
-    db.notification.count({ where: { userId: u.id, readAt: null } }),
+    db.notification.count({ where: { userId: u.id, ...UNREAD } }),
     db.eligibilityHold.findUnique({ where: { userId: u.id } }),
   ]);
   const gate = gateFor(app, m);

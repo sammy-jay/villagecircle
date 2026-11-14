@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { db } from "./db";
 import { sendEmail } from "./integrations/email";
 import { esc } from "./account";
@@ -10,9 +11,16 @@ const MUTABLE: Record<string, string> = { "resource.new": "resources", "event.ne
 
 /** In-app notification, plus an email. Bodies must never carry the other party's contact details or full names (BR-10). */
 export async function notify(userId: string, event: string, title: string, body: string, o: { email?: boolean; link?: string; dedupeKey?: string; attachments?: { filename: string; content: string }[] } = {}) {
+  // The dedupe index is unique, and MongoDB counts a missing key as a value: without a key of its own, only the first
+  // notification could ever be stored and every later one failed silently. So every notification gets a key; a caller's
+  // key still dedupes repeats (reminders, sweeps), and the generated one never collides.
+  const dedupeKey = o.dedupeKey ?? `n:${randomUUID()}`;
   try {
-    await db.notification.create({ data: { userId, event, channel: "IN_APP", title, body, link: o.link?.startsWith("/") && !o.link.startsWith("//") ? o.link : null, sentAt: new Date(), dedupeKey: o.dedupeKey } });
-  } catch { return; } // duplicate dedupeKey: already sent
+    await db.notification.create({ data: { userId, event, channel: "IN_APP", title, body, link: o.link?.startsWith("/") && !o.link.startsWith("//") ? o.link : null, sentAt: new Date(), readAt: null, dedupeKey } });
+  } catch (e) {
+    if ((e as { code?: string }).code === "P2002") return; // duplicate dedupeKey: already sent
+    console.error("notify", event, e); return;
+  }
   if (o.email === false) return;
   const mutable = MUTABLE[event];
   if (mutable) { const pref = await db.setting.findUnique({ where: { key: `notify-prefs:${userId}` } }); if ((pref?.value as Record<string, string> | null)?.[mutable] === "OFF") return; }

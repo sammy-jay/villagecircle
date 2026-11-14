@@ -1,12 +1,19 @@
+import type { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { relativeTime } from "./domain/insight";
 
 export const PREF_KEYS = ["resources", "events", "review"] as const;
 export type PrefKey = (typeof PREF_KEYS)[number];
 
+/**
+ * Unread = no read time. On MongoDB `readAt: null` only matches a stored null, and notifications created without a
+ * readAt have no field at all, so both cases are matched. Use this wherever unread notifications are counted or marked.
+ */
+export const UNREAD: Prisma.NotificationWhereInput = { OR: [{ readAt: null }, { readAt: { isSet: false } }] };
+
 /** Bell dot: how many in-app notifications are unread. */
 export async function unreadCount(userId: string): Promise<number> {
-  return db.notification.count({ where: { userId, channel: "IN_APP", readAt: null } });
+  return db.notification.count({ where: { userId, channel: "IN_APP", ...UNREAD } });
 }
 
 export async function listNotifications(userId: string, limit = 30) {
@@ -17,10 +24,10 @@ export async function listNotifications(userId: string, limit = 30) {
 
 export async function markRead(userId: string, id: string) {
   if (!/^[0-9a-f]{24}$/i.test(id)) return;
-  await db.notification.updateMany({ where: { id, userId, readAt: null }, data: { readAt: new Date() } });
+  await db.notification.updateMany({ where: { id, userId, ...UNREAD }, data: { readAt: new Date() } });
 }
 export async function markAllRead(userId: string) {
-  await db.notification.updateMany({ where: { userId, readAt: null }, data: { readAt: new Date() } });
+  await db.notification.updateMany({ where: { userId, ...UNREAD }, data: { readAt: new Date() } });
 }
 
 export async function getPrefs(userId: string): Promise<Record<PrefKey, boolean>> {
