@@ -12,7 +12,8 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "check:env": "tsx scripts/check-integrations.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:seed:demo": "tsx prisma/seed-demo.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1149.0",
