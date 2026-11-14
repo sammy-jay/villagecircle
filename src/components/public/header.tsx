@@ -9,7 +9,6 @@ import { Icon } from "@/components/dc/icons";
 
 /** One set of links on every public page, so the bar never changes as people move around the site. */
 const NAV = [
-  { href: "/#how", label: "How it works" },
   { href: "/about", label: "About" },
   { href: "/become-a-mentor", label: "For mentors" },
   { href: "/families", label: "For families" },
@@ -20,7 +19,6 @@ const MENU_EXTRA = [
   { href: "/about", label: "About us" },
   { href: "/families", label: "For families" },
   { href: "/help", label: "Help centre" },
-  { href: "/#events", label: "Events" },
   { href: "/help/report", label: "Report a concern" },
 ];
 
