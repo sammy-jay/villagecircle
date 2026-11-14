@@ -120,7 +120,7 @@ export async function monthlyReview(userId: string, now = new Date()) {
 }
 
 export async function dueCheckIn(userId: string, id?: string) {
-  const row = await db.checkIn.findFirst({ where: { userId, answeredAt: null, dueAt: { lte: new Date() }, ...(id && oid(id) ? { id } : {}) }, orderBy: { dueAt: "asc" } });
+  const row = await db.checkIn.findFirst({ where: { userId, OR: [{ answeredAt: null }, { answeredAt: { isSet: false } }], dueAt: { lte: new Date() }, ...(id && oid(id) ? { id } : {}) }, orderBy: { dueAt: "asc" } });
   if (!row) return null;
   const c = await db.connection.findUnique({ where: { id: row.connectionId }, include: { mentor: { include: { user: true } } } });
   return { id: row.id, mentorFirst: c ? firstName(c.mentor.user.name) : "your mentor" };
@@ -129,7 +129,7 @@ export async function answerCheckIn(userId: string, id: string, answer: string, 
   if (!oid(id) || !(CHECKIN_ANSWERS as readonly string[]).includes(answer)) return fail("Choose an answer.");
   const n = note.trim().slice(0, 1000);
   if (detectContactDetails(n).length) return fail("Please remove contact details. Everything stays on the platform.");
-  const row = await db.checkIn.findFirst({ where: { id, userId, answeredAt: null } }); if (!row) return fail("This check-in is already answered.");
+  const row = await db.checkIn.findFirst({ where: { id, userId, OR: [{ answeredAt: null }, { answeredAt: { isSet: false } }] } }); if (!row) return fail("This check-in is already answered.");
   await db.checkIn.update({ where: { id }, data: { answer: answer as CheckInAnswer, note: n || null, answeredAt: new Date() } });
   return { ok: true };
 }
@@ -140,7 +140,7 @@ export async function createDueCheckIns(now = new Date()) {
   let n = 0;
   for (const c of conns) {
     if (!checkInDue({ endedAt: c.endedAt, status: c.status, participantOutcome: c.participantOutcome, hasCheckIn: have.has(c.id) }, now)) continue;
-    try { await db.checkIn.create({ data: { connectionId: c.id, participantId: c.participantId, userId: c.participant.userId, dueAt: checkInDueAt(c.endedAt!) } }); } catch { continue; }
+    try { await db.checkIn.create({ data: { connectionId: c.id, participantId: c.participantId, userId: c.participant.userId, dueAt: checkInDueAt(c.endedAt!), answeredAt: null } }); } catch { continue; }
     await notify(c.participant.userId, "checkin.due", "A quick check-in", `A month ago you spoke with ${firstName(c.mentor.user.name)}. Did anything change?`, { link: "/goals/check-in", dedupeKey: `checkin:${c.id}`, email: false });
     { // NT2 "One month check-in", as edited on P05.
       const pu = await db.user.findUnique({ where: { id: c.participant.userId }, select: { email: true, name: true } });

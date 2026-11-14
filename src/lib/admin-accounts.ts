@@ -32,7 +32,7 @@ export async function accountDetail(id: string) {
   if (!OID.test(id)) return null;
   const u = await db.user.findUnique({ where: { id }, include: { mentor: true, participant: true } }); if (!u) return null;
   const minor = !!u.dateOfBirth && isMinor(u.dateOfBirth);
-  const susp = await db.accountSuspension.findFirst({ where: { userId: id, liftedAt: null }, orderBy: { createdAt: "desc" } });
+  const susp = await db.accountSuspension.findFirst({ where: { userId: id, OR: [{ liftedAt: null }, { liftedAt: { isSet: false } }] }, orderBy: { createdAt: "desc" } });
   const hist = await db.accountSuspension.count({ where: { userId: id } });
   return {
     id: u.id, name: u.name, first: u.name.trim().split(/\s+/)[0] ?? u.name, short: shortName(u.name), roles: u.roles, status: u.status, minor, age: u.dateOfBirth ? ageOn(u.dateOfBirth) : null,
@@ -92,9 +92,9 @@ export async function suspendAccount(actor: Actor, id: string, d: { reason?: str
   if (isMentor) {
     const r = suspendReason(d.reason ?? ""); if (!r) return fail("Choose a reason.");
     const moved = await returnMentorWork(u.mentor!.id);
-    await db.eligibilityHold.upsert({ where: { userId: id }, update: { kind: r.hold, since: new Date(), resolvedAt: null }, create: { userId: id, kind: r.hold } });
+    await db.eligibilityHold.upsert({ where: { userId: id }, update: { kind: r.hold, since: new Date(), resolvedAt: null }, create: { userId: id, kind: r.hold, resolvedAt: null } });
     await db.user.update({ where: { id }, data: { status: "PAUSED" } });
-    await db.accountSuspension.create({ data: { userId: id, kind: "MENTOR_ELIGIBILITY", reason: `${r.code} · ${r.label}`, note: note || null, byId: actor.id, returnedAsks: moved.asks, guardiansNotified: moved.guardians } });
+    await db.accountSuspension.create({ data: { userId: id, kind: "MENTOR_ELIGIBILITY", reason: `${r.code} · ${r.label}`, note: note || null, byId: actor.id, returnedAsks: moved.asks, guardiansNotified: moved.guardians, liftedAt: null } });
     await notify(id, "mentor.suspended", "Your mentoring is paused", mentorSuspensionMessage, { link: "/mentor" });
     await notifySafeguarding("mentor.suspended", "A mentor's eligibility was suspended", `Reason code ${r.code}. ${moved.asks} Ask${moved.asks === 1 ? "" : "s"} returned to the team. Review within 24 hours.`, `/admin/accounts/${id}`);
     await audit(actor.id, "mentor.suspend", "User", id, { status: u.status }, { status: "PAUSED", reason: r.code, note, returnedAsks: moved.asks, guardiansNotified: moved.guardians });
@@ -102,7 +102,7 @@ export async function suspendAccount(actor: Actor, id: string, d: { reason?: str
   }
   if (note.length < 5) return fail("Add a short internal note.");
   await db.user.update({ where: { id }, data: { status: "SUSPENDED" } });
-  await db.accountSuspension.create({ data: { userId: id, kind: "ACCOUNT", reason: "Account suspended", note, byId: actor.id } });
+  await db.accountSuspension.create({ data: { userId: id, kind: "ACCOUNT", reason: "Account suspended", note, byId: actor.id, liftedAt: null } });
   await notifySafeguarding("account.suspended", "An account was suspended", "A team member suspended an account. Review within 24 hours.", `/admin/accounts/${id}`);
   await audit(actor.id, "account.suspend", "User", id, { status: u.status }, { status: "SUSPENDED", note });
   return { ok: true };
@@ -115,8 +115,8 @@ export async function restoreAccount(actor: Actor, id: string, d: { note?: strin
   if (!canSuspend(actor.roles, u.roles)) return fail(u.roles.includes("MENTOR") ? "Only the safeguarding lead can reinstate a mentor." : "Not allowed.");
   if (!canRestoreStatus(u.status)) return fail("This account is not suspended or paused.");
   await db.user.update({ where: { id }, data: { status: "ACTIVE" } });
-  await db.eligibilityHold.updateMany({ where: { userId: id, resolvedAt: null }, data: { resolvedAt: new Date() } });
-  await db.accountSuspension.updateMany({ where: { userId: id, liftedAt: null }, data: { liftedAt: new Date(), liftedById: actor.id } });
+  await db.eligibilityHold.updateMany({ where: { userId: id, OR: [{ resolvedAt: null }, { resolvedAt: { isSet: false } }] }, data: { resolvedAt: new Date() } });
+  await db.accountSuspension.updateMany({ where: { userId: id, OR: [{ liftedAt: null }, { liftedAt: { isSet: false } }] }, data: { liftedAt: new Date(), liftedById: actor.id } });
   if (u.roles.includes("MENTOR")) await notify(id, "mentor.reinstated", "Your mentoring is open again", "You can receive Asks again. Thank you for your patience.", { link: "/mentor" });
   await audit(actor.id, u.roles.includes("MENTOR") ? "mentor.reinstate" : "account.restore", "User", id, { status: u.status }, { status: "ACTIVE", note: d.note?.trim() || undefined });
   return { ok: true };
@@ -130,7 +130,7 @@ export async function deleteAccount(actor: Actor, id: string, typedName: string)
   if (u.id === actor.id) return fail("You cannot delete your own account here.");
   if (!deleteNameMatches(typedName, u.name)) return fail("Type the person's full name exactly to confirm.");
   const purgeAfter = new Date(Date.now() + ACCOUNT_DELETE_HOLD_DAYS * 86400_000);
-  await db.deletionRequest.upsert({ where: { userId: id }, update: { requestedAt: new Date(), purgeAfter, cancelledAt: null, completedAt: null }, create: { userId: id, purgeAfter } });
+  await db.deletionRequest.upsert({ where: { userId: id }, update: { requestedAt: new Date(), purgeAfter, cancelledAt: null, completedAt: null }, create: { userId: id, purgeAfter, cancelledAt: null, completedAt: null } });
   await db.user.update({ where: { id }, data: { status: "SUSPENDED" } });
   await audit(actor.id, "account.delete.scheduled", "User", id, { status: u.status }, { status: "SUSPENDED", purgeAfter });
   return { ok: true, purgeAfter };

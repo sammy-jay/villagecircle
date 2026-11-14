@@ -43,7 +43,7 @@ export async function reaffirm(userId: string, d: { affirmed: boolean; typedLega
 
 /** Pauses a mentor (re-affirmation lapsed, change in circumstances, or removal). Open conversations are kept; new Asks stop. */
 export async function holdMentor(userId: string, kind: HoldKind, actorId: string | null = null) {
-  await db.eligibilityHold.upsert({ where: { userId }, update: { kind, since: new Date(), resolvedAt: null }, create: { userId, kind } });
+  await db.eligibilityHold.upsert({ where: { userId }, update: { kind, since: new Date(), resolvedAt: null }, create: { userId, kind, resolvedAt: null } });
   await db.user.update({ where: { id: userId }, data: { status: "PAUSED" } });
   await audit(actorId, `mentor.hold.${kind.toLowerCase()}`, "User", userId);
 }

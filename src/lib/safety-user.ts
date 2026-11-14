@@ -342,7 +342,7 @@ export async function requestDeletion(userId: string, d: { word: string; email: 
   if (d.word.trim() !== "DELETE") return fail("Type DELETE to confirm.");
   if (!deleteConfirmed(d.email, u.email)) return fail("Type your account email exactly to confirm.");
   const purgeAfter = new Date(Date.now() + DELETE_GRACE_DAYS * 86400_000);
-  await db.deletionRequest.upsert({ where: { userId }, update: { requestedAt: new Date(), purgeAfter, cancelledAt: null, completedAt: null }, create: { userId, purgeAfter } });
+  await db.deletionRequest.upsert({ where: { userId }, update: { requestedAt: new Date(), purgeAfter, cancelledAt: null, completedAt: null }, create: { userId, purgeAfter, cancelledAt: null, completedAt: null } });
   if (u.participant) { // open Asks and bookings end now; mentors are told kindly
     const asks = await db.ask.findMany({ where: { participantId: u.participant.id, state: { in: [...OPEN_ASKS] } }, include: { connection: { include: { mentor: true } } } });
     for (const a of asks) {
@@ -381,7 +381,7 @@ export async function anonymiseUser(userId: string): Promise<R> {
 }
 /** Cron: anonymise accounts whose 30 days are over. */
 export async function sweepDeletions(now: Date = new Date()) {
-  const due = await db.deletionRequest.findMany({ where: { purgeAfter: { lte: now }, cancelledAt: null, completedAt: null } });
+  const due = await db.deletionRequest.findMany({ where: { purgeAfter: { lte: now }, AND: [{ OR: [{ cancelledAt: null }, { cancelledAt: { isSet: false } }] }, { OR: [{ completedAt: null }, { completedAt: { isSet: false } }] }] } });
   let n = 0; for (const d of due) { const r = await anonymiseUser(d.userId); if (r.ok) n++; }
   return n;
 }

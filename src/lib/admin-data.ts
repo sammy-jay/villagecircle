@@ -83,7 +83,7 @@ export async function handleDataRequest(actor: Actor, key: string, action: "CONF
     await setState("CONFIRMED");
     if (p.kind === "gdr" && d.request === "Delete account" && d.userId) { // the guardian's deletion request becomes the same 30-day deletion as a self-service one
       const g = await db.guardianDataRequest.findUnique({ where: { id: p.id } });
-      if (g) await db.deletionRequest.upsert({ where: { userId: d.userId }, update: { requestedAt: new Date(), purgeAfter: new Date(Date.now() + 30 * 86400_000), cancelledAt: null, completedAt: null }, create: { userId: d.userId, purgeAfter: new Date(Date.now() + 30 * 86400_000) } });
+      if (g) await db.deletionRequest.upsert({ where: { userId: d.userId }, update: { requestedAt: new Date(), purgeAfter: new Date(Date.now() + 30 * 86400_000), cancelledAt: null, completedAt: null }, create: { userId: d.userId, purgeAfter: new Date(Date.now() + 30 * 86400_000), cancelledAt: null, completedAt: null } });
     }
     await audit(actor.id, "data.request.confirm", "DataRequest", key.slice(4), null, { key });
     return { ok: true };
