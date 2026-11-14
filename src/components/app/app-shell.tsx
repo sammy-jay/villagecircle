@@ -48,8 +48,9 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
       <PhoneHeader home={homeHref} back={phone?.back} title={phone?.title} right={phone?.right ?? (phone?.back ? undefined : <PhoneIcons unread={unread} />)} />
       {phoneSub && <div className="px-4 pb-1 pt-1 lg:hidden">{phoneSub}</div>}
       <div className="flex lg:min-h-[calc(100vh-68px)]">
-        <div className="hidden w-[262px] flex-none border-r border-line bg-card px-3 py-5 lg:block">
-          <div className="sticky top-[88px]">{sidebar ?? <SidebarNav items={nav} cta={cta} />}</div>
+        {/* Desktop side menu: pinned under the 68px top bar at the screen's height, so it never scrolls with the page. A menu taller than the screen scrolls inside it. */}
+        <div className="hidden w-[262px] flex-none border-r border-line bg-card px-3 py-5 [scrollbar-width:thin] lg:sticky lg:top-[68px] lg:block lg:h-[calc(100vh-68px)] lg:self-start lg:overflow-y-auto lg:overscroll-contain">
+          {sidebar ?? <SidebarNav items={nav} cta={cta} />}
         </div>
         {/* Same gutter on every page: content starts a fixed distance from the side menu, whether or not there is an aside. */}
         <div className="flex min-w-0 flex-1 gap-8 px-5 lg:px-10">
