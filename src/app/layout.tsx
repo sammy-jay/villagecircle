@@ -7,6 +7,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { CookieBanner } from "@/components/public/cookie-banner";
 import { MaintenanceNotice } from "@/components/public/maintenance-notice";
+import { Analytics } from "@vercel/analytics/next"
 
 const DESCRIPTION = "Ask the village. A short question about school, work or life, answered by people who have been there.";
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <MaintenanceNotice />
         <Providers>{children}</Providers>
         <CookieBanner />
+        <Analytics/>
       </body>
     </html>
   );
