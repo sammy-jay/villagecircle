@@ -96,7 +96,7 @@ function SharedBody() {
 function TabBones() {
   return (
     <div aria-hidden="true" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
-      <div className="mx-auto flex h-[86px] max-w-[480px] items-start px-1.5 pt-2.5">
+      <div className="mx-auto flex h-[66px] max-w-[480px] items-start px-1.5 pt-2.5">
         {[0, 1, 2, 3, 4].map((i) => <div key={i} className="flex flex-1 flex-col items-center gap-[7px]"><Bone className="size-6 rounded-[8px]" /><Bone className="h-2.5 w-10 rounded-full" /></div>)}
       </div>
     </div>
@@ -117,7 +117,7 @@ function PhoneSkeleton({ tabs }: { tabs: SkeletonTabs }) {
       </div>
       {tabs === "admin" && <div className="px-4 pb-1 pt-1"><Bone className="h-10 w-full rounded-full" /></div>}
       <div className="flex flex-col gap-4 px-5 pb-6 pt-2"><Body /></div>
-      <div className="h-[86px]" aria-hidden="true" />
+      <div className="h-[66px]" aria-hidden="true" />
       {items ? <TabBar items={items} /> : <TabBones />}
     </div>
   );

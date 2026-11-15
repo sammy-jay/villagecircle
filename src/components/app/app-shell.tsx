@@ -58,7 +58,7 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
           {aside && <aside className="hidden w-[320px] flex-none flex-col gap-5 self-start py-8 lg:sticky lg:top-[68px] lg:flex">{aside}</aside>}
         </div>
       </div>
-      {tabs && <><div className="h-[86px] lg:hidden" aria-hidden="true" /><TabBar items={tabs} /></>}
+      {tabs && <><div className="h-[66px] lg:hidden" aria-hidden="true" /><TabBar items={tabs} /></>}
     </div>
   );
 }

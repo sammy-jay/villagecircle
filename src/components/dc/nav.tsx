@@ -137,7 +137,7 @@ export function TabBar({ items }: { items: TabBarItem[] }) {
   const on = activeHref(path, items.filter((i): i is NavItem => !("ask" in i)));
   return (
     <nav aria-label="Tabs" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
-      <ul className="mx-auto flex h-[86px] max-w-[480px] items-start px-1.5 pt-2.5">
+      <ul className="mx-auto flex h-[66px] max-w-[480px] items-start px-1.5 pt-2.5">
         {items.map((i) => {
           if ("ask" in i) {
             return (
