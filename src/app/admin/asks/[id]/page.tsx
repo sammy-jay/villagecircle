@@ -89,7 +89,7 @@ export default async function AskReview({ params }: { params: { id: string } }) 
     <AdminShell ctx={c} aside={aside} phone={{ back: "/admin/asks", title: "Ask review" }}>
       <AdminHead eyebrow="Asks" title="Ask review" sub={`${d.ask.topic} · ${d.review?.sessionLength ?? d.answers.sessionLength ?? 30} min · ${ageText(d.participant.ageBand)}`} />
       <div className="flex flex-wrap items-center gap-2">
-        <Pill tone="mint" icon="eye">A team member reads every Ask before any mentor sees it</Pill>
+        <Pill tone="mint" icon="eye" wrap>A team member reads every Ask before any mentor sees it</Pill>
         {d.ask.due && <Pill tone="sand" icon="clock">Window {day(d.ask.due, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</Pill>}
         {!inReview && <Pill tone="butter">{d.ask.state.toLowerCase().replace(/_/g, " ")}</Pill>}
         {inReview && !mine && triage && <form action={claimAction}><input type="hidden" name="askId" value={id} /><button type="submit" className="rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] font-bold">{d.review?.reviewerId ? "Take over this review" : "Claim this review"}</button></form>}

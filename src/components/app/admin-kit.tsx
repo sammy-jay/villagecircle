@@ -14,8 +14,13 @@ const TONE: Record<Tone, string> = {
 };
 export const toneClass = (t: Tone) => TONE[t];
 
-export function Pill({ tone = "sand", icon, children, className }: { tone?: Tone; icon?: IconName; children: ReactNode; className?: string }) {
-  return <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-[11px] py-1.5 text-[12.5px] font-semibold", TONE[tone], className)}>{icon && <Icon name={icon} size={14} />}{children}</span>;
+/** `wrap`: long text runs onto more lines (rounded corners instead of a full pill, icon on the first line). */
+export function Pill({ tone = "sand", icon, children, className, wrap }: { tone?: Tone; icon?: IconName; children: ReactNode; className?: string; wrap?: boolean }) {
+  return (
+    <span className={cn("inline-flex gap-1.5 px-[11px] py-1.5 text-[12.5px] font-semibold", wrap ? "items-start rounded-[14px] leading-snug" : "items-center whitespace-nowrap rounded-full", TONE[tone], className)}>
+      {icon && <Icon name={icon} size={14} className={wrap ? "mt-[2px] shrink-0" : undefined} />}{children}
+    </span>
+  );
 }
 
 /** A3 stat tiles: big number, label, one line under it. */
