@@ -4,6 +4,7 @@ import { Icon } from "@/components/dc/icons";
 import { ParticipantShell } from "@/components/app/app-shell";
 import { Card, PASTEL } from "@/components/app/feed";
 import { Journey, whenLong } from "@/components/app/ask-journey";
+import { ASK_STAGES } from "@/lib/domain/ask-stages";
 import { participantPage } from "@/lib/participant-ctx";
 import { trackerView } from "@/lib/connections";
 import { resourcesForTopic } from "@/lib/asks";
@@ -30,7 +31,7 @@ export default async function Sent({ params, searchParams }: { params: { id: str
 
   const times: [string, string, string][] = [
     ...(t.minor ? [["about 1 day", "1 day", "Guardian approves"] as [string, string, string]] : []),
-    ["within 24 hours", "24 hours", "Team reads it"], ["2 to 5 days", "2 to 5 days", "A mentor steps forward"],
+    ["within 2 working days", "2 days", ASK_STAGES[1].label], ["2 to 5 days", "2 to 5 days", ASK_STAGES[2].label],
   ];
   const tones = ["butter", "mint", "blush"] as const;
   const guardianCard = t.minor && (

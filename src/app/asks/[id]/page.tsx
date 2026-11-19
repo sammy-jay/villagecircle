@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Icon } from "@/components/dc/icons";
-import { AskTag, ASK_TAG, type AskTagKey } from "@/components/dc";
 import { ParticipantShell } from "@/components/app/app-shell";
 import { Card } from "@/components/app/feed";
-import { Journey, whenLong } from "@/components/app/ask-journey";
+import { AskDetails, whenLong } from "@/components/app/ask-journey";
+import { ASK_STAGES, stageNow } from "@/lib/domain/ask-stages";
 import { participantPage } from "@/lib/participant-ctx";
 import { trackerView } from "@/lib/connections";
 import { resourcesForTopic } from "@/lib/asks";
@@ -37,14 +37,15 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
   const mentor = t.mentor?.shortName ?? "your mentor";
   const c = t.connection;
   const booked = t.state === "SCHEDULED" && !!c?.scheduledAt;
-  const picking = t.state === "MENTOR_STEPPED_FORWARD" || t.state === "CONNECTION_APPROVED";
+  // Ready to schedule: the team has confirmed the mentor. A mentor stepping forward stays "Finding your mentor" until then (FR-R04).
+  const picking = t.state === "CONNECTION_APPROVED";
   const waitingGuardian = picking && c?.scheduledAt && !c.guardianTimeApprovedAt && t.minor;
   // After a missed call (or a change), there is nothing to pick until the mentor offers new times.
   const missed = picking && c?.status === "MISSED";
   const waitingTimes = t.state === "CONNECTION_APPROVED" && !!c && !c.scheduledAt && c.offered.length === 0;
   const rebooking = !!c && c.rescheduleCount > 0;
   const joinOpen = booked && c!.scheduledAt!.getTime() - Date.now() < 10 * 60_000;
-  const g = t.guardianName ?? "your guardian";
+  const g = t.guardianName ?? "your guardian"; const G = `${g[0]!.toUpperCase()}${g.slice(1)}`;
   // Suggested reads come after booking, never before: they are extra preparation, not a replacement for the call.
   // An urgent Ask ("within a week") also gets them while it waits, worded so nobody thinks they should stop.
   const urgent = t.answers.soon === "week";
@@ -75,16 +76,16 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
     </section>
   ) : picking ? (
     <section className="rounded-[28px] bg-butter p-5 text-butter-ink">
-      <span className="rounded-full border-[1.5px] border-current px-3 py-1.5 text-[12.5px] font-bold">{waitingGuardian ? "Waiting" : "Good news"}</span>
-      <h2 className="mt-3 font-display text-[28px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[30px]">{waitingGuardian ? `Waiting for ${g} to approve the time` : rebooking ? `New times from ${mentor}` : `${mentor} stepped forward!`}</h2>
-      <p className="mt-1.5 text-[14.5px] leading-normal">{waitingGuardian ? `You picked ${whenLong(c!.scheduledAt!)}. Nothing is booked until ${g} says yes.` : `${title}? Pick a time${t.minor ? ` and ${g} will approve it` : ""}.`}</p>
-      {!waitingGuardian && t.state === "CONNECTION_APPROVED" && <Link href={`/asks/${params.id}/time`} className="dc-btn dc-btn-primary mt-4 h-[50px]"><Icon name="calendar" size={18} />Pick a time</Link>}
-      {t.state === "MENTOR_STEPPED_FORWARD" && <p className="mt-3 text-[13.5px] opacity-85">{t.minor ? `${g} approves the match first, then you can pick a time.` : "The team confirms the match, then you can pick a time."}</p>}
+      <span className="rounded-full border-[1.5px] border-current px-3 py-1.5 text-[12.5px] font-bold">{waitingGuardian ? "Waiting" : "Mentor confirmed"}</span>
+      <h2 className="mt-3 font-display text-[28px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[30px]">{waitingGuardian ? `Waiting for ${g} to approve the time` : rebooking ? `New times from ${mentor}` : ASK_STAGES[3].label}</h2>
+      <p className="mt-1.5 text-[14.5px] leading-normal">{waitingGuardian ? `You picked ${whenLong(c!.scheduledAt!)}. Nothing is booked until ${g} says yes.` : `${mentor} is your mentor. Pick one of the times they offered.${t.minor ? ` ${G} approves it too.` : ""}`}</p>
+      {!waitingGuardian && <Link href={`/asks/${params.id}/time`} className="dc-btn dc-btn-primary mt-4 h-[50px]"><Icon name="calendar" size={18} />Pick a time</Link>}
     </section>
   ) : (
+    // One name and one sentence per stage, the same words as the trail below and the card on Home.
     <section className="rounded-[28px] bg-mint p-5 text-mint-ink">
-      <h2 className="font-display text-[26px] font-extrabold leading-[1.12] tracking-[-.01em]">{t.state === "AWAITING_GUARDIAN" ? `Waiting for ${g}` : t.state === "OPEN_TO_MENTORS" ? "Mentors can see your Ask" : t.state === "HELD" || t.state === "COMPLETE" ? "Your conversation happened" : "The team is reading your Ask"}</h2>
-      <p className="mt-1.5 text-[15px] leading-normal">{t.state === "AWAITING_GUARDIAN" ? `${g[0]!.toUpperCase()}${g.slice(1)} has your Ask. Nothing moves until they answer.` : t.state === "OPEN_TO_MENTORS" ? "We will tell you as soon as someone steps forward. Usually 2 to 5 days." : t.state === "HELD" || t.state === "COMPLETE" ? "Say thanks, look at your notes, or ask for a follow-up." : "A real person reads every Ask, usually within 2 working days."}</p>
+      <h2 className="font-display text-[26px] font-extrabold leading-[1.12] tracking-[-.01em]">{t.state === "AWAITING_GUARDIAN" ? `Waiting for ${g} to approve` : ASK_STAGES[stageNow(t.state) ?? 1]!.label}</h2>
+      <p className="mt-1.5 text-[15px] leading-normal">{t.state === "AWAITING_GUARDIAN" ? `${G} has your Ask. Once they say yes, the team reviews it.` : ASK_STAGES[stageNow(t.state) ?? 1]!.meaning}</p>
       {(t.state === "HELD" || t.state === "COMPLETE") && (
         <div className="mt-4 flex flex-wrap gap-2.5">
           <Link href={`/asks/${params.id}/after`} className="dc-btn dc-btn-primary h-[50px]">After the call</Link>
@@ -137,7 +138,6 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-sand px-[13px] py-[7px] text-[13.5px] font-semibold">{t.topic}</span>
           <span className="rounded-full bg-sand px-[13px] py-[7px] text-[13.5px] font-semibold">{t.answers.sessionLength} minutes</span>
-          {t.state in ASK_TAG && <AskTag state={t.state as AskTagKey} />}
         </div>
       </div>
       {searchParams.changed === "reschedule" && <p role="status" className="rounded-[18px] bg-mint px-4 py-3 text-[15px] font-semibold text-mint-ink">Done. The team will offer new times{t.minor ? ", and your guardian approves the new one" : ""}.</p>}
@@ -147,10 +147,7 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
       {searchParams.picked === "1" && <p role="status" className="rounded-[18px] bg-mint px-4 py-3 text-[15px] font-semibold text-mint-ink">{t.minor ? `Time sent to ${g} to approve.` : "Booked. We sent you the details."}</p>}
       {hero}
       {readsMode && reads.length > 0 && <SuggestedReads mode={readsMode} mentor={mentor} reads={reads} />}
-      <Card className="p-5 lg:p-6">
-        <h2 className="mb-[18px] font-display text-[22px] font-extrabold leading-[1.12] tracking-[-.01em]">Where things are</h2>
-        <Journey j={t} full />
-      </Card>
+      <AskDetails j={t} />
       {booked && c && c.offered.length > 1 && (
         <Card className="flex flex-col gap-3 p-5 lg:p-[22px]">
           <h2 className="font-display text-[20px] font-extrabold leading-[1.12] tracking-[-.01em]">Your time</h2>

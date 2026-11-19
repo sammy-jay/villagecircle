@@ -4,15 +4,12 @@ import { directoryFor, libraryFor, thanksWall, upcomingEvents } from "./village"
 import { goalsAndNotes } from "./insight";
 import { APP_TZ } from "./domain/scheduling";
 import { isOpen } from "./domain/ask-state";
+import { trackerView } from "./connections";
 import type { AskState } from "@prisma/client";
 
-/** Where an open Ask sits on the four-step strip on Home (D1): Sent, Team read it, Mentor said yes, Call. */
-export function askStep(state: AskState): number {
-  if (state === "SCHEDULED" || state === "HELD") return 4;
-  if (state === "MENTOR_STEPPED_FORWARD" || state === "CONNECTION_APPROVED") return 3;
-  if (state === "OPEN_TO_MENTORS") return 2;
-  return 1;
-}
+/** A minor picked a time and their guardian has not approved it yet: nothing to pick, just waiting. */
+export const waitingOnGuardianTime = (t: { state: string; minor: boolean; connection: { scheduledAt: Date | null; guardianTimeApprovedAt: Date | null } | null } | null) =>
+  !!t && t.minor && t.state === "CONNECTION_APPROVED" && !!t.connection?.scheduledAt && !t.connection.guardianTimeApprovedAt;
 
 const greetingFor = (d: Date) => {
   const h = Number(new Intl.DateTimeFormat("en-GB", { timeZone: APP_TZ(), hour: "numeric", hourCycle: "h23" }).format(d));
@@ -28,7 +25,7 @@ export async function homeFor(userId: string) {
 
   const open = own.asks.filter((a) => a.state !== "DRAFT" && isOpen(a.state as AskState));
   const active = open[0] ?? null;
-  const [dir, lib, thanks, events, goals] = await Promise.all([directoryFor(userId), libraryFor(userId), thanksWall(1), upcomingEvents(userId, 3), goalsAndNotes(userId)]);
+  const [dir, lib, thanks, events, goals, track] = await Promise.all([directoryFor(userId), libraryFor(userId), thanksWall(1), upcomingEvents(userId, 3), goalsAndNotes(userId), active ? trackerView(userId, active.id) : null]);
 
   let guardian: { first: string; approved: boolean } | null = null;
   if (own.minor) {
@@ -45,7 +42,9 @@ export async function homeFor(userId: string) {
     // N09: nobody has sent an Ask yet.
     welcome: own.asks.every((a) => a.state === "DRAFT"),
     steps: { accountAt: user.createdAt, profileDone: !!user.participant.onboardedAt, askSent: own.asks.some((a) => a.state !== "DRAFT"), timePicked: own.asks.some((a) => ["SCHEDULED", "HELD", "COMPLETE"].includes(a.state)) },
-    active: active && { id: active.id, state: active.state as AskState, title: active.title, topic: active.topic, mentor: active.mentorShort, scheduledAt: active.scheduledAt, step: askStep(active.state as AskState) },
+    active: active && { id: active.id, state: active.state as AskState, title: active.title, topic: active.topic, mentor: active.mentorShort, scheduledAt: active.scheduledAt, waitingGuardian: waitingOnGuardianTime(track) },
+    /** The active Ask's dated trail, for "Additional details" on its card. */
+    track,
     mentors: (dir?.cards ?? []).slice(0, 4).map((c) => ({ id: c.id, name: c.name, role: c.role, country: c.country })),
     tips: (lib?.cards ?? []).slice(0, 4),
     saved: new Set(lib?.saved ?? []),

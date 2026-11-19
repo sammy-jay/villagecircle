@@ -8,8 +8,8 @@ import { QuickAsk } from "./quick-ask";
 export const metadata = { title: "New Ask" };
 export const dynamic = "force-dynamic";
 
-/** D2a Quick Ask, shown over Home. `?q=` prefills the question from a starter chip. */
-export default async function NewAsk({ searchParams }: { searchParams: { q?: string } }) {
+/** D2a Quick Ask, shown over Home. `?topic=` picks the topic from a Home topic chip; `?q=` prefills the question. */
+export default async function NewAsk({ searchParams }: { searchParams: { q?: string; topic?: string } }) {
   const r = await participantPage();
   if ("to" in r) redirect(r.to === "/login" ? "/login?next=/asks/new" : r.to);
   const [h, topics] = await Promise.all([homeFor(r.ctx.userId), listTopics()]);
@@ -17,6 +17,6 @@ export default async function NewAsk({ searchParams }: { searchParams: { q?: str
   const options = topics.filter((t) => t.active && !t.later).map((t) => ({ value: t.slug, label: t.name }));
   return (
     <HomeView h={h} ctx={{ name: r.ctx.name, openCount: r.ctx.openCount, unread: r.ctx.unread }}
-      overlay={<QuickAsk first={r.ctx.first} minor={r.ctx.minor} topics={options} initial={searchParams.q?.slice(0, 600)} />} />
+      overlay={<QuickAsk first={r.ctx.first} minor={r.ctx.minor} topics={options} initial={searchParams.q?.slice(0, 600)} initialTopic={options.some((o) => o.value === searchParams.topic) ? searchParams.topic : undefined} />} />
   );
 }

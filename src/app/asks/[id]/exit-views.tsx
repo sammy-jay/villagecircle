@@ -5,6 +5,7 @@ import { Card, PASTEL, type Pastel } from "@/components/app/feed";
 import { StepTrail } from "@/components/public/kit";
 import { whenLong } from "@/components/app/ask-journey";
 import { APP_TZ } from "@/lib/domain/scheduling";
+import { ASK_STAGES } from "@/lib/domain/ask-stages";
 import type { trackerView } from "@/lib/connections";
 import { reopenAction } from "@/app/asks/actions";
 import { rebookRequestAction } from "@/app/asks/exception-actions";
@@ -123,12 +124,11 @@ export function ExitView({ t, ctx, title, withdrawn, withdraw }: { t: T; ctx: Ct
         <Card className="p-5 lg:p-6">
           <h2 className="mb-4 font-display text-[22px] font-extrabold leading-[1.12] tracking-[-.01em]">Where things stand</h2>
           <StepTrail steps={[
-            { title: "Sent", sub: t.marks.submitted ? `${day(t.marks.submitted)}${t.minor ? ", approved by your guardian" : ""}` : "Sent", state: "done" },
-            { title: "Read by the team", sub: "Summary written, no names", state: "done" },
-            { title: "Shared with mentors", sub: "Nobody has stepped forward yet", state: "done" },
-            { title: "A team member is looking personally", sub: "We are asking people outside the first list. Usually within 5 working days.", state: "current" },
-            { title: "A mentor steps forward", sub: "We will tell you right away", state: "next" },
-            { title: "Time booked", sub: t.minor ? "You pick, your guardian approves" : "You pick a time", state: "next" },
+            { title: ASK_STAGES[0].label, sub: t.marks.submitted ? `Sent ${day(t.marks.submitted)}${t.minor ? ", approved by your guardian" : ""}` : "Sent", state: "done" },
+            { title: ASK_STAGES[1].label, sub: "Checked by the team. Mentors only see a summary, never your name.", state: "done" },
+            { title: ASK_STAGES[2].label, sub: "A team member is looking for the right mentor personally, beyond the first list. Usually within 5 working days.", state: "current" },
+            { title: ASK_STAGES[3].label, sub: t.minor ? "You pick a time, and your guardian approves it" : "You pick one of the times your mentor offers", state: "next" },
+            { title: ASK_STAGES[4].label, sub: "Your conversation, then notes and next steps", state: "next" },
           ]} />
         </Card>
         <Card className="flex flex-col gap-3 p-5">

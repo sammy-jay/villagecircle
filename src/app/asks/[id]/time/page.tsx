@@ -62,7 +62,7 @@ export default async function PickTime({ params }: { params: { id: string } }) {
   return (
     <ParticipantShell ctx={{ name: r.ctx.name, openCount: r.ctx.openCount, unread: r.ctx.unread }} aside={aside} tabs={false} phone={{ back: `/asks/${params.id}`, title: "Pick a time" }}>
       <div className="max-lg:hidden">
-        <p className="text-[13px] font-extrabold uppercase tracking-[.04em] text-clay">{t.topic} · {mentor} stepped forward</p>
+        <p className="text-[13px] font-extrabold uppercase tracking-[.04em] text-clay">{t.topic} · Mentor confirmed: {mentor}</p>
         <h1 className="mt-1.5 font-display text-[40px] font-extrabold leading-[1.12] tracking-[-.01em]">Pick a time</h1>
         <p className="mt-1.5 text-[16px] leading-normal text-bark">{mentor} offered {offered.length === 1 ? "this time" : `these ${offered.length} times`}. Pick one{guardian ? ` and ${guardian} will be asked to say yes` : ""}.</p>
       </div>

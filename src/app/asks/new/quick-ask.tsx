@@ -13,7 +13,7 @@ const MAX = 600;
 const HELPERS = ["What I have tried", "What I am deciding between", "My deadline"];
 
 /** D2a Quick Ask. A dialog over Home on desktop, a full screen on the phone. */
-export function QuickAsk({ first, minor, topics, initial }: { first: string; minor: boolean; topics: { value: string; label: string }[]; initial?: string }) {
+export function QuickAsk({ first, minor, topics, initial, initialTopic }: { first: string; minor: boolean; topics: { value: string; label: string }[]; initial?: string; initialTopic?: string }) {
   const [state, action] = useFormState<AskFormState, FormData>(quickAskAction, {});
   const [text, setText] = useState(initial ?? "");
   const box = useRef<HTMLTextAreaElement>(null);
@@ -63,7 +63,7 @@ export function QuickAsk({ first, minor, topics, initial }: { first: string; min
 
           <div className="flex flex-col gap-4 lg:mt-3.5 lg:flex-row lg:items-start lg:gap-5">
             <FieldWrap label="Topic" htmlFor="qa-topic" error={err("topic")} hint="We only use this to match you and to count what students ask about." className="min-w-0 flex-1">
-              <SelectField id="qa-topic" name="topic" options={topics} placeholder="Pick the closest one" invalid={!!err("topic")} />
+              <SelectField id="qa-topic" name="topic" options={topics} defaultValue={initialTopic} placeholder="Pick the closest one" invalid={!!err("topic")} />
             </FieldWrap>
             <FieldWrap label="When do you need it by?" htmlFor="qa-soon" className="lg:hidden">
               <SelectField id="qa-soon" name="soon" options={SOON_OPTIONS} placeholder="No rush" sayMore={{ name: "soonMore", placeholder: "Say more about your deadline (optional)", show: "always" }} />

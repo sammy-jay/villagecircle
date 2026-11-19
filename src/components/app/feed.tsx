@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/dc/icons";
-import { initials, StoryRing } from "@/components/dc";
+import { initials } from "@/components/dc";
 import { cn } from "@/lib/cn";
+import { ASK_STAGES, stageNow, stagesDone } from "@/lib/domain/ask-stages";
+import { APP_TZ } from "@/lib/domain/scheduling";
 import { ScrollX } from "@/components/dc/scroll-x";
 import { GoingButton, HelpfulButton, SaveButton } from "./feed-actions";
 
@@ -31,9 +33,24 @@ export const Pill = ({ children, className, icon }: { children: ReactNode; class
   <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-[13px] py-[7px] text-[12.5px] font-semibold", className)}>{icon && <Icon name={icon} size={16} />}{children}</span>
 );
 
-/** "What is on your mind" composer with starter chips. Every part opens the Quick Ask. */
+/**
+ * Topics a participant can start from (Home composer and Welcome). Each opens the Quick Ask with that topic already
+ * picked, so the question box stays theirs. Slugs are the seeded topics; one that is switched off is simply not picked.
+ */
+export const TOPIC_STARTERS: { label: string; topic: string; icon: IconName }[] = [
+  { label: "Career advice", topic: "career-conversations", icon: "briefcase" },
+  { label: "Interview prep", topic: "interview-preparation", icon: "message" },
+  { label: "Education & courses", topic: "college-guidance", icon: "graduation" },
+  { label: "Starting a business", topic: "entrepreneurship", icon: "rocket" },
+  { label: "Networking", topic: "professional-networks", icon: "users" },
+  { label: "Leadership advice", topic: "leadership-development", icon: "trend" },
+  { label: "Internships", topic: "internship-advice", icon: "target" },
+  { label: "Résumé help", topic: "resume-review", icon: "doc" },
+];
+export const starterHref = (topic: string) => `/asks/new?topic=${encodeURIComponent(topic)}`;
+
+/** "What is on your mind" composer with topic chips. Every part opens the Quick Ask. */
 export function Composer({ first, chips = true }: { first: string; chips?: boolean }) {
-  const starters = ["Which course?", "Interview prep", "Starting something", "Money talk"];
   return (
     <Card>
       <Link href="/asks/new" className="flex items-center gap-3">
@@ -41,55 +58,57 @@ export function Composer({ first, chips = true }: { first: string; chips?: boole
         <span className="flex h-[46px] min-w-0 flex-1 items-center rounded-full bg-sand px-[18px] text-[15.5px] text-stone">What is on your mind, {first}?</span>
       </Link>
       {chips && (
-        <ScrollX variant="chips" fade="from-card" label="starters" wrapClassName="mt-3.5" className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
-          {starters.map((s) => <Link key={s} href={`/asks/new?q=${encodeURIComponent(s)}`} className="whitespace-nowrap rounded-full bg-sand px-[13px] py-[7px] text-[13.5px] font-semibold">{s}</Link>)}
+        <ScrollX variant="chips" fade="from-card" label="topics" wrapClassName="mt-3.5" className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
+          {TOPIC_STARTERS.map((s) => <Link key={s.topic} href={starterHref(s.topic)} className="whitespace-nowrap rounded-full bg-sand px-[13px] py-[7px] text-[13.5px] font-semibold">{s.label}</Link>)}
         </ScrollX>
       )}
     </Card>
   );
 }
 
-/** Row of story rings: your Ask first, then mentors, then the next live event. */
-export function Stories({ first, askId, mentors, live }: { first: string; askId?: string; mentors: { id: string; name: string }[]; live?: string }) {
-  return (
-    <ScrollX variant="chips" bleed={5} label="stories" className="-mx-5 flex gap-1.5 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:px-0">
-      {askId && <StoryRing name={first} caption="Your Ask" href={`/asks/${askId}`} tone="blush" />}
-      {mentors.map((m, i) => <StoryRing key={m.id} name={m.name} caption={m.name.startsWith("Dr ") ? m.name.split(" ").slice(0, 2).join(" ") : m.name} href={`/village/directory/${m.id}`} tone={pastelAt(i)} ring={i < 3 ? "gold" : "none"} />)}
-      {live && <StoryRing name="Live" caption="Live Q&A" href={live} tone="blush" ring="none" />}
-    </ScrollX>
-  );
-}
-
-/** The butter "Your Ask" card with the four-step strip. */
-export function AskCard({ a, guardian }: { a: { id: string; state: string; title: string; mentor: string | null; scheduledAt: Date | null; step: number }; guardian?: string | null }) {
-  const m = a.mentor ?? "A mentor";
+/**
+ * The butter "Your Ask" card: where the Ask is (one of the five stages, in the same words everywhere), what to do
+ * next, and the dated trail behind "Additional details".
+ */
+export function AskCard({ a, guardian, details }: { a: { id: string; state: string; title: string; mentor: string | null; scheduledAt: Date | null; waitingGuardian?: boolean }; guardian?: string | null; details?: ReactNode }) {
+  const m = a.mentor ?? "Your mentor";
+  const g = guardian ?? "your guardian"; const G = g[0]!.toUpperCase() + g.slice(1);
+  const now = stageNow(a.state) ?? 0; const done = stagesDone(a.state) ?? 0;
   const copy: Record<string, [string, string]> = {
-    AWAITING_GUARDIAN: [`Waiting for ${guardian ?? "your guardian"} to say yes`, `${a.title}. Once they approve, the team reads it.`],
-    SUBMITTED: ["The team is reading your Ask", `${a.title}. We check every Ask before mentors see it.`],
-    IN_TEAM_REVIEW: ["The team is reading your Ask", `${a.title}. We check every Ask before mentors see it.`],
-    OPEN_TO_MENTORS: ["Mentors can see your Ask", `${a.title}. We will tell you when someone steps forward.`],
-    MENTOR_STEPPED_FORWARD: [`${m} stepped forward for your Ask`, `${a.title}? Pick a time that works.${guardian ? " Your guardian approves it before anything is booked." : ""}`],
-    CONNECTION_APPROVED: [`Pick a time with ${m}`, `${a.title}.${guardian ? " Your guardian approves the time before anything is booked." : ""}`],
-    SCHEDULED: [`Your call with ${m} is booked`, a.scheduledAt ? `${new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" }).format(a.scheduledAt)}.` : a.title],
+    AWAITING_GUARDIAN: [`Waiting for ${g} to approve`, `${a.title}. Once they say yes, the team reviews it.`],
+    SUBMITTED: [ASK_STAGES[1].label, `${a.title}. ${ASK_STAGES[1].meaning}`],
+    IN_TEAM_REVIEW: [ASK_STAGES[1].label, `${a.title}. ${ASK_STAGES[1].meaning}`],
+    OPEN_TO_MENTORS: [ASK_STAGES[2].label, `${a.title}. ${ASK_STAGES[2].meaning}`],
+    MENTOR_STEPPED_FORWARD: [ASK_STAGES[2].label, `${a.title}. ${ASK_STAGES[2].meaning}`],
+    CONNECTION_APPROVED: a.waitingGuardian
+      ? [`Waiting for ${g} to approve the time`, `${a.title}. Nothing is booked until ${g} says yes.`]
+      : [ASK_STAGES[3].label, `${m} is your mentor. Pick one of the times they offered.${guardian ? ` ${G} approves it before anything is booked.` : ""}`],
+    SCHEDULED: [`Your call with ${m} is booked`, a.scheduledAt ? `${new Intl.DateTimeFormat("en-GB", { timeZone: APP_TZ(), weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" }).format(a.scheduledAt)}.` : a.title],
+    HELD: [ASK_STAGES[4].label, `${a.title}. ${ASK_STAGES[4].meaning}`],
+    COMPLETE: [ASK_STAGES[4].label, `${a.title}. ${ASK_STAGES[4].meaning}`],
   };
   const [title, body] = copy[a.state] ?? ["Your Ask", a.title];
-  const pick = a.state === "MENTOR_STEPPED_FORWARD" || a.state === "CONNECTION_APPROVED";
-  const labels = ["Sent", "Team read it", `${a.mentor ?? "Mentor"} said yes`, "Call"];
+  const pick = a.state === "CONNECTION_APPROVED" && !a.waitingGuardian;
   return (
     <section className="rounded-[28px] bg-butter p-5 text-butter-ink">
-      <div className="flex items-center justify-between">
-        <span className="rounded-full border-[1.5px] border-current px-3 py-1.5 text-[12.5px] font-bold">Your Ask</span>
-        <span className="text-[13px] font-bold">Step {a.step} of 4</span>
-      </div>
+      <span className="rounded-full border-[1.5px] border-current px-3 py-1.5 text-[12.5px] font-bold">Your Ask</span>
       <h2 className="mt-3 font-display text-[26px] font-extrabold leading-[1.12] tracking-[-.01em]">{title}</h2>
       <p className="mt-1.5 text-[15px] leading-normal opacity-[.92]">{body}</p>
-      <div className="mt-4 flex gap-1.5" aria-hidden="true">{labels.map((l, i) => <span key={l} className={cn("h-2 flex-1 rounded", i < a.step ? "bg-butter-ink" : "bg-black/[.14]")} />)}</div>
-      <div className="mt-1.5 flex justify-between text-[12px] opacity-80 max-lg:hidden">{labels.map((l) => <span key={l}>{l}</span>)}</div>
+      <ol className="mt-4 grid grid-cols-5 gap-1.5" aria-label={`Stage ${now + 1} of ${ASK_STAGES.length}: ${ASK_STAGES[now]!.label}`}>
+        {ASK_STAGES.map((s, i) => (
+          <li key={s.key} className="flex flex-col gap-1.5" aria-current={i === now ? "step" : undefined}>
+            <span className={cn("h-2 rounded", i < done ? "bg-butter-ink" : i === now ? "bg-butter-ink/45" : "bg-black/[.14]")} />
+            <span className={cn("text-[11.5px] leading-tight max-lg:hidden", i === now ? "font-extrabold" : "opacity-75")}>{s.label}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-1.5 text-[12.5px] font-bold lg:hidden">{ASK_STAGES[now]!.label}</p>
       <div className="mt-4 flex flex-wrap gap-2.5">
         {pick && <Link href={`/asks/${a.id}/time`} className="dc-btn dc-btn-primary h-[50px]"><Icon name="calendar" size={18} />Pick a time</Link>}
         {a.state === "SCHEDULED" && <Link href={`/asks/${a.id}/call`} className="dc-btn dc-btn-primary h-[50px]"><Icon name="video" size={18} />Before the call</Link>}
-        <Link href={`/asks/${a.id}`} className={cn("inline-flex h-[50px] items-center gap-[7px] whitespace-nowrap rounded-full border-[1.5px] border-current px-4 text-[14px] font-bold", pick && "max-lg:hidden")}><Icon name="message" size={16} />See my Ask</Link>
+        <Link href={`/asks/${a.id}`} className="inline-flex h-[50px] items-center gap-[7px] whitespace-nowrap rounded-full border-[1.5px] border-current px-4 text-[14px] font-bold"><Icon name="message" size={16} />See my Ask</Link>
       </div>
+      {details && <div className="mt-3">{details}</div>}
     </section>
   );
 }

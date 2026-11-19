@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Icon, type IconName } from "@/components/dc/icons";
+import { Icon } from "@/components/dc/icons";
 import { ParticipantShell } from "@/components/app/app-shell";
 import {
-  AskCard, Card, ComingUp, Composer, EventCard, GoalCard, GuardianNote, LibraryCard, PASTEL, Pill, Stories, ThanksWallCard, TipCard, Villagers, VillagerRail, pastelAt,
+  AskCard, Card, ComingUp, Composer, EventCard, GoalCard, GuardianNote, LibraryCard, PASTEL, Pill, ThanksWallCard, TipCard, TOPIC_STARTERS, Villagers, VillagerRail, pastelAt, starterHref,
 } from "@/components/app/feed";
+import { AskDetails } from "@/components/app/ask-journey";
 import type { HomeData } from "@/lib/participant-home";
 import { cn } from "@/lib/cn";
 
@@ -22,7 +23,7 @@ function Feed({ h, ctx }: { h: HomeData; ctx: Ctx }) {
       {h.goal && <GoalCard g={h.goal} />}
       {h.events.length > 0 && <ComingUp events={h.events} />}
       {h.mentors.length > 0 && <Villagers mentors={h.mentors.slice(0, 3)} />}
-      {h.guardian && <GuardianNote first={h.guardian.first}>{h.active?.state === "MENTOR_STEPPED_FORWARD" ? "One time is waiting for their yes once you pick it." : undefined}</GuardianNote>}
+      {h.guardian && <GuardianNote first={h.guardian.first}>{h.active?.state === "CONNECTION_APPROVED" ? "The time you pick waits for their yes." : undefined}</GuardianNote>}
     </>
   );
   return (
@@ -36,8 +37,7 @@ function Feed({ h, ctx }: { h: HomeData; ctx: Ctx }) {
       </div>
       <h1 className="sr-only lg:hidden">{h.greeting}, {h.first}</h1>
       <Composer first={h.first} />
-      <Stories first={h.first} askId={h.active?.id} mentors={h.mentors} live={h.events[0] ? `/village/events/${h.events[0].id}` : undefined} />
-      {h.active && <AskCard a={h.active} guardian={h.guardian?.first} />}
+      {h.active && <AskCard a={h.active} guardian={h.guardian?.first} details={h.track ? <AskDetails j={h.track} tone="butter" /> : undefined} />}
       {tip1 && <TipCard t={tip1} i={0} saved={h.saved.has(tip1.id)} />}
       {h.goal && <div className="lg:hidden"><GoalCard g={h.goal} compact /></div>}
       {h.mentors.length > 0 && <div className="lg:hidden"><VillagerRail mentors={h.mentors} /></div>}
@@ -49,13 +49,6 @@ function Feed({ h, ctx }: { h: HomeData; ctx: Ctx }) {
     </ParticipantShell>
   );
 }
-
-const STARTERS: [string, IconName][] = [
-  ["Which course should I study?", "compass"],
-  ["How do I write my first CV?", "doc"],
-  ["How do I save for JAMB and Post-UTME?", "coin"],
-  ["I feel stuck in school and do not know why", "smile"],
-];
 
 function Welcome({ h, ctx }: { h: HomeData; ctx: Ctx }) {
   const done = [true, h.steps.profileDone, h.steps.askSent, h.steps.timePicked];
@@ -129,14 +122,14 @@ function Welcome({ h, ctx }: { h: HomeData; ctx: Ctx }) {
           <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-blush font-display text-[16px] font-bold text-blush-ink">{h.first.charAt(0)}</span>
           <span className="flex h-12 flex-1 items-center rounded-full bg-sand px-[18px] text-[15.5px] text-stone">What is on your mind, {h.first}?</span>
         </Link>
-        <p className="mt-3.5 text-[13px] font-extrabold tracking-[.04em] text-stone"><span className="lg:hidden">TRY ONE FOR YOUR FIRST ASK</span><span className="max-lg:hidden">TRY ONE OF THESE FOR YOUR FIRST ASK</span></p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {STARTERS.map(([q, icon], i) => {
+        <p className="mt-3.5 text-[13px] font-extrabold tracking-[.04em] text-stone">PICK A TOPIC FOR YOUR FIRST ASK</p>
+        <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
+          {TOPIC_STARTERS.slice(0, 6).map((s, i) => {
             const t = PASTEL[pastelAt(i)];
             return (
-              <Link key={q} href={`/asks/new?q=${encodeURIComponent(q)}`} className={cn("flex min-h-[112px] flex-col gap-2.5 rounded-[22px] p-4", t.both)}>
-                <span className="flex size-[38px] items-center justify-center rounded-tile bg-card"><Icon name={icon} size={21} /></span>
-                <span className="font-display text-[16.5px] font-extrabold leading-[1.2]">{q}</span>
+              <Link key={s.topic} href={starterHref(s.topic)} className={cn("flex min-h-[96px] flex-col gap-2.5 rounded-[22px] p-4", t.both)}>
+                <span className="flex size-[38px] items-center justify-center rounded-tile bg-card"><Icon name={s.icon} size={21} /></span>
+                <span className="font-display text-[16.5px] font-extrabold leading-[1.2]">{s.label}</span>
               </Link>
             );
           })}

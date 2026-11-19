@@ -34,7 +34,7 @@ export default async function Thread({ params }: { params: { id: string } }) {
   const sys = (key: string, text: string) => <p key={key} className="self-center rounded-full bg-sand px-3.5 py-1.5 text-center text-[12.5px] font-semibold text-bark">{text}</p>;
   const sep = (key: string, d: Date) => <p key={key} className="self-center text-[12px] font-extrabold tracking-[.06em] text-stone">{dayKey(d) === today ? "TODAY" : f(d, { weekday: "long", day: "numeric", month: "short" }).toUpperCase()}</p>;
   items.push(sep("d0", t.matchedAt)); last = dayKey(t.matchedAt);
-  items.push(sys("match", `${m.short} stepped forward.${t.guardianApproved ? ` ${r.ctx.minor ? "Your guardian" : "The team"} approved the match.` : ""}`));
+  items.push(sys("match", `Mentor confirmed: ${m.short}.${t.guardianApproved ? ` ${r.ctx.minor ? "Your guardian" : "The team"} approved the match.` : ""}`));
   for (const x of t.messages) {
     if (dayKey(x.at) !== last) { items.push(sep(`d-${x.id}`, x.at)); last = dayKey(x.at); }
     items.push(

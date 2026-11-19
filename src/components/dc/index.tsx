@@ -74,18 +74,22 @@ export function Tag({ tone = "grey", icon, children, className }: { tone?: Tone;
 
 export type AskTagKey = AskState | "PAUSED" | "NEEDS_INFO";
 
-/** DSF "Ask status tags". States not drawn on the board reuse the nearest drawn tag. */
+/**
+ * DSF "Ask status tags". The live states use the participant's five stage names (lib/domain/ask-stages.ts), so a tag
+ * never describes a stage differently from the trail. A mentor stepping forward stays "Finding your mentor" until
+ * the team confirms the match (FR-R04).
+ */
 export const ASK_TAG: Record<AskTagKey, { label: string; tone: Tone; icon?: IconName }> = {
   DRAFT: { label: "Draft", tone: "grey" },
-  AWAITING_GUARDIAN: { label: "Awaiting guardian", tone: "butter", icon: "clock" },
-  SUBMITTED: { label: "In team review", tone: "grey", icon: "shield" },
-  IN_TEAM_REVIEW: { label: "In team review", tone: "grey", icon: "shield" },
-  OPEN_TO_MENTORS: { label: "With mentors", tone: "grey", icon: "users" },
-  MENTOR_STEPPED_FORWARD: { label: "Stepped forward", tone: "mint", icon: "check" },
-  CONNECTION_APPROVED: { label: "Stepped forward", tone: "mint", icon: "check" },
-  SCHEDULED: { label: "Scheduled", tone: "mint", icon: "calendar" },
-  HELD: { label: "Complete", tone: "mint", icon: "check" },
-  COMPLETE: { label: "Complete", tone: "mint", icon: "check" },
+  AWAITING_GUARDIAN: { label: "Waiting for guardian", tone: "butter", icon: "clock" },
+  SUBMITTED: { label: "Submitted", tone: "grey", icon: "send" },
+  IN_TEAM_REVIEW: { label: "Under review", tone: "grey", icon: "shield" },
+  OPEN_TO_MENTORS: { label: "Finding your mentor", tone: "grey", icon: "users" },
+  MENTOR_STEPPED_FORWARD: { label: "Finding your mentor", tone: "grey", icon: "users" },
+  CONNECTION_APPROVED: { label: "Mentor confirmed", tone: "mint", icon: "check" },
+  SCHEDULED: { label: "Mentor confirmed", tone: "mint", icon: "calendar" },
+  HELD: { label: "Completed", tone: "mint", icon: "check" },
+  COMPLETE: { label: "Completed", tone: "mint", icon: "check" },
   FOLLOW_UP_REQUESTED: { label: "Follow-up", tone: "butter", icon: "clock" },
   ONGOING_MENTORSHIP: { label: "Ongoing", tone: "mint", icon: "check" },
   WITHDRAWN: { label: "Withdrawn", tone: "grey" },
