@@ -7,19 +7,11 @@ import { HelpfulButton, SaveButton } from "@/components/app/feed-actions";
 import { participantPage } from "@/lib/participant-ctx";
 import { resourceDetail, savedState } from "@/lib/village";
 import { db } from "@/lib/db";
+import { RichText } from "@/components/app/rich-text";
+import { headingsOf } from "@/lib/domain/rich-text";
 
 export const metadata = { title: "Library" };
 export const dynamic = "force-dynamic";
-
-/** Splits a plain-text body into sections where a line starts with "## " (D19 "In this article"). */
-function sections(body: string) {
-  const out: { title: string | null; text: string }[] = [];
-  for (const line of body.split("\n")) {
-    if (line.startsWith("## ")) out.push({ title: line.slice(3).trim(), text: "" });
-    else { if (!out.length) out.push({ title: null, text: "" }); out[out.length - 1]!.text += `${line}\n`; }
-  }
-  return out.map((s, i) => ({ ...s, id: `s${i}`, text: s.text.trim() })).filter((s) => s.title || s.text);
-}
 
 /** D19 Library resource for members: body, helpful, save, ask the author. */
 export default async function Resource({ params }: { params: { id: string } }) {
@@ -28,13 +20,13 @@ export default async function Resource({ params }: { params: { id: string } }) {
   const d = await resourceDetail("MEMBER", params.id);
   if (!d) redirect("/village/library");
   const [st, helped] = await Promise.all([savedState(r.ctx.userId, params.id), db.resourceHelped.count({ where: { resourceId: params.id } })]);
-  const parts = sections(d.body);
-  const titled = parts.filter((p) => p.title);
+  // D19 "In this article": the body's section headings, with the same anchors RichText gives them.
+  const titled = headingsOf(d.body);
   const aside = (
     <>
       {titled.length > 1 && (
         <Card className="p-[18px]"><h2 className="font-display text-[18px] font-extrabold leading-[1.12] tracking-[-.01em]">In this article</h2>
-          <ol className="mt-2.5 flex flex-col gap-2">{titled.map((p) => <li key={p.id}><a href={`#${p.id}`} className="text-[14px] font-semibold text-bark hover:text-ink">{p.title}</a></li>)}</ol></Card>
+          <ol className="mt-2.5 flex flex-col gap-2">{titled.map((p) => <li key={p.id}><a href={`#${p.id}`} className="text-[14px] font-semibold text-bark hover:text-ink">{p.text}</a></li>)}</ol></Card>
       )}
       {d.related.length > 0 && (
         <Card className="p-[18px]"><h2 className="font-display text-[18px] font-extrabold leading-[1.12] tracking-[-.01em]">More like this</h2>
@@ -56,13 +48,8 @@ export default async function Resource({ params }: { params: { id: string } }) {
         <span className="flex size-11 items-center justify-center rounded-full bg-mint font-display text-[15px] font-bold text-mint-ink">{d.card.credit.split(" ").map((w) => w[0]).join("").slice(0, 2)}</span>
         <div><p className="text-[15px] font-bold">{d.card.credit}</p>{helped > 0 && <p className="text-[13px] text-stone">{helped} {helped === 1 ? "person" : "people"} found this helpful</p>}</div>
       </div>
-      <article className="flex flex-col gap-5 rounded-card border border-line bg-card p-5 lg:p-7">
-        {parts.length ? parts.map((p) => (
-          <section key={p.id} id={p.id} className="scroll-mt-24">
-            {p.title && <h2 className="font-display text-[21px] font-extrabold leading-[1.15] tracking-[-.01em]">{p.title}</h2>}
-            {p.text && <p className="mt-1.5 whitespace-pre-line text-[16px] leading-[1.65]">{p.text}</p>}
-          </section>
-        )) : <p className="text-[16px] text-bark">This resource is a file or recording. Ask the team if you cannot open it.</p>}
+      <article className="rounded-card border border-line bg-card p-5 lg:p-7">
+        {d.body.trim() ? <RichText body={d.body} /> : <p className="text-[16px] text-bark">This resource is a file or recording. Ask the team if you cannot open it.</p>}
       </article>
       <div className="flex flex-wrap items-center gap-4">
         <HelpfulButton id={params.id} count={helped} />

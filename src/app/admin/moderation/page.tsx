@@ -7,6 +7,7 @@ import { ActionForm, Submit } from "@/components/app/action-form";
 import { adminPage } from "@/lib/admin-ctx";
 import { moderationDetail, moderationQueue } from "@/lib/admin-village";
 import { cn } from "@/lib/cn";
+import { RichText } from "@/components/app/rich-text";
 import { moderateAction } from "../safety-actions";
 
 export const metadata = { title: "Moderation" };
@@ -44,7 +45,9 @@ export default async function Moderation({ searchParams }: { searchParams: { kin
               <Panel>
                 <p className="text-[13px] font-bold text-bark">{d.eyebrow}</p>
                 {d.title && <h2 className="mt-1 font-display text-[22px] font-extrabold">{d.title}</h2>}
-                <p className="mt-2 whitespace-pre-line font-display text-[19px] leading-snug">{d.kind === "THANKS" ? `"${d.body}"` : d.body}</p>
+                {d.kind === "RESOURCE"
+                  ? <div className="mt-3 rounded-[18px] border border-line bg-paper p-4 lg:p-5">{d.body.trim() ? <RichText body={d.body} size="sm" /> : <p className="text-[15px] text-stone">No text: this resource is a file.</p>}</div>
+                  : <p className="mt-2 whitespace-pre-line font-display text-[19px] leading-snug">{d.kind === "THANKS" ? `"${d.body}"` : d.body}</p>}
                 {d.flags.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{d.flags.map((f) => <Pill key={f} tone="blush" icon="alert">{f}</Pill>)}</div>}
               </Panel>
               <Panel className="py-2 lg:py-2"><KV rows={d.rows} /></Panel>

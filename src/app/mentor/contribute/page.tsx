@@ -18,7 +18,7 @@ export default async function Contribute({ searchParams }: { searchParams: { fro
   const draft = { type: "ARTICLE", title: "", body: "", topic: "", cohort: "HIGH_SCHOOL", credit: "FIRST", askId: "", ...(c.draft ?? {}), ...(from ? { askId: from.askId, body: c.draft?.body || from.notes } : {}) };
   return (
     <MentorShell ctx={r.ctx} phone={{ back: "/mentor/resources", title: "Share something" }} tabs={false}
-      aside={<Card className="p-5"><h2 className="font-display text-[19px] font-extrabold">What makes a good one</h2><ul className="mt-2 flex list-disc flex-col gap-1.5 pl-5 text-[14px] leading-normal text-bark"><li>Answer one question you hear often.</li><li>Write it like you talk.</li><li>Leave out names, schools and contact details.</li></ul></Card>}>
+      aside={<Card className="p-5"><h2 className="font-display text-[19px] font-extrabold">What makes a good one</h2><ul className="mt-2 flex list-disc flex-col gap-1.5 pl-5 text-[14px] leading-normal text-bark"><li>Answer one question you hear often.</li><li>Write it like you talk.</li><li>Use lists and checklists so it is easy to skim.</li><li>Leave out names, schools and contact details. Links can go to trusted sites like .gov and .edu.</li></ul></Card>}>
       <div><h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-[-.02em] lg:text-[40px]">Share something</h1><p className="mt-1 text-[16px] text-bark">Two steps. The team reads it before it is published, and you are credited.</p></div>
       <ContributeForm
         types={TYPES.map((t) => ({ value: t.v, label: t.hint }))}

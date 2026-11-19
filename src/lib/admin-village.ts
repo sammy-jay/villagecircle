@@ -4,6 +4,7 @@ import { audit } from "./audit";
 import { notify } from "./notify";
 import { moderate, upsertEventInfo } from "./village";
 import { detectContactDetails } from "./domain/contact-detect";
+import { disallowedLinks, LINK_RULE, linksIn, resourceContactHits } from "./domain/rich-text";
 import { cycleMonths, dueDate, cycleState, daysUntil, type CycleState } from "./domain/review-cycle";
 import { shortName } from "./domain/views";
 import { expertiseLabel, EXPERTISE } from "./domain/expertise";
@@ -57,9 +58,12 @@ export async function moderationDetail(kind: string, id: string): Promise<ModDet
   if (kind === "RESOURCE") {
     const r = await db.resource.findUnique({ where: { id } }); if (!r || r.moderation !== "PENDING") return null;
     const c = r.contributorId ? await db.user.findUnique({ where: { id: r.contributorId }, select: { name: true } }) : null;
-    const contacts = detectContactDetails(`${r.title} ${r.body ?? ""}`);
-    return { kind, id, eyebrow: `Resource · ${TYPE_LABEL[r.type]} · from ${c ? shortName(c.name) : "the Village team"}`, title: r.title, body: (r.body ?? "").slice(0, 1200), flags: contacts.length ? ["Possible contact details found"] : [], canSelfEdit: false, canAnonymise: false,
-      rows: [["Topics", r.topics.join(", ") || "None set"], ["Contributor credit", c ? shortName(c.name) : "Village team"], ["Contains", contacts.length ? "Possible contact details found" : "No contact details found"]] };
+    // The whole resource, so the reviewer reads exactly what will be published (the page renders it formatted).
+    const text = `${r.title}\n${r.body ?? ""}`;
+    const contacts = resourceContactHits(text); const bad = disallowedLinks(text); const links = linksIn(r.body ?? "");
+    const flags = [...(contacts.length ? ["Possible contact details found"] : []), ...(bad.length ? ["Link to a site that is not allowed"] : [])];
+    return { kind, id, eyebrow: `Resource · ${TYPE_LABEL[r.type]} · from ${c ? shortName(c.name) : "the Village team"}`, title: r.title, body: r.body ?? "", flags, canSelfEdit: false, canAnonymise: false,
+      rows: [["Topics", r.topics.join(", ") || "None set"], ["Contributor credit", c ? shortName(c.name) : "Village team"], ["Links", links.length ? links.join(", ") : "None"], ["Contains", flags.length ? flags.join(", ") : "No contact details found"]] };
   }
   return null;
 }
@@ -114,7 +118,8 @@ export async function moderateItem(kind: string, id: string, action: ModAction, 
     if (action === "EDIT" || action === "ANONYMISE") return fail("Edit resources in the library.");
     const state = action === "APPROVE" ? "APPROVED" : action === "REJECT" ? "REJECTED" : "REMOVED";
     if (action === "APPROVE" && r.moderation !== "PENDING") return fail("This item is no longer waiting for review.");
-    if (action === "APPROVE" && detectContactDetails(`${r.title} ${r.body ?? ""}`).length) return fail("Remove the contact details before approving.");
+    if (action === "APPROVE" && disallowedLinks(`${r.title}\n${r.body ?? ""}`).length) return fail(`Remove the link to a site that is not allowed before approving. ${LINK_RULE}`);
+    if (action === "APPROVE" && resourceContactHits(`${r.title}\n${r.body ?? ""}`).length) return fail("Remove the contact details before approving.");
     await db.resource.update({ where: { id }, data: { moderation: state, ...(action === "APPROVE" ? { lastReviewed: new Date() } : null) } });
     await db.villageModeration.create({ data: { kind: "RESOURCE", itemId: id, state, actorId, note: note?.slice(0, 500) } });
     await audit(actorId, `moderation.${state.toLowerCase()}`, "Resource", id, { moderation: r.moderation }, { moderation: state, note });
@@ -164,7 +169,8 @@ export async function saveResourceAdmin(actorId: string, i: ResourceInput, publi
   const cohorts = i.cohorts.filter((c): c is Cohort => c in COHORT_LABEL);
   const body = i.body?.trim() || null; const fileKey = i.fileKey?.trim() || null;
   if (!body && !fileKey) return fail("Add the text or a file key.");
-  if (detectContactDetails(`${title} ${body ?? ""}`).length) return fail("Remove the contact details from the title and text.");
+  if (disallowedLinks(`${title}\n${body ?? ""}`).length) return fail(`Remove the link to a site that is not allowed. ${LINK_RULE}`);
+  if (resourceContactHits(`${title}\n${body ?? ""}`).length) return fail("Remove the contact details from the title and text.");
   const contributorId = i.contributorId && OID.test(i.contributorId) ? i.contributorId : null;
   const data = { title, type: i.type as ResourceType, topics, cohorts, body, fileKey, contributorId };
   if (i.id) {

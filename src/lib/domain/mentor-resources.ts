@@ -1,4 +1,5 @@
 /** Pure helpers for the mentor's "Resources I've shared" list. */
+import { plainText } from "./rich-text";
 export type ResourceState = "PENDING" | "APPROVED" | "REJECTED" | "REMOVED";
 export type StatusTone = "warn" | "good" | "neutral" | "bad";
 export const RESOURCE_FILTERS = ["ALL", "PENDING", "APPROVED", "NOT_PUBLISHED"] as const;
@@ -22,9 +23,9 @@ export function matchesResourceFilter(state: ResourceState, f: ResourceFilter): 
 export function resourceCounts(states: ResourceState[]) {
   return { ALL: states.length, PENDING: states.filter((s) => s === "PENDING").length, APPROVED: states.filter((s) => s === "APPROVED").length, NOT_PUBLISHED: states.filter((s) => s === "REJECTED" || s === "REMOVED").length };
 }
-/** A one-line preview of the body, cut on a word boundary. */
+/** A one-line preview of the body, cut on a word boundary: the words only, without formatting or section headings. */
 export function preview(body: string | null | undefined, max = 160): string {
-  const t = (body ?? "").replace(/\s+/g, " ").trim();
+  const t = plainText((body ?? "").replace(/^##(?!#).*$/gm, ""));
   if (t.length <= max) return t;
   const cut = t.slice(0, max); const sp = cut.lastIndexOf(" ");
   return `${(sp > max * 0.6 ? cut.slice(0, sp) : cut).trimEnd()}…`;

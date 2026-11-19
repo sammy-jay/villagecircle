@@ -5,6 +5,7 @@ import { PublicFooter } from "@/components/public/footer";
 import { PublicHeader } from "@/components/public/header";
 import { Gutter, H, OTag, Pill } from "@/components/public/kit";
 import { resourceDetail } from "@/lib/village";
+import { RichText } from "@/components/app/rich-text";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export default async function Resource({ params }: { params: { id: string } }) {
             <span>From {r.card.credit}</span><span aria-hidden="true">·</span>
             <span className="inline-flex items-center gap-1.5 font-bold text-forest"><Icon name="shieldCheck" size={16} />Reviewed {r.reviewedLong}</span>
           </p>
-          <article className="dc-card whitespace-pre-line p-5 text-[16.5px] leading-[1.65] text-ink lg:p-8">{r.body || "This resource is a file or recording. Log in to open it."}</article>
+          <article className="dc-card p-5 lg:p-8">{r.body.trim() ? <RichText body={r.body} /> : <p className="text-[16.5px] text-ink">This resource is a file or recording. Log in to open it.</p>}</article>
           {r.related.length > 0 && (
             <section className="flex flex-col gap-3">
               <H className="text-[24px]">Related</H>

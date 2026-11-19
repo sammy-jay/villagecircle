@@ -7,6 +7,7 @@ import { notifyAdmins } from "./insight-admin";
 import { participantFor } from "./asks";
 import { listSavedResources } from "./village";
 import { detectContactDetails } from "./domain/contact-detect";
+import { BODY_MAX, checkBody, CONTRIBUTE_TYPES, TEMPLATES } from "./domain/resource-templates";
 import { expertiseLabel } from "./domain/expertise";
 import { APP_TZ, fmtDayShort, fmtWhen, tzLabel } from "./domain/scheduling";
 import { firstName, shortName } from "./domain/views";
@@ -244,7 +245,8 @@ export async function mentorImpact(userId: string, now = new Date()) {
 }
 
 // ───────── D24 Contribute a resource ─────────
-export const TYPES = [{ v: "ARTICLE", label: "Answer", hint: "A written answer to a common question" }, { v: "TEMPLATE", label: "Template", hint: "A checklist, résumé or outline" }, { v: "VIDEO", label: "Recording", hint: "A short audio or video" }] as const;
+/** The formats a mentor can share, from the structured templates (lib/domain/resource-templates.ts). */
+export const TYPES = CONTRIBUTE_TYPES.map((v) => ({ v, label: TEMPLATES[v].label, hint: TEMPLATES[v].hint }));
 export const AUDIENCES: { v: Cohort; label: string }[] = [{ v: "HIGH_SCHOOL", label: "High school" }, { v: "COLLEGE", label: "College" }, { v: "GRADUATE", label: "Graduate" }, { v: "EARLY_CAREER", label: "Early career" }];
 export async function contributeContext(userId: string) {
   const m = await mine(userId); if (!m) return null;
@@ -257,19 +259,19 @@ export async function contributeContext(userId: string) {
 export interface Draft { type: string; title: string; body: string; topic: string; cohort: string; credit: string; askId: string }
 export async function saveResourceDraft(userId: string, d: Draft): Promise<Res> {
   if (!(await mine(userId))) return fail("Not allowed.");
-  const value = { ...d, title: String(d.title ?? "").slice(0, 200), body: String(d.body ?? "").slice(0, 8000) } as never;
+  const value = { ...d, title: String(d.title ?? "").slice(0, 200), body: String(d.body ?? "").slice(0, BODY_MAX) } as never;
   await db.setting.upsert({ where: { key: `resource-draft:${userId}` }, update: { value }, create: { key: `resource-draft:${userId}`, value } });
   return { ok: true };
 }
-export async function submitResource(userId: string, d: Draft): Promise<Res<{ id: string }>> {
+/** Checked against the format's template here too, not only in the form: required sections, lengths, trusted links, no contact details. */
+export async function submitResource(userId: string, d: Draft): Promise<Res<{ id: string }> | { ok: false; error: string; field?: string }> {
   const m = await mine(userId); if (!m) return fail("Not allowed.");
   const title = d.title.trim(); const body = d.body.trim();
-  if (title.length < 5) return fail("Add a title.");
-  if (body.length < 40) return fail("Add a little more to your answer.");
   if (!TYPES.some((t) => t.v === d.type)) return fail("Choose what you are sharing.");
   if (!AUDIENCES.some((a) => a.v === d.cohort)) return fail("Choose who it is for.");
   const topic = await db.topic.findUnique({ where: { slug: d.topic } }); if (!topic) return fail("Choose a topic.");
-  if (detectContactDetails(`${title}\n${body}`).length) return fail("Please remove contact details. Everything stays on the platform.");
+  const problem = checkBody(d.type, title, body)[0];
+  if (problem) return { ok: false, error: problem.error, field: problem.field };
   const mode = ["FULL", "FIRST", "ANON"].includes(d.credit) ? d.credit : "FULL";
   const r = await db.resource.create({ data: { title, body, type: d.type as never, topics: [topic.slug], cohorts: [d.cohort as Cohort], contributorId: userId, moderation: "PENDING", visibility: "PUBLIC" } });
   await db.resourceCredit.create({ data: { resourceId: r.id, mode } });

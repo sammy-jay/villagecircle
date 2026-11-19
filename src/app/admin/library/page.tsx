@@ -8,6 +8,8 @@ import { ActionForm, Submit } from "@/components/app/action-form";
 import { adminPage } from "@/lib/admin-ctx";
 import { COHORT_LABEL, TYPE_LABEL, libraryRows } from "@/lib/admin-village";
 import { resourceReviewFormAction, resourceSaveAction } from "../content-actions";
+import { RichEditorField } from "@/components/app/rich-editor";
+import { BODY_MAX } from "@/lib/domain/resource-templates";
 
 export const metadata = { title: "Library" };
 export const dynamic = "force-dynamic";
@@ -56,7 +58,7 @@ export default async function Library({ searchParams }: { searchParams: { q?: st
               <div><p className="dc-label">Contributor</p><Select name="contributorId" defaultValue={sel?.contributorId ?? ""} options={[{ value: "", label: "Village team" }, ...lib.mentors.map((m) => ({ value: m.id, label: m.name }))]} /></div>
               <div><label htmlFor="topic" className="dc-label">Topic tag</label><input id="topic" name="topic" defaultValue={sel?.topics[0]} className="dc-input" /><input name="moreTopics" defaultValue={sel?.topics.slice(1).join(", ")} placeholder="Add another tag (optional)" aria-label="More tags" className="dc-saymore mt-[7px]" /><span className="dc-hint">Admissions, legal and immigration topics expire after six months.</span></div>
               <fieldset><legend className="dc-label">Who it is for</legend><div className="flex flex-wrap gap-1.5">{Object.entries(COHORT_LABEL).map(([v, l]) => <label key={v} className="cursor-pointer"><input type="checkbox" name="cohort" value={v} defaultChecked={sel?.cohorts.includes(v as never)} className="peer sr-only" /><span className="inline-block rounded-full bg-sand px-3 py-1.5 text-[13px] font-semibold peer-checked:bg-forest peer-checked:text-forest-ink peer-focus-visible:ring-2 peer-focus-visible:ring-ink">{l}</span></label>)}</div></fieldset>
-              <div><label htmlFor="body" className="dc-label">Text</label><textarea id="body" name="body" rows={4} defaultValue={sel?.body} className="dc-textarea" /></div>
+              <div><label htmlFor="body" className="dc-label">Text</label><RichEditorField key={sel?.id ?? "new"} id="body" name="body" label="Text" defaultValue={sel?.body} max={BODY_MAX} rows={10} sections /><span className="dc-hint">Section headings become &ldquo;In this article&rdquo; on the library page.</span></div>
               <div><label htmlFor="fileKey" className="dc-label">File key or link</label><input id="fileKey" name="fileKey" defaultValue={sel?.fileKey} placeholder="resources/name.pdf" className="dc-input" /></div>
               <div className="flex flex-wrap gap-2"><Submit name="intent" value="publish" icon="check">Save and re-confirm</Submit><Submit name="intent" value="save" variant="soft">Save changes</Submit><Link href={href({ id: undefined, new: undefined })} className="dc-btn dc-btn-ghost h-[50px]">Cancel</Link></div>
             </ActionForm>

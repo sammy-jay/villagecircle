@@ -227,7 +227,7 @@ export async function resourceAction(_: MState, fd: FormData): Promise<MState> {
   const userId = await uid(); const d = draftOf(fd);
   if (str(fd, "intent") === "draft") { await saveResourceDraft(userId, d); return { ok: true, draft: Date.now() }; }
   const r = await submitResource(userId, d);
-  if (!r.ok) return { error: r.error };
+  if (!r.ok) return { error: r.error, field: "field" in r ? r.field : undefined };
   revalidatePath("/mentor/resources");
   redirect("/mentor/resources?sent=1");
 }

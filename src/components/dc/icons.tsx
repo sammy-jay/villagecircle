@@ -68,6 +68,14 @@ const paths = {
   trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13",
   logout: "M10 4H4v16h6M16 8l4 4-4 4M20 12H9",
   wifiOff: "M2 2l20 20M8.5 16.5a5 5 0 017 0M5 13a10 10 0 015-2.7M12 20h.01M19 13a10 10 0 00-2.3-1.6M2 8.8a15 15 0 014.2-2.6M22 8.8A15 15 0 0010.7 5",
+  // App-only: the formatting toolbar of the resource editor.
+  bold: "M7 5h6a3.5 3.5 0 010 7H7V5zM7 12h7a3.5 3.5 0 010 7H7v-7z",
+  italic: "M10 5h8M6 19h8M14 5l-4 14",
+  heading: "M6 5v14M18 5v14M6 12h12",
+  listBullet: "M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01",
+  listNumber: "M10 6h10M10 12h10M10 18h10M4 4.5l1.5-1V9M3.5 14c0-.9.7-1.5 1.5-1.5s1.5.6 1.5 1.3c0 1.2-3 2.1-3 3.7h3",
+  checklist: "M3.5 4.5h5v5h-5v-5zM3.5 14.5h5v5h-5v-5zM5 16.8l1 1 1.8-2.3M12 7h8.5M12 17h8.5",
+  link: "M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1",
 } as const;
 
 export type IconName = keyof typeof paths;
