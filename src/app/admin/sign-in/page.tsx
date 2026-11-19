@@ -13,7 +13,7 @@ import { CodeStep, PasswordStep, SetupStep } from "./forms";
 export const metadata = { title: "Team sign-in" };
 export const dynamic = "force-dynamic";
 
-/** A18 Team sign-in (password, then the second step) and A25 Set up two-step sign-in, which has no skip. */
+/** A18 Team sign-in (password, then the second step) and A25 Set up two-step sign-in, which has no skip. Form and info panel take half the desktop width each, like Log in. */
 export default async function TeamSignIn({ searchParams }: { searchParams: { next?: string } }) {
   const next = searchParams.next?.startsWith("/admin") ? searchParams.next : "/admin";
   const s = await getSession();
@@ -26,7 +26,7 @@ export default async function TeamSignIn({ searchParams }: { searchParams: { nex
     const m = await pendingMfa(s!.user.id);
     const member = await db.teamMember.findUnique({ where: { userId: s!.user.id } });
     return (
-      <SplitShell width={700} panel="mint" center phone={{ title: "Team sign-in" }} art={
+      <SplitShell width="half" panel="mint" center phone={{ title: "Team sign-in" }} art={
         <div className="flex w-full max-w-[440px] flex-col gap-4">
           <section className="rounded-[26px] bg-card p-6"><h2 className="font-display text-[20px] font-extrabold">Backup codes come next</h2><p className="mt-1.5 text-[14.5px] leading-normal text-bark">Once your first code works, you get eight backup codes. Each works once if you lose your phone.</p></section>
           <section className="flex gap-3 rounded-[24px] bg-butter p-5 text-butter-ink"><Icon name="lock" size={20} className="mt-0.5 shrink-0" /><div><h2 className="text-[16px] font-extrabold">Why every time?</h2><p className="mt-1 text-[14px] leading-normal">The team handles children&apos;s stories and contact details. A second step keeps them safe even if a password leaks.</p></div></section>
@@ -41,7 +41,7 @@ export default async function TeamSignIn({ searchParams }: { searchParams: { nex
   }
 
   return (
-    <SplitShell panel="sand" center phone={{ title: "Team sign-in" }} art={
+    <SplitShell width="half" panel="sand" center phone={{ title: "Team sign-in" }} art={
       <div className="flex w-full max-w-[430px] flex-col gap-4">
         <section className="rounded-[28px] bg-butter p-7 text-butter-ink">
           <div className="flex gap-2"><span className="rounded-full bg-card/70 px-3 py-1.5 text-[13px] font-semibold">Team only</span><span className="inline-flex items-center gap-1.5 rounded-full bg-mint px-3 py-1.5 text-[13px] font-semibold text-mint-ink"><Icon name="shieldCheck" size={14} />MFA on</span></div>
