@@ -656,7 +656,8 @@ model Event {
   title         String
   type          EventType
   startsAt      DateTime
-  host          String
+  host          String // hosts' public names, comma separated, as shown to participants
+  hostIds       String[]  @db.ObjectId // the MentorProfile ids picked on A14 (the Village Circle team is not a mentor, so it is only in `host`)
   capacity      Int?
   registrations String[]  @db.ObjectId
   recordingKey  String?

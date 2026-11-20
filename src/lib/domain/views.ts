@@ -7,7 +7,13 @@ import { toMentorView } from "./mentor-summary";
 
 export const firstName = (n: string) => n.trim().split(/\s+/)[0] ?? "";
 /** "Kwame Mensah" becomes "Kwame M." */
-export const shortName = (n: string) => { const p = n.trim().split(/\s+/); return p.length > 1 ? `${p[0]} ${p[p.length - 1]![0]!.toUpperCase()}.` : p[0] ?? ""; };
+const TITLE = /^(dr|prof|mr|mrs|ms|mx|rev)\.?$/i;
+/** "Kwame M.": first name and last initial. A title stays with the first name ("Dr. Priya N."), never on its own ("Dr. N."). */
+export const shortName = (n: string) => {
+  const p = n.trim().split(/\s+/).filter(Boolean);
+  const title = p.length > 2 && TITLE.test(p[0]!) ? `${p.shift()} ` : "";
+  return p.length > 1 ? `${title}${p[0]} ${p[p.length - 1]![0]!.toUpperCase()}.` : `${title}${p[0] ?? ""}`;
+};
 
 export interface MentorSource { name: string; headline?: string | null; primaryExpertise: string; extraExpertise: string[]; country?: string | null; languages: string[]; monthlyHours: number; clearedForMinors: boolean; verified: boolean }
 /** What a participant (and their guardian) may know about a mentor. No email, phone, last name, resume, or internal scores. */

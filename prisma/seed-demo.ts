@@ -10,6 +10,7 @@
  */
 import { PrismaClient, type AskState, type Cohort, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { shortName } from "../src/lib/domain/views"; // the same public name the app shows
 
 const db = new PrismaClient();
 const DOMAIN = "@example.com";
@@ -548,13 +549,13 @@ async function seed() {
 
   // ── Events (upcoming) ──
   const events = [
-    { title: EVENT_TITLES[0]!, type: "PANEL", at: at(10, 18), host: "Marcus Bennett, Rachel Kim and Michael Okafor", cap: 100, regs: [jordan.user.id, tyler.user.id, kevin.user.id, destiny.user.id], info: { description: "Three engineers share how they got their first job in tech, what they wish they'd known, and answer your questions live.", audience: "High school and college", topicTag: "Tech careers", formatLabel: "Live panel" } },
-    { title: EVENT_TITLES[1]!, type: "WORKSHOP", at: at(13, 19), host: "Angela Morris", cap: 40, regs: [ava.user.id, sofia.user.id, isaiah.user.id], info: { description: "A hands-on workshop on writing a personal statement that sounds like you. Bring a draft or just an idea.", audience: "High school juniors and seniors", topicTag: "College applications", formatLabel: "Workshop" } },
-    { title: EVENT_TITLES[2]!, type: "OFFICE_HOURS", at: at(17, 12), host: "Rachel Kim", cap: 15, regs: [jordan.user.id], info: { description: "Drop in with your internship and first-job questions. Short one-on-one slots in a small group.", audience: "College and recent graduates", topicTag: "Internships", formatLabel: "Office hours" } },
-    { title: EVENT_TITLES[3]!, type: "WORKSHOP", at: at(24, 18), host: "James Whitaker", cap: 60, regs: [emily.user.id, kevin.user.id], info: { description: "Paychecks, taxes, credit scores and student loans, explained simply, with a budgeting template to take home.", audience: "Everyone 16 and up", topicTag: "Money skills", formatLabel: "Webinar" } },
+    { title: EVENT_TITLES[0]!, type: "PANEL", at: at(10, 18), hosts: [marcus, rachel, michael], cap: 100, regs: [jordan.user.id, tyler.user.id, kevin.user.id, destiny.user.id], info: { description: "Three engineers share how they got their first job in tech, what they wish they'd known, and answer your questions live.", audience: "High school and college", topicTag: "Tech careers", formatLabel: "Live panel" } },
+    { title: EVENT_TITLES[1]!, type: "WORKSHOP", at: at(13, 19), hosts: [angela], cap: 40, regs: [ava.user.id, sofia.user.id, isaiah.user.id], info: { description: "A hands-on workshop on writing a personal statement that sounds like you. Bring a draft or just an idea.", audience: "High school juniors and seniors", topicTag: "College applications", formatLabel: "Workshop" } },
+    { title: EVENT_TITLES[2]!, type: "OFFICE_HOURS", at: at(17, 12), hosts: [rachel], cap: 15, regs: [jordan.user.id], info: { description: "Drop in with your internship and first-job questions. Short one-on-one slots in a small group.", audience: "College and recent graduates", topicTag: "Internships", formatLabel: "Office hours" } },
+    { title: EVENT_TITLES[3]!, type: "WORKSHOP", at: at(24, 18), hosts: [james], cap: 60, regs: [emily.user.id, kevin.user.id], info: { description: "Paychecks, taxes, credit scores and student loans, explained simply, with a budgeting template to take home.", audience: "Everyone 16 and up", topicTag: "Money skills", formatLabel: "Webinar" } },
   ] as const;
   for (const e of events) {
-    const ev = await db.event.create({ data: { title: e.title, type: e.type, startsAt: e.at, host: e.host, capacity: e.cap, registrations: [...e.regs], createdAt: ago(14) } });
+    const ev = await db.event.create({ data: { title: e.title, type: e.type, startsAt: e.at, host: e.hosts.map((h) => shortName(h.user.name)).join(", "), hostIds: e.hosts.map((h) => h.profile.id), capacity: e.cap, registrations: [...e.regs], createdAt: ago(14) } });
     await db.eventInfo.create({ data: { eventId: ev.id, ...e.info, location: "Online, link sent when you register" } });
     await db.eventVolunteerRole.create({ data: { eventId: ev.id, role: "Moderator for the Q&A", places: 1 } });
   }

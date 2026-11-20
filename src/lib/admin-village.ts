@@ -5,6 +5,7 @@ import { notify } from "./notify";
 import { moderate, upsertEventInfo } from "./village";
 import { detectContactDetails } from "./domain/contact-detect";
 import { disallowedLinks, LINK_RULE, linksIn, resourceContactHits } from "./domain/rich-text";
+import { hostsForEdit, resolveHosts, type HostOption } from "./domain/event-hosts";
 import { cycleMonths, dueDate, cycleState, daysUntil, type CycleState } from "./domain/review-cycle";
 import { shortName } from "./domain/views";
 import { expertiseLabel, EXPERTISE } from "./domain/expertise";
@@ -203,9 +204,17 @@ export async function resourceReviewAction(actorId: string, id: string, action: 
 
 /* ───────── Events (A14) ───────── */
 export const EVENT_TYPE_LABEL: Record<EventType, string> = { WORKSHOP: "Workshop", PANEL: "Panel", OFFICE_HOURS: "Office hours", ORIENTATION: "Orientation" };
-export interface EventRowA { id: string; title: string; type: EventType; startsAtISO: string; dateLabel: string; host: string; capacity: number | null; registered: number; recordingKey: string; description: string; location: string; status: "OPEN" | "FULL" | "HELD"; recording: "NONE" | "PENDING" | "LIVE" }
+export interface EventRowA { id: string; title: string; type: EventType; startsAtISO: string; dateLabel: string; host: string; hostValues: string[]; hostUnmatched: string[]; capacity: number | null; registered: number; recordingKey: string; description: string; location: string; status: "OPEN" | "FULL" | "HELD"; recording: "NONE" | "PENDING" | "LIVE" }
+
+/** Mentors who can host an event: approved, oriented and active. Sorted by name for the A14 host list. */
+export async function eventHostOptions(): Promise<HostOption[]> {
+  const ms = await db.mentorProfile.findMany({ where: { verification: "APPROVED", codeOfConductAt: { not: null }, orientationDoneAt: { not: null }, user: { status: "ACTIVE" } }, select: { id: true, primaryExpertise: true, expertiseOther: true, user: { select: { name: true } } } });
+  return ms.map((m) => ({ id: m.id, name: m.user.name, short: shortName(m.user.name), expertise: m.primaryExpertise === "EXP-OTH" && m.expertiseOther ? m.expertiseOther : expertiseLabel(m.primaryExpertise) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export async function eventRows(): Promise<EventRowA[]> {
-  const evs = await db.event.findMany({ orderBy: { startsAt: "desc" }, take: 60 });
+  const [evs, hostOpts] = await Promise.all([db.event.findMany({ orderBy: { startsAt: "desc" }, take: 60 }), eventHostOptions()]);
   const keys = evs.map((e) => e.recordingKey).filter((k): k is string => !!k);
   const recs = keys.length ? await db.resource.findMany({ where: { type: "EVENT_RECORDING", fileKey: { in: keys } }, select: { fileKey: true, moderation: true } }) : [];
   const infos = await db.eventInfo.findMany({ where: { eventId: { in: evs.map((e) => e.id) } } });
@@ -214,19 +223,22 @@ export async function eventRows(): Promise<EventRowA[]> {
     const info = infos.find((x) => x.eventId === e.id);
     const held = e.startsAt.getTime() < now; const full = e.capacity != null && e.registrations.length >= e.capacity;
     const rec = e.recordingKey ? (recs.some((r) => r.fileKey === e.recordingKey && r.moderation === "APPROVED") ? "LIVE" : "PENDING") : "NONE";
-    return { id: e.id, title: e.title, type: e.type, startsAtISO: e.startsAt.toISOString(), dateLabel: e.startsAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), host: e.host, capacity: e.capacity, registered: e.registrations.length, recordingKey: e.recordingKey ?? "", description: info?.description ?? "", location: info?.location ?? "", status: held ? "HELD" : full ? "FULL" : "OPEN", recording: rec };
+    const hosts = hostsForEdit({ host: e.host, hostIds: e.hostIds }, hostOpts);
+    return { id: e.id, title: e.title, type: e.type, startsAtISO: e.startsAt.toISOString(), dateLabel: e.startsAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), host: e.host, hostValues: hosts.values, hostUnmatched: hosts.unmatched, capacity: e.capacity, registered: e.registrations.length, recordingKey: e.recordingKey ?? "", description: info?.description ?? "", location: info?.location ?? "", status: held ? "HELD" : full ? "FULL" : "OPEN", recording: rec };
   });
 }
-export async function saveEventAdmin(actorId: string, i: { id?: string; title: string; startsAt: string; type: string; capacity?: number | null; host: string; recordingKey?: string; description?: string; location?: string }): Promise<Res> {
+/** `hostIds`: what was picked on A14, mentor profile ids or TEAM_HOST. Every check runs before anything is written. */
+export async function saveEventAdmin(actorId: string, i: { id?: string; title: string; startsAt: string; type: string; capacity?: number | null; hostIds: string[]; recordingKey?: string; description?: string; location?: string }): Promise<Res> {
   const title = i.title?.trim(); if (!title || title.length < 3) return fail("Add a title of at least 3 characters.");
   const startsAt = new Date(i.startsAt); if (isNaN(+startsAt)) return fail("Choose a date and time.");
   if (!(i.type in EVENT_TYPE_LABEL)) return fail("Choose a type.");
-  const host = i.host?.trim(); if (!host) return fail("Add at least one host.");
+  const hosts = resolveHosts(i.hostIds, await eventHostOptions()); if (!hosts.ok) return fail(hosts.error);
   const capacity = i.capacity == null || Number.isNaN(i.capacity) ? null : Math.floor(i.capacity);
   if (capacity !== null && capacity < 1) return fail("Capacity must be 1 or more.");
-  if (detectContactDetails(`${title} ${host}`).length) return fail("Remove the contact details from the title and hosts.");
+  if (detectContactDetails(title).length) return fail("Remove the contact details from the title.");
+  if (detectContactDetails(`${i.description ?? ""} ${i.location ?? ""}`).length) return fail("Remove the contact details from the description and location.");
   const recordingKey = i.recordingKey?.trim() || null;
-  const data = { title, startsAt, type: i.type as EventType, host, capacity, recordingKey };
+  const data = { title, startsAt, type: i.type as EventType, host: hosts.host, hostIds: hosts.hostIds, capacity, recordingKey };
   let id = i.id;
   if (id) {
     if (!OID.test(id)) return fail("Event not found.");
@@ -234,7 +246,6 @@ export async function saveEventAdmin(actorId: string, i: { id?: string; title: s
     if (capacity !== null && capacity < b.registrations.length) return fail(`${b.registrations.length} people have registered. Capacity cannot go below that.`);
     await db.event.update({ where: { id }, data }); await audit(actorId, "event.edit", "Event", id, { title: b.title, startsAt: b.startsAt, capacity: b.capacity }, data);
   } else { id = (await db.event.create({ data })).id; await audit(actorId, "event.create", "Event", id, undefined, data); }
-  if (detectContactDetails(`${i.description ?? ""} ${i.location ?? ""}`).length) return fail("Remove the contact details from the description and location.");
   await upsertEventInfo(id!, { description: i.description?.trim() || undefined, location: i.location?.trim() || undefined });
   // The recording goes to the library as a PENDING resource: a person reads it before it is public.
   if (recordingKey && !(await db.resource.findFirst({ where: { type: "EVENT_RECORDING", fileKey: recordingKey } }))) {

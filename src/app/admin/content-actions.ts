@@ -38,7 +38,7 @@ export async function eventSaveAction(_: CState, fd: FormData): Promise<CState> 
   const a = await adminActor("content"); if (!a.ok) return { error: a.error };
   const cap = str(fd, "capacity");
   const at = zonedToUtc(str(fd, "startsAt")); const iso = Number.isNaN(at.getTime()) ? "" : at.toISOString();
-  const r = await saveEventAdmin(a.actor.id, { id: str(fd, "id") || undefined, title: str(fd, "title"), startsAt: iso, type: str(fd, "type"), capacity: cap ? Number(cap) : null, host: str(fd, "host"), recordingKey: str(fd, "recordingKey"), description: str(fd, "description"), location: str(fd, "location") });
+  const r = await saveEventAdmin(a.actor.id, { id: str(fd, "id") || undefined, title: str(fd, "title"), startsAt: iso, type: str(fd, "type"), capacity: cap ? Number(cap) : null, hostIds: fd.getAll("hostId").map((v) => String(v)), recordingKey: str(fd, "recordingKey"), description: str(fd, "description"), location: str(fd, "location") });
   if (!r.ok) return { error: r.error };
   revalidatePath("/admin/events");
   return { ok: true, done: str(fd, "id") ? "saved" : "created" };
