@@ -11,6 +11,7 @@
  */
 import type { ModerationState } from "@prisma/client";
 import { db } from "./db";
+import { perRequest } from "./request-cache";
 import { audit } from "./audit";
 import { notify } from "./notify";
 import { isMinor } from "./domain/age";
@@ -27,22 +28,25 @@ const fail = (error: string): { ok: false; error: string } => ({ ok: false, erro
 const oid = (s: string) => /^[0-9a-f]{24}$/i.test(s);
 
 // ───────── Directory (D4) and profile (D18) ─────────
-/** Mentors who are approved, onboarded, active and listed. The raw row never leaves this function: only DirectoryCard does. */
-async function listedMentors(viewer: { minor: boolean }) {
-  const rows = await db.mentorProfile.findMany({
+/**
+ * Mentors who are approved, onboarded, active and listed. The raw row never leaves this function: only DirectoryCard does.
+ * Once per request per audience (Explore, the profile, Home share it); the mentors and the thanks are read together.
+ */
+const listedMentors = perRequest(async (minor: boolean) => {
+  const viewer = { minor };
+  const [rows, thanks] = await Promise.all([db.mentorProfile.findMany({
     where: { verification: "APPROVED", visibility: LISTED, codeOfConductAt: { not: null }, orientationDoneAt: { not: null }, user: { status: "ACTIVE" } },
     select: { id: true, userId: true, bio: true, primaryExpertise: true, extraExpertise: true, languages: true, verification: true, codeOfConductAt: true, orientationDoneAt: true, visibility: true, clearedForMinors: true, monthlyHours: true, user: { select: { name: true, countryOfOrigin: true, status: true } } },
-  });
-  const thanks = await approvedThanksRows();
+  }), approvedThanksRows()]);
   const count = new Map<string, number>();
   for (const t of thanks) { const m = rows.find((r) => r.id === t.connection.mentorId); if (m && t.authorId !== m.userId) count.set(m.id, (count.get(m.id) ?? 0) + 1); }
   return rows.map((m): DirectoryMentorSource => ({ id: m.id, name: m.user.name, bio: m.bio, primaryExpertise: m.primaryExpertise, extraExpertise: m.extraExpertise, languages: m.languages, countryOfOrigin: m.user.countryOfOrigin, verification: m.verification, codeOfConductAt: m.codeOfConductAt, orientationDoneAt: m.orientationDoneAt, visibility: m.visibility, clearedForMinors: m.clearedForMinors, monthlyHours: m.monthlyHours, userStatus: m.user.status, thanksCount: count.get(m.id) ?? 0 }))
     .filter((m) => mentorVisibleTo(m, viewer));
-}
+});
 
 export async function directoryFor(userId: string) {
   const p = await participantFor(userId); if (!p) return null;
-  const cards = (await listedMentors({ minor: p.minor })).map((m) => toDirectoryCard(m, expertiseLabel)).sort((a, b) => b.thanks - a.thanks || a.name.localeCompare(b.name));
+  const cards = (await listedMentors(p.minor)).map((m) => toDirectoryCard(m, expertiseLabel)).sort((a, b) => b.thanks - a.thanks || a.name.localeCompare(b.name));
   const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort();
   return {
     cards,
@@ -55,14 +59,18 @@ export type { DirectoryFilter, DirectoryCard };
 
 export async function mentorProfileFor(userId: string, mentorId: string) {
   const p = await participantFor(userId); if (!p || !oid(mentorId)) return null;
-  const m = (await listedMentors({ minor: p.minor })).find((x) => x.id === mentorId); if (!m) return null;
-  const mp = await db.mentorProfile.findUnique({ where: { id: mentorId }, select: { userId: true } });
-  const thanks = (await thanksWall(50, mentorId)).filter((t) => t.mentorUserId !== undefined);
+  const [listed, mp, wall, resources] = await Promise.all([
+    listedMentors(p.minor), db.mentorProfile.findUnique({ where: { id: mentorId }, select: { userId: true } }), thanksWall(50, mentorId), visibleResources("MEMBER"),
+  ]);
+  const m = listed.find((x) => x.id === mentorId); if (!m) return null;
+  const thanks = wall.filter((t) => t.mentorUserId !== undefined);
   // D18 "Tips by": approved library items this mentor contributed, with how many people found each helpful.
-  const tipRows = mp ? (await visibleResources("MEMBER")).filter((r) => r.contributorId === mp.userId).slice(0, 6) : [];
-  const tips = await toCards(tipRows);
-  const helped = tips.length ? await db.resourceHelped.groupBy({ by: ["resourceId"], where: { resourceId: { in: tips.map((t) => t.id) } }, _count: true }) : [];
-  const similar = (await listedMentors({ minor: p.minor })).filter((x) => x.id !== mentorId && x.primaryExpertise === m.primaryExpertise).slice(0, 2).map((x) => toDirectoryCard(x, expertiseLabel));
+  const tipRows = mp ? resources.filter((r) => r.contributorId === mp.userId).slice(0, 6) : [];
+  const [tips, helped] = await Promise.all([
+    toCards(tipRows),
+    tipRows.length ? db.resourceHelped.groupBy({ by: ["resourceId"], where: { resourceId: { in: tipRows.map((t) => t.id) } }, _count: true }) : [],
+  ]);
+  const similar = listed.filter((x) => x.id !== mentorId && x.primaryExpertise === m.primaryExpertise).slice(0, 2).map((x) => toDirectoryCard(x, expertiseLabel));
   return {
     card: toDirectoryCard(m, expertiseLabel), minor: p.minor,
     thanks: thanks.map(({ id, quote, who, tag }) => ({ id, quote, who, tag })),
@@ -75,7 +83,7 @@ export async function mentorProfileFor(userId: string, mentorId: string) {
 export async function startAskNaming(userId: string, mentorId: string): Promise<R<{ id: string }>> {
   const p = await participantFor(userId); if (!p) return fail("Only participants can start an Ask.");
   if (!oid(mentorId)) return fail("That mentor isn't listed.");
-  const m = (await listedMentors({ minor: p.minor })).find((x) => x.id === mentorId); if (!m) return fail("That mentor isn't listed.");
+  const m = (await listedMentors(p.minor)).find((x) => x.id === mentorId); if (!m) return fail("That mentor isn't listed.");
   const topics = await db.topic.findMany({ where: { active: true, later: false }, orderBy: { sortOrder: "asc" } });
   const topic = topics.find((t) => t.expertiseMap.includes(m.primaryExpertise)) ?? topics[0]; if (!topic) return fail("No topics are open yet.");
   const s = await startAsk(userId, topic.slug); if (!s.ok) return s;
@@ -92,7 +100,7 @@ export async function setMentorListed(userId: string, listed: boolean): Promise<
 }
 
 // ───────── Resources (D4, D19, P1) ─────────
-async function topicNames() { return new Map((await db.topic.findMany({ select: { slug: true, name: true } })).map((t) => [t.slug, t.name])); }
+const topicNames = perRequest(async () => new Map((await db.topic.findMany({ select: { slug: true, name: true } })).map((t) => [t.slug, t.name])));
 async function creditFor(ids: (string | null)[]) {
   const uniq = [...new Set(ids.filter((x): x is string => !!x))];
   const users = uniq.length ? await db.user.findMany({ where: { id: { in: uniq } }, select: { id: true, name: true } }) : [];
@@ -100,11 +108,13 @@ async function creditFor(ids: (string | null)[]) {
 }
 export interface ResourceCard { id: string; kind: string; title: string; topic: string; topicSlug: string; topics: string[]; cohort: string; cohorts: string[]; credit: string; reviewed: string }
 async function toCards(rs: Awaited<ReturnType<typeof db.resource.findMany>>): Promise<ResourceCard[]> {
-  const names = await topicNames(); const credit = await creditFor(rs.map((r) => r.contributorId));
+  const [names, credit] = await Promise.all([topicNames(), creditFor(rs.map((r) => r.contributorId))]);
   return rs.map((r) => ({ id: r.id, kind: resourceKind(r.type), title: r.title, topic: names.get(r.topics[0] ?? "") ?? "", topicSlug: r.topics[0] ?? "", topics: r.topics, cohort: r.cohorts[0] ? cohortLabel(r.cohorts[0]) : "", cohorts: r.cohorts, credit: (r.contributorId && credit.get(r.contributorId)) || "Village webinar", reviewed: monthYear(r.lastReviewed, true) }));
 }
+/** Approved resources for an audience, read once per request. */
+const approvedResources = perRequest((audience: Audience) => db.resource.findMany({ where: { moderation: "APPROVED", visibility: audience === "PUBLIC" ? "PUBLIC" : { in: ["PUBLIC", "MEMBERS"] } }, orderBy: { lastReviewed: "desc" } }));
 async function visibleResources(audience: Audience, q?: string) {
-  const rs = await db.resource.findMany({ where: { moderation: "APPROVED", visibility: audience === "PUBLIC" ? "PUBLIC" : { in: ["PUBLIC", "MEMBERS"] } }, orderBy: { lastReviewed: "desc" } });
+  const rs = await approvedResources(audience);
   const term = (q ?? "").trim().toLowerCase();
   return rs.filter((r) => resourceVisible(r, audience) && (!term || `${r.title} ${r.topics.join(" ")}`.toLowerCase().includes(term)));
 }
@@ -112,9 +122,9 @@ async function visibleResources(audience: Audience, q?: string) {
 export async function memberLibraryCards() { return toCards(await visibleResources("MEMBER")); }
 
 export async function libraryFor(userId: string) {
-  const p = await participantFor(userId); if (!p) return null;
-  const saved = await db.savedItem.findMany({ where: { userId } });
-  const cards = await toCards(await visibleResources("MEMBER"));
+  const [p, saved, visible] = await Promise.all([participantFor(userId), db.savedItem.findMany({ where: { userId } }), visibleResources("MEMBER")]);
+  if (!p) return null;
+  const cards = await toCards(visible);
   const ids = new Set(cards.map((c) => c.id));
   return { cards, saved: saved.map((s) => s.resourceId).filter((id) => ids.has(id)) };
 }
@@ -158,12 +168,12 @@ export async function markHelped(userId: string, resourceId: string): Promise<R>
 }
 
 // ───────── Thanks wall (D9, D18) ─────────
-function approvedThanksRows() {
-  return db.thanks.findMany({
+/** Approved, shared thanks with what the wall and the directory need. Once per request: Home asks for it twice. */
+const approvedThanksRows = perRequest(() =>
+  db.thanks.findMany({
     where: { moderation: "APPROVED", sharePublicly: true }, orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
     include: { author: { select: { id: true, name: true, roles: true, participant: { select: { cohort: true } } } }, connection: { select: { mentorId: true, ask: { select: { topic: { select: { name: true } } } }, mentor: { select: { userId: true, user: { select: { name: true } } } } } } },
-  });
-}
+  }));
 /** Approved + shared thanks only, as quote / descriptor / topic. No names, no ids of people. Optionally for one mentor. */
 export async function thanksWall(limit = 12, mentorId?: string): Promise<(ThanksCard & { mentorUserId?: string })[]> {
   const rows = (await approvedThanksRows()).filter((t) => thanksVisible(t) && (!mentorId || t.connection.mentorId === mentorId) && t.authorId !== t.connection.mentor.userId);

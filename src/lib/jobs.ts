@@ -103,14 +103,17 @@ let lastQuick = 0, lastWindows = 0;
  * 10 minutes and the service-window check every 30, so they keep working between the daily cron runs while people use the app.
  */
 export async function settleJobs() {
-  await settleCalls();
   const now = Date.now();
+  // Reminders, scheduled announcements and the service-window check change nothing the page is about to show, and the
+  // cron runs them every 10 minutes anyway, so they never hold up a page: they start here and finish in the background.
   if (now - lastQuick >= 10 * 60_000) {
     lastQuick = now;
-    try { await callReminders(); await sendDueBroadcasts(); } catch (e) { console.error("settleJobs:quick", e); }
+    void Promise.all([callReminders(), sendDueBroadcasts()]).catch((e) => console.error("settleJobs:quick", e));
   }
   if (now - lastWindows >= 30 * 60_000) {
     lastWindows = now;
-    try { await serviceWindowSweep(); } catch (e) { console.error("settleJobs:windows", e); }
+    void serviceWindowSweep().catch((e) => console.error("settleJobs:windows", e));
   }
+  // Calls are settled before the page reads anything, so a call whose time has passed never shows as booked.
+  await settleCalls();
 }

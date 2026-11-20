@@ -44,11 +44,14 @@ function mentorCardOf(conn: NonNullable<NonNullable<Full>["connection"]>) {
 export async function trackerView(userId: string, askId: string) {
   const r = await roleIn(userId, askId); if (!r || r.role !== "PARTICIPANT") return null;
   const { ask, conn } = r; const minor = isMinorAsk(ask);
-  const guardians = await guardiansOf(ask.participantId);
-  const g = guardians[0] ? await db.user.findUnique({ where: { id: guardians[0].userId }, select: { name: true } }) : null;
-  const history = await db.askStateChange.findMany({ where: { askId }, orderBy: { createdAt: "asc" } });
+  // The guardian's name, the history and the notes in one round, not four in a row.
+  const [link, history, notes] = await Promise.all([
+    db.guardianLink.findFirst({ where: { participantId: ask.participantId, active: true }, select: { guardian: { select: { user: { select: { name: true } } } } } }),
+    db.askStateChange.findMany({ where: { askId }, orderBy: { createdAt: "asc" } }),
+    db.notification.findMany({ where: { userId, event: { in: ["connection.confirmed", "ask.guardian_approved_time", "connection.reminder"] } }, orderBy: { createdAt: "desc" }, take: 3 }),
+  ]);
+  const g = link ? link.guardian.user : null;
   const at = (to: string) => history.find((h) => h.to === to)?.createdAt ?? null;
-  const notes = await db.notification.findMany({ where: { userId, event: { in: ["connection.confirmed", "ask.guardian_approved_time", "connection.reminder"] } }, orderBy: { createdAt: "desc" }, take: 3 });
   return {
     id: ask.id, state: ask.state, topic: ask.topic.name, topicSlug: ask.topic.slug, answers: parseAnswers(ask.answers), minor, guardianName: g ? firstName(g.name) : null, minorsGuardianAttends: !!conn?.guardianAttends,
     marks: { submitted: ask.submittedAt, authorized: at("SUBMITTED"), reviewed: at("OPEN_TO_MENTORS"), stepped: at("MENTOR_STEPPED_FORWARD"), approved: at("CONNECTION_APPROVED") },
@@ -373,8 +376,15 @@ export async function sweepMisses() {
  * Times that passed before anything was booked: a picked time still waiting for a guardian, or offered times nobody picked.
  * They are dropped, so the family picks another offered time, or the mentor is asked for new ones.
  */
+/** The participant's and mentor's user ids, read only for a call a sweep is acting on (the scans themselves stay one plain query). */
+const peopleOf = async (connectionId: string) => {
+  const c = await db.connection.findUnique({ where: { id: connectionId }, select: { participant: { select: { userId: true } }, mentor: { select: { userId: true } } } });
+  return { participantUserId: c?.participant.userId ?? null, mentorUserId: c?.mentor.userId ?? null };
+};
+
 export async function sweepPassedTimes(now: Date = new Date()) {
-  const conns = await db.connection.findMany({ where: { status: { in: ["PROPOSED", "AWAITING_GUARDIAN"] }, ask: { state: "CONNECTION_APPROVED" } }, include: { ask: { include: { participant: true } }, mentor: true } });
+  // Runs before most dashboard pages: a plain scan of the times, no related records, since there is almost never anything to do.
+  const conns = await db.connection.findMany({ where: { status: { in: ["PROPOSED", "AWAITING_GUARDIAN"] }, ask: { state: "CONNECTION_APPROVED" } }, select: { id: true, askId: true, offeredTimes: true, scheduledAt: true } });
   let n = 0;
   for (const c of conns) {
     const future = c.offeredTimes.filter((t) => t.getTime() > now.getTime());
@@ -383,11 +393,12 @@ export async function sweepPassedTimes(now: Date = new Date()) {
     await db.connection.update({ where: { id: c.id }, data: { offeredTimes: future, ...(lapsed ? { scheduledAt: null, guardianTimeApprovedAt: null, status: "PROPOSED" as const } : {}) } });
     n++;
     const key = `passed-${c.id}-${c.offeredTimes.map((t) => t.getTime()).join(".")}`;
+    const who = await peopleOf(c.id);
     if (future.length === 0) {
-      await notify(c.mentor.userId, "connection.new_times_needed", "Please offer new times", "The times you offered passed before one was booked.", { link: `/mentor/conversations/${c.askId}/change`, dedupeKey: `${key}-m` });
-      await notify(c.ask.participant.userId, "connection.time_passed", "Those times have passed", "We asked your mentor for new times. We will tell you when they arrive.", { link: `/asks/${c.askId}`, dedupeKey: `${key}-p` });
-    } else if (lapsed) {
-      await notify(c.ask.participant.userId, "connection.time_passed", "Pick another time", "The time you picked passed before it was booked. Your mentor's other times are still open.", { link: `/asks/${c.askId}/time`, dedupeKey: `${key}-p` });
+      if (who.mentorUserId) await notify(who.mentorUserId, "connection.new_times_needed", "Please offer new times", "The times you offered passed before one was booked.", { link: `/mentor/conversations/${c.askId}/change`, dedupeKey: `${key}-m` });
+      if (who.participantUserId) await notify(who.participantUserId, "connection.time_passed", "Those times have passed", "We asked your mentor for new times. We will tell you when they arrive.", { link: `/asks/${c.askId}`, dedupeKey: `${key}-p` });
+    } else if (lapsed && who.participantUserId) {
+      await notify(who.participantUserId, "connection.time_passed", "Pick another time", "The time you picked passed before it was booked. Your mentor's other times are still open.", { link: `/asks/${c.askId}/time`, dedupeKey: `${key}-p` });
     }
   }
   return n;
@@ -395,27 +406,33 @@ export async function sweepPassedTimes(now: Date = new Date()) {
 
 /** Both people joined but nobody closed the call out: 30 minutes after the end it counts as held, and both are asked how it went. */
 export async function sweepEndedCalls(now: Date = new Date()) {
-  const due = await db.connection.findMany({ where: { status: "CONFIRMED", pausedByConcern: false, scheduledAt: { lte: now }, mentorJoinedAt: { not: null }, participantJoinedAt: { not: null }, ask: { state: "SCHEDULED" } }, include: { ask: { include: { participant: true } }, mentor: true } });
+  const due = await db.connection.findMany({ where: { status: "CONFIRMED", pausedByConcern: false, scheduledAt: { lte: now }, mentorJoinedAt: { not: null }, participantJoinedAt: { not: null }, ask: { state: "SCHEDULED" } }, select: { id: true, askId: true, scheduledAt: true, durationMinutes: true, endedAt: true } });
   let n = 0;
   for (const c of due) {
     if (joinState(c.scheduledAt!, c.durationMinutes, now) !== "ENDED") continue;
     const mv = await moveAsk(c.askId, "HELD", "SYSTEM", { note: "Both joined; the call ended without a close-out" }); if (!mv.ok) continue;
     await db.connection.update({ where: { id: c.id }, data: { status: "HELD", attendance: "BOTH", endedAt: c.endedAt ?? now } });
-    await notify(c.mentor.userId, "conversation.close_out", "How did your conversation go?", "Add your notes and next steps so your hour is counted.", { link: `/mentor/conversations/${c.askId}`, dedupeKey: `closeout-${c.id}` });
-    await notify(c.ask.participant.userId, "conversation.complete", "How did it go?", "Say thanks or tell us if something was not right.", { link: `/asks/${c.askId}/after`, dedupeKey: `after-${c.id}` });
+    const who = await peopleOf(c.id);
+    if (who.mentorUserId) await notify(who.mentorUserId, "conversation.close_out", "How did your conversation go?", "Add your notes and next steps so your hour is counted.", { link: `/mentor/conversations/${c.askId}`, dedupeKey: `closeout-${c.id}` });
+    if (who.participantUserId) await notify(who.participantUserId, "conversation.complete", "How did it go?", "Say thanks or tell us if something was not right.", { link: `/asks/${c.askId}/after`, dedupeKey: `after-${c.id}` });
     n++;
   }
   return n;
 }
 
 let lastSettle = 0;
+let settling: Promise<void> | null = null;
 /**
  * The cron runs the sweeps every 10 minutes. Dashboards also run them (at most once a minute per server), so a call whose
  * time has passed never keeps showing as booked, even where no cron runs, such as a local server.
+ * The three sweeps touch separate calls (missed, ended with both there, offered times that passed), so they run at
+ * once: one round trip instead of three. A page that arrives while they run waits for the same run instead of skipping it.
  */
 export async function settleCalls() {
+  if (settling) return settling;
   if (Date.now() - lastSettle < 60_000) return;
   lastSettle = Date.now();
-  try { await sweepMisses(); await sweepPassedTimes(); await sweepEndedCalls(); } catch (e) { console.error("settleCalls", e); }
+  settling = Promise.all([sweepMisses(), sweepPassedTimes(), sweepEndedCalls()]).then(() => undefined, (e) => { console.error("settleCalls", e); }).finally(() => { settling = null; });
+  return settling;
 }
 void sendEmail;

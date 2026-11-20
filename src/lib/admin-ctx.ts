@@ -36,10 +36,10 @@ export async function adminPage(path: string, perm?: Perm): Promise<{ to: string
   const a = await actorFor();
   if ("to" in a) return { to: a.to === "/admin/sign-in" ? `/admin/sign-in?next=${encodeURIComponent(path)}` : a.to! };
   const { actor } = a;
-  await settleJobs(); // the console must not list a passed call as booked
   const need = perm ?? permForPath(path);
   if (!allows(actor.teamRole, actor.roles, need)) return { to: need === "overview" ? "/after-login" : "/admin?denied=1" };
-  const [c, s, m] = await Promise.all([adminCounts(), safetyCounts(), moderationCounts()]);
+  // The sweep and the menu counts in one round. The page reads its own data after this returns, so a passed call never lists as booked.
+  const [, c, s, m] = await Promise.all([settleJobs(), adminCounts(), safetyCounts(), moderationCounts()]);
   return {
     ctx: {
       userId: actor.id, name: actor.name, short: shortName(actor.name), roles: actor.roles, teamRole: actor.teamRole, roleLabel: TEAM_ROLE_LABEL[actor.teamRole],

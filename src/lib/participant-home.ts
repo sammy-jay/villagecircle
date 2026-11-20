@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { listOwnAsks } from "./asks";
+import { listOwnAsks, participantFor } from "./asks";
 import { directoryFor, libraryFor, thanksWall, upcomingEvents } from "./village";
 import { goalsAndNotes } from "./insight";
 import { APP_TZ } from "./domain/scheduling";
@@ -18,20 +18,19 @@ const greetingFor = (d: Date) => {
 
 /** Everything Home (D1) and Welcome (N09) show, read once. Mentor names are already shortened by the village projections. */
 export async function homeFor(userId: string) {
-  const own = await listOwnAsks(userId); if (!own) return null;
-  const user = await db.user.findUnique({ where: { id: userId }, include: { participant: true } });
-  if (!user?.participant) return null;
-  const now = new Date();
+  // Two rounds: who they are and their Asks, then everything the feed shows at once. The participant row is shared
+  // with the page guard and the loaders below (once per request).
+  const [own, p] = await Promise.all([listOwnAsks(userId), participantFor(userId)]);
+  if (!own || !p) return null;
+  const user = p.user; const now = new Date();
 
   const open = own.asks.filter((a) => a.state !== "DRAFT" && isOpen(a.state as AskState));
   const active = open[0] ?? null;
-  const [dir, lib, thanks, events, goals, track] = await Promise.all([directoryFor(userId), libraryFor(userId), thanksWall(1), upcomingEvents(userId, 3), goalsAndNotes(userId), active ? trackerView(userId, active.id) : null]);
-
-  let guardian: { first: string; approved: boolean } | null = null;
-  if (own.minor) {
-    const link = await db.guardianLink.findFirst({ where: { participantId: user.participant.id, active: true }, include: { guardian: { include: { user: true } } } });
-    if (link) guardian = { first: link.guardian.user.name.split(" ")[0] ?? "Your guardian", approved: true };
-  }
+  const [dir, lib, thanks, events, goals, track, link] = await Promise.all([
+    directoryFor(userId), libraryFor(userId), thanksWall(1), upcomingEvents(userId, 3), goalsAndNotes(userId), active ? trackerView(userId, active.id) : null,
+    own.minor ? db.guardianLink.findFirst({ where: { participantId: p.profile.id, active: true }, select: { guardian: { select: { user: { select: { name: true } } } } } }) : null,
+  ]);
+  const guardian: { first: string; approved: boolean } | null = link ? { first: link.guardian.user.name.split(" ")[0] ?? "Your guardian", approved: true } : null;
 
   return {
     first: user.name.split(" ")[0] ?? "friend",
@@ -41,7 +40,7 @@ export async function homeFor(userId: string) {
     guardian,
     // N09: nobody has sent an Ask yet.
     welcome: own.asks.every((a) => a.state === "DRAFT"),
-    steps: { accountAt: user.createdAt, profileDone: !!user.participant.onboardedAt, askSent: own.asks.some((a) => a.state !== "DRAFT"), timePicked: own.asks.some((a) => ["SCHEDULED", "HELD", "COMPLETE"].includes(a.state)) },
+    steps: { accountAt: user.createdAt, profileDone: !!p.profile.onboardedAt, askSent: own.asks.some((a) => a.state !== "DRAFT"), timePicked: own.asks.some((a) => ["SCHEDULED", "HELD", "COMPLETE"].includes(a.state)) },
     active: active && { id: active.id, state: active.state as AskState, title: active.title, topic: active.topic, mentor: active.mentorShort, scheduledAt: active.scheduledAt, waitingGuardian: waitingOnGuardianTime(track) },
     /** The active Ask's dated trail, for "Additional details" on its card. */
     track,

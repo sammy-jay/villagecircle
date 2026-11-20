@@ -7,6 +7,7 @@ import type { Role } from "@prisma/client";
 import { db } from "./db";
 import { verifyPassword, MAX_FAILED, LOCK_MINUTES, lockState } from "./password";
 import { requiresMfa } from "./domain/permissions";
+import { perRequest } from "./request-cache";
 
 // Auth.js: JWT sessions (credentials need them). MFA state lives in the token and is set only after a TOTP check.
 declare module "next-auth" {
@@ -62,7 +63,8 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export const getSession = () => getServerSession(authOptions);
+/** Once per request: the jwt callback reads the user from the database each time, and a page can ask more than once. */
+export const getSession = perRequest(() => getServerSession(authOptions));
 
 /** Server-side guard: redirect-free; callers decide what to do with null. Admin areas also require a passed second factor. */
 export async function requireRole(...allowed: Role[]) {

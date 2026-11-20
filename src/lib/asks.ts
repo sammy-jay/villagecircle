@@ -8,6 +8,7 @@ import { isMinor } from "./domain/age";
 import { askAnswersSchema, parseAnswers, completeness, CONTINUE_AT, screenText, askText, missingPrompts, type AskAnswers } from "./domain/ask-answers";
 import { reviewDue, addHours, WINDOWS } from "./domain/service-windows";
 import { toParticipantAsk, shortName } from "./domain/views";
+import { perRequest } from "./request-cache";
 
 export type R<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
@@ -25,11 +26,12 @@ export async function moveAsk(askId: string, to: AskState, actor: Actor, o: { ac
   return { ok: true, ask: updated };
 }
 
-export async function participantFor(userId: string) {
+/** The participant and their profile. Read once per request: the page guard and every loader on the page share it. */
+export const participantFor = perRequest(async (userId: string) => {
   const user = await db.user.findUnique({ where: { id: userId }, include: { participant: true } });
   if (!user?.participant) return null;
   return { user, profile: user.participant, minor: !!user.dateOfBirth && isMinor(user.dateOfBirth) };
-}
+});
 
 async function ownAsk(userId: string, askId: string) {
   const p = await participantFor(userId); if (!p) return null;
