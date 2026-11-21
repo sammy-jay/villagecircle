@@ -8,6 +8,7 @@ import { preJoinView } from "@/lib/connections";
 import { guardianApprovalView } from "@/lib/call-extra";
 import { APP_TZ, joinOpensAt } from "@/lib/domain/scheduling";
 import { GuardianJoin } from "./join";
+import { OpensLine } from "@/components/app/call-clock";
 
 export const metadata = { title: "Before you join" };
 export const dynamic = "force-dynamic";
@@ -24,9 +25,9 @@ export default async function GuardianBeforeCall({ params }: { params: { id: str
   if (!v || v.role !== "GUARDIAN") redirect("/guardian");
   const mentor = v.mentorCard?.shortName ?? "the mentor";
   const first = a?.participantFirst ?? "your young person";
-  const days = Math.ceil((v.start.getTime() - Date.now()) / 86400_000);
   const opens = joinOpensAt(v.start);
-  const open = v.state === "OPEN" && !v.paused;
+  // The badge and the Join button tick in the browser from the server's time, so nothing waits for a refresh.
+  const timing = { startISO: v.start.toISOString(), minutes: v.minutes, serverNow: Date.now() };
   const approvedOn = a?.connection?.guardianTimeApprovedAt;
   const good: [string, string][] = [["Your camera is off.", ""], ["You can step out", "and stay reachable. The conversation carries on."], ["You can pause the connection.", "That ends the call and alerts the safeguarding lead."], ["Join only from your dashboard.", "Never by a link sent privately."]];
   return (
@@ -47,9 +48,9 @@ export default async function GuardianBeforeCall({ params }: { params: { id: str
         <p className="text-[15px] leading-normal">Your camera is off. {first} and {mentor.split(" ")[0]} can see you are here. You can step out and stay reachable, or pause the connection.</p>
       </section>
       <Card className="flex flex-col gap-3 p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="font-display text-[19px] font-extrabold leading-[1.12] tracking-[-.01em]">The link opens 10 minutes before the start</h2><span className="text-[13.5px] font-bold text-clay">{open ? "Open now" : days > 1 ? `In ${days} days` : `At ${clock(opens)}`}</span></div>
+        <div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="font-display text-[19px] font-extrabold leading-[1.12] tracking-[-.01em]">The link opens 10 minutes before the start</h2><span className="text-[13.5px] font-bold text-clay" aria-live="polite"><OpensLine clock={timing} /></span></div>
         <p className="text-[14px] text-bark">{f(opens, { weekday: "short", day: "numeric", month: "short" })}, {clock(opens)}</p>
-        <GuardianJoin askId={params.id} open={open} opensAt={clock(opens)} />
+        <GuardianJoin askId={params.id} clock={timing} paused={v.paused} opensAt={clock(opens)} />
         <p className="text-[12.5px] text-stone">Opens in the approved video service.</p>
       </Card>
       <Card className="flex items-center gap-3.5 p-4">

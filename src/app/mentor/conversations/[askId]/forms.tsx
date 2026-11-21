@@ -9,15 +9,17 @@ import { changeTimeAction, completeAction, mentorJoinAction, type MState } from 
 import { TimePicker } from "../../time-picker";
 import { useConfirmSubmit } from "@/components/app/confirm";
 import { cn } from "@/lib/cn";
+import { OpensLine, useCallClock, type CallClock } from "@/components/app/call-clock";
 
 function Btn({ label, busy, icon, disabled, className }: { label: string; busy: string; icon: "video" | "check" | "send"; disabled?: boolean; className?: string }) {
   const { pending } = useFormStatus();
   return <button type="submit" disabled={pending || disabled} className={cn("dc-btn dc-btn-primary h-[52px] disabled:opacity-50", className)}><Icon name={icon} size={18} />{pending ? busy : label}</button>;
 }
 
-/** CL4 "Join the conversation": off until the link opens ten minutes before. */
-export function MentorJoin({ askId, open, note }: { askId: string; open: boolean; note?: string }) {
+/** CL4 "Join the conversation": off until the link opens ten minutes before, then on by itself, with a live countdown. */
+export function MentorJoin({ askId, clock }: { askId: string; clock: CallClock }) {
   const [state, action] = useFormState<MState, FormData>(mentorJoinAction, {});
+  const { open } = useCallClock(clock);
   return (
     <form action={action} className="flex flex-col gap-2">
       <input type="hidden" name="askId" value={askId} />
@@ -25,7 +27,7 @@ export function MentorJoin({ askId, open, note }: { askId: string; open: boolean
         <Btn label="Join the conversation" busy="Joining…" icon="video" disabled={!open} className="max-lg:w-full" />
         <Link href={`/mentor/conversations/${askId}/change`} className="dc-btn dc-btn-soft h-[52px] max-lg:w-full">I cannot make it</Link>
       </div>
-      {!open && note && <p className="text-[13.5px] text-stone">{note}</p>}
+      {!open && <p className="text-[13.5px] text-stone" aria-live="polite"><OpensLine clock={clock} sentence /></p>}
       {state.error && <p role="alert" className="text-[14px] font-semibold text-clay">{state.error}</p>}
     </form>
   );

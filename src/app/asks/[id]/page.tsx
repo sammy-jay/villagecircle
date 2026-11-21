@@ -5,6 +5,7 @@ import { ParticipantShell } from "@/components/app/app-shell";
 import { Card } from "@/components/app/feed";
 import { AskDetails, whenLong } from "@/components/app/ask-journey";
 import { ASK_STAGES, stageNow } from "@/lib/domain/ask-stages";
+import { JoinCallLink } from "@/components/app/call-clock";
 import { participantPage } from "@/lib/participant-ctx";
 import { trackerView } from "@/lib/connections";
 import { resourcesForTopic } from "@/lib/asks";
@@ -44,7 +45,6 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
   const missed = picking && c?.status === "MISSED";
   const waitingTimes = t.state === "CONNECTION_APPROVED" && !!c && !c.scheduledAt && c.offered.length === 0;
   const rebooking = !!c && c.rescheduleCount > 0;
-  const joinOpen = booked && c!.scheduledAt!.getTime() - Date.now() < 10 * 60_000;
   const g = t.guardianName ?? "your guardian"; const G = `${g[0]!.toUpperCase()}${g.slice(1)}`;
   // Suggested reads come after booking, never before: they are extra preparation, not a replacement for the call.
   // An urgent Ask ("within a week") also gets them while it waits, worded so nobody thinks they should stop.
@@ -59,7 +59,7 @@ export default async function AskPage({ params, searchParams }: { params: { id: 
       <h2 className="font-display text-[30px] font-extrabold leading-[1.04] tracking-[-.02em] lg:text-[36px]">{f(c!.scheduledAt!, { weekday: "long", day: "numeric", month: "long" })},<br />{f(c!.scheduledAt!, { hour: "numeric", minute: "2-digit", hour12: true })}{tz && <>&nbsp;{tz}</>}</h2>
       <p className="text-[16px]">{c!.minutes} minutes on video with {mentor}.{t.minor && t.minorsGuardianAttends ? " Your guardian will attend." : ""}</p>
       <div className="mt-1 flex flex-wrap items-center gap-2.5">
-        <Link href={`/asks/${params.id}/call`} className={cn("dc-btn dc-btn-primary h-[52px]", !joinOpen && "opacity-[.42]")} aria-disabled={!joinOpen}><Icon name="video" size={18} />{joinOpen ? "Join conversation" : "Before the call"}</Link>
+        <JoinCallLink href={`/asks/${params.id}/call`} clock={{ startISO: c!.scheduledAt!.toISOString(), minutes: c!.minutes, serverNow: Date.now() }} />
         <span className="text-[14px] font-bold">Add to calendar</span>
         {t.calendarUrl && <a href={t.calendarUrl} target="_blank" rel="noreferrer" className="rounded-full border-[1.5px] border-ink px-3.5 py-[7px] text-[14px] font-semibold">Google</a>}
         <a href={outlook} target="_blank" rel="noreferrer" className="rounded-full border-[1.5px] border-ink px-3.5 py-[7px] text-[14px] font-semibold">Outlook</a>

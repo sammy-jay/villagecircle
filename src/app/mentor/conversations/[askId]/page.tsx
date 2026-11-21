@@ -9,12 +9,12 @@ import { mentorChangeView } from "@/lib/mentor-extra";
 import { APP_TZ } from "@/lib/domain/scheduling";
 import { Preview } from "@/app/asks/[id]/call/prejoin";
 import { CloseOut, MentorJoin } from "./forms";
+import { StartsLine } from "@/components/app/call-clock";
 
 export const metadata = { title: "Your conversation" };
 export const dynamic = "force-dynamic";
 
 const longWhen = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: APP_TZ(), weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" }).format(d);
-const inMins = (m: number) => (m <= 1 ? "a minute" : m < 60 ? `${m} minutes` : m < 120 ? "about an hour" : m < 60 * 36 ? `${Math.round(m / 60)} hours` : `${Math.round(m / 1440)} days`);
 
 /** CL4 Before you join (including too early), or D8 After the call once it has ended. `?after=1` comes from leaving the room. */
 export default async function Conversation({ params, searchParams }: { params: { askId: string }; searchParams: { after?: string } }) {
@@ -25,8 +25,9 @@ export default async function Conversation({ params, searchParams }: { params: {
   const live = pj && pj.role === "MENTOR" && pj.state !== "ENDED" && searchParams.after !== "1";
 
   if (pj && live) {
-    const start = pj.start; const toStart = Math.round((start.getTime() - Date.now()) / 60_000);
-    const open = pj.state === "OPEN" && !pj.paused;
+    const start = pj.start;
+    // The countdown, the note and the Join button tick in the browser from the server's time, so nothing waits for a refresh.
+    const timing = { startISO: start.toISOString(), minutes: pj.minutes, serverNow: Date.now() };
     const card = pj.other!;
     const aside = (
       <>
@@ -47,7 +48,7 @@ export default async function Conversation({ params, searchParams }: { params: {
       <MentorShell ctx={c} aside={aside} phone={{ back: "/mentor?tab=scheduled", title: "Before you join" }} tabs={false}>
         <div>
           <h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-[-.02em] lg:text-[40px]">Before you join</h1>
-          <p className="mt-1 text-[17px] font-bold text-clay">{pj.paused ? "This conversation is paused" : toStart > 0 ? `Starts in ${inMins(toStart)}` : "Started"}</p>
+          <p className="mt-1 text-[17px] font-bold text-clay" aria-live="polite">{pj.paused ? "This conversation is paused" : <StartsLine clock={timing} />}</p>
           <p className="mt-1 text-[15px] text-bark">{longWhen(start)} · {pj.minutes} minutes · {pj.topic} with {card.firstName}</p>
         </div>
         <Preview />
@@ -60,7 +61,7 @@ export default async function Conversation({ params, searchParams }: { params: {
           </ul>
         </Card>
         {pj.paused ? <p className="rounded-[18px] bg-blush px-4 py-3 text-[14.5px] text-blush-ink">A concern was raised, so this conversation cannot be joined. The team will contact you.</p>
-          : <MentorJoin askId={id} open={open} note={pj.opensIn > 0 ? `The link opens 10 minutes before the start, in ${inMins(pj.opensIn)}.` : undefined} />}
+          : <MentorJoin askId={id} clock={timing} />}
         <div className="flex flex-col gap-4 lg:hidden">{aside}</div>
       </MentorShell>
     );

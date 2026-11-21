@@ -7,6 +7,7 @@ import { SubmitButton } from "@/components/forms/fields";
 import { PhoneBar } from "@/components/account/shells";
 import { joinAction, type AskFormState } from "@/app/asks/actions";
 import { cn } from "@/lib/cn";
+import { useCallClock, type CallClock } from "@/components/app/call-clock";
 
 type Dev = { id: string; label: string };
 
@@ -75,8 +76,10 @@ export function Questions({ askId, n = 2 }: { askId: string; n?: number }) {
   );
 }
 
-export function JoinButton({ askId, open, opensAt }: { askId: string; open: boolean; opensAt: string }) {
+/** Turns itself on when the link opens, ten minutes before the start, without a refresh. */
+export function JoinButton({ askId, clock, paused, opensAt }: { askId: string; clock: CallClock; paused: boolean; opensAt: string }) {
   const [state, action] = useFormState<AskFormState, FormData>(joinAction, {});
+  const open = useCallClock(clock).open && !paused;
   const btn = (cls: string) => <SubmitButton form="join" icon="video" disabled={!open} className={cn(cls)} pendingText="Joining…">{open ? "Join the call" : `Opens ${opensAt}`}</SubmitButton>;
   return (
     <form id="join" action={action} className="flex flex-col gap-2">

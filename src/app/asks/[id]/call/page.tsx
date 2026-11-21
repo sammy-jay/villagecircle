@@ -7,6 +7,7 @@ import { participantPage } from "@/lib/participant-ctx";
 import { preJoinView, trackerView } from "@/lib/connections";
 import { APP_TZ, joinOpensAt } from "@/lib/domain/scheduling";
 import { JoinButton, Preview, Questions } from "./prejoin";
+import { CallHeadline } from "@/components/app/call-clock";
 
 export const metadata = { title: "Before the call" };
 export const dynamic = "force-dynamic";
@@ -23,9 +24,8 @@ export default async function BeforeCall({ params }: { params: { id: string } })
   if (v.state === "ENDED") redirect(`/asks/${params.id}/after`);
   const t = await trackerView(r.ctx.userId, params.id);
   const mentor = v.mentorCard?.shortName ?? "your mentor";
-  const mins = Math.max(0, Math.round((v.start.getTime() - Date.now()) / 60_000));
-  const soon = mins <= 60 ? `Your call starts in ${mins} ${mins === 1 ? "minute" : "minutes"}` : `Your call is ${f(v.start, { weekday: "long" })} at ${clock(v.start)}`;
-  const open = v.state === "OPEN" && !v.paused;
+  // The countdown and the Join button tick in the browser from the server's time, so nothing waits for a refresh.
+  const timing = { startISO: v.start.toISOString(), minutes: v.minutes, serverNow: Date.now() };
   const approved = !!t?.connection?.guardianTimeApprovedAt;
   const g = v.guardianName;
   const checks: [string, boolean][] = [["Camera works", true], ["Microphone works", true], ...(t?.minor ? [[`${g ?? "Your guardian"} approved the time`, approved] as [string, boolean]] : []), ["Quiet place found", false]];
@@ -50,7 +50,7 @@ export default async function BeforeCall({ params }: { params: { id: string } })
     <ParticipantShell ctx={{ name: r.ctx.name, openCount: r.ctx.openCount, unread: r.ctx.unread }} aside={aside} tabs={false} phone={{ back: `/asks/${params.id}`, title: "Starting soon" }}>
       <div>
         <p className="text-[12.5px] font-extrabold uppercase tracking-[.04em] text-clay lg:text-[13px]">{v.topic} call · {f(v.start, { weekday: "short", day: "numeric", month: "short" })}, {clock(v.start)}</p>
-        <h1 className="mt-1.5 font-display text-[30px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[40px]">{soon}</h1>
+        <h1 className="mt-1.5 font-display text-[30px] font-extrabold leading-[1.12] tracking-[-.01em] lg:text-[40px]" aria-live="polite"><CallHeadline clock={timing} later={`Your call is ${f(v.start, { weekday: "long" })} at ${clock(v.start)}`} /></h1>
         <p className="mt-1.5 text-[15.5px] text-bark">With {mentor} · {v.minutes} minutes{t?.minor && approved && g ? ` · ${g} said yes.` : ""}</p>
       </div>
       {v.paused && <p role="alert" className="rounded-[18px] bg-blush px-4 py-3 text-[15px] font-semibold text-blush-ink">This conversation is paused while the team looks at something. We will be in touch.</p>}
@@ -65,7 +65,7 @@ export default async function BeforeCall({ params }: { params: { id: string } })
         <a href={`/asks/${params.id}/ics`} className="rounded-full border-[1.5px] border-ink px-3.5 py-[7px] text-[14px] font-semibold">Download .ics</a>
         <Link href={`/asks/${params.id}/reschedule`} className="ml-auto text-[14px] font-bold text-clay">Reschedule</Link>
       </div>
-      <JoinButton askId={params.id} open={open} opensAt={clock(joinOpensAt(v.start))} />
+      <JoinButton askId={params.id} clock={timing} paused={v.paused} opensAt={clock(joinOpensAt(v.start))} />
     </ParticipantShell>
   );
 }
