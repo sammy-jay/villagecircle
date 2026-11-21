@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Icon } from "@/components/dc/icons";
@@ -19,17 +18,12 @@ function Send() {
   return <button type="submit" disabled={pending} className="dc-btn dc-btn-primary h-12 shrink-0 px-5"><Icon name="send" size={18} />Send</button>;
 }
 
-/** N08 composer. Refreshes the thread every 15 seconds while the tab is visible. */
+/** N08 composer. New messages arrive through the page's live updates (a message notifies the other person). */
 export function Composer({ askId, open, note }: { askId: string; open: boolean; note: string }) {
-  const router = useRouter();
   const [state, action] = useFormState<ThreadState, FormData>(sendMessageAction, {});
   const [text, setText] = useState("");
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { if (state.ok) setText(""); if (state.draft) setText(state.draft); }, [state]);
-  useEffect(() => {
-    const t = setInterval(() => { if (document.visibilityState === "visible") router.refresh(); }, 15_000);
-    return () => clearInterval(t);
-  }, [router]);
   if (!open) return <p className="rounded-card border border-line bg-card p-4 text-center text-[14px] text-stone">This chat is closed.</p>;
   return (
     <div className="flex flex-col gap-3">

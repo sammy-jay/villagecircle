@@ -8,6 +8,7 @@ import { PhoneHeader } from "@/components/account/shells";
 import { initials } from "@/components/dc";
 import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
+import { LiveUpdates } from "./live-updates";
 
 /** profileHref: where "Profile and settings" in the person menu goes. signOutTo: where they land after signing out. */
 export type ShellUser = { name: string; roleLabel: string; tone?: "blush" | "butter" | "mint"; profileHref?: string; signOutTo?: string };
@@ -59,6 +60,8 @@ export function AppShell({ nav, cta, user, unread, search = "Search mentors, tip
         </div>
       </div>
       {tabs && <><div className="h-[66px] lg:hidden" aria-hidden="true" /><TabBar items={tabs} /></>}
+      {/* Every dashboard (participant, mentor, guardian, team) updates itself when something changes for this person. */}
+      <LiveUpdates />
     </div>
   );
 }

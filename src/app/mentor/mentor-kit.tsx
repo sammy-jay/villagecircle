@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { initials } from "@/components/dc";
 import { SignOutButton } from "@/components/app/sign-out";
+import { LiveUpdates } from "@/components/app/live-updates";
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/dc/icons";
 import { cn } from "@/lib/cn";
@@ -65,6 +66,8 @@ export function JoinShell({ name, role = "Mentor to be", title, children, aside 
         <main id="main" className="flex min-w-0 flex-1 flex-col gap-4 lg:max-w-[740px] lg:gap-5">{children}</main>
         {aside && <aside className="hidden w-[300px] flex-none flex-col gap-4 self-start lg:sticky lg:top-[100px] lg:flex">{aside}</aside>}
       </div>
+      {/* The application status updates itself when the team decides. */}
+      <LiveUpdates />
     </div>
   );
 }

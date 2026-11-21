@@ -22,6 +22,7 @@ Per board:
 | Logic | `src/lib` | The rules and data access for every section. Domain rules have 285 passing tests (`npx vitest run`). |
 | Background jobs | `src/lib/jobs.ts`, `src/app/api/cron/[job]` | `vercel.json` runs `all` once a day (the Vercel free plan limit). `sweeps` and `reminders` run every 10 minutes and `service-windows` every 30 from `.github/workflows/cron.yml` (needs the `APP_URL` and `CRON_SECRET` repository secrets), and the signed-in page guards run them too (`settleJobs`). Every call carries `CRON_SECRET`. |
 | Webhooks | `src/app/api/webhooks/screening`, `src/app/api/webhooks/daily` | Screening results (signed with `CHECKR_WEBHOOK_SECRET`) and call recordings (signed with `DAILY_WEBHOOK_SECRET`). `/api/health` checks the database. |
+| Live updates | `src/lib/live.ts`, `src/app/api/live`, `src/components/app/live-updates.tsx` | Every dashboard frame (`AppShell`, `JoinShell`) checks `/api/live` for a per-person change fingerprint every 6 seconds while in use (30 when idle, paused in background tabs) and re-renders the page with `router.refresh()` only when it changes. The one API route called from inside the app: a server action would hold up the person's own submits while it polls. |
 | Styleguide | `/styleguide` | Every component, for side-by-side checks against the DSF board. |
 
 ## Settled before Section 1

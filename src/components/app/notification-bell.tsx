@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/dc/icons";
 import { bellAction, bellReadAction, bellReadAllAction, type BellItem } from "@/app/notify-actions";
 import { cn } from "@/lib/cn";
+import { LIVE_EVENT } from "./live-updates";
 
 const SNOOZE_KEY = "vc-urgent-snooze";
 const SEEN_KEY = "vc-bell-seen";
@@ -34,7 +35,12 @@ export function NotificationBell({ initialUnread }: { initialUnread?: boolean })
     setUrgent(snoozed ? null : d.items.find((i) => i.urgent && i.unread) ?? null);
   }, []);
 
-  useEffect(() => { void load(); const t = setInterval(() => void load(), 60_000); return () => clearInterval(t); }, [load]);
+  // Reload when the page's live check sees a change (seconds), and every minute as a fallback.
+  useEffect(() => {
+    void load(); const t = setInterval(() => void load(), 60_000);
+    const onLive = () => void load(); window.addEventListener(LIVE_EVENT, onLive);
+    return () => { clearInterval(t); window.removeEventListener(LIVE_EVENT, onLive); };
+  }, [load]);
   useEffect(() => { if (!toasts.length) return; const t = setTimeout(() => setToasts((x) => x.slice(0, -1)), 6000); return () => clearTimeout(t); }, [toasts]);
   useEffect(() => {
     if (!open) return;
