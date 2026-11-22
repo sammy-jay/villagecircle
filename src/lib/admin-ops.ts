@@ -9,6 +9,7 @@ import { addBusinessDays, addHours, WINDOWS } from "./domain/service-windows";
 import { EXPERTISE_CODES } from "./domain/expertise";
 import { parseAnswers } from "./domain/ask-answers";
 import { shortName } from "./domain/views";
+import { reviewSteps } from "./domain/review-steps";
 import { STATUS_VIEW, rolesLabel, actionLabel, actorLabel, fmtStamp } from "./domain/admin-safety-1";
 import {
   cleanTopic, slugify, type TopicInput, type Audience, audienceRoles, validateBroadcast, canSendBroadcast, queueStatus, durationLabel, windowEndsLabel, breachingSoon, loadWidth,
@@ -238,7 +239,8 @@ export async function runBulk(actor: { id: string; roles: Role[] }, action: Excl
 /* ───────── Reviewer playbook (A24) ───────── */
 export async function playbookContext(askId: string | undefined, asked?: string) {
   const ask = askId ? await db.ask.findUnique({ where: { id: askId }, include: { topic: true, review: true } }) : null;
-  const done = ask?.review?.stepsDone ?? [];
+  // Done from the work itself (expertise, summary, release) as well as the reviewer's ticks, like the step bar.
+  const done = ask ? reviewSteps({ state: ask.state, review: ask.review }).done : [];
   const step = currentStep(done, asked);
   const q = ask ? parseAnswers(ask.answers).q1 : "";
   return {

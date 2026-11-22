@@ -8,6 +8,7 @@ import { getReviewDetail } from "@/lib/review";
 import { cn } from "@/lib/cn";
 import { releaseAction, stepAction, summaryAction } from "../../../asks-actions";
 import { StepBar } from "../step-bar";
+import { reviewSteps } from "@/lib/domain/review-steps";
 import { Composer } from "./composer";
 
 export const metadata = { title: "Compose summary" };
@@ -42,7 +43,7 @@ export default async function Compose({ params }: { params: { id: string } }) {
   return (
     <AdminShell ctx={r.ctx} aside={aside} phone={{ back: `/admin/asks/${id}`, title: "Compose summary" }}>
       <AdminHead eyebrow="Asks · Ask review" title="Compose the mentor summary" sub="Mentors see exactly what is in the preview. Names, schools, employers and contact details never go through." />
-      <StepBar askId={id} done={d.review?.stepsDone ?? []} editable action={stepAction} />
+      <StepBar askId={id} steps={reviewSteps({ state: d.ask.state, review: d.review })} editable action={stepAction} />
       <Composer askId={id} topic={d.ask.topic} ageBand={ageText(d.participant.ageBand)} guardian={d.participant.minor ? (d.guardian?.attends ? "Will attend" : "Approves") : null} withheld={d.withheldAuto}
         initial={{ question: d.review?.summary?.question ?? "", help: d.review?.summary?.whatWouldHelp ?? "", sessionLength: d.review?.sessionLength ?? d.answers.sessionLength ?? 30, extra: (d.review?.withheld ?? []).join(", ") }} action={summaryAction} />
       <Panel>

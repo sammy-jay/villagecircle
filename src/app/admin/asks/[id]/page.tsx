@@ -14,6 +14,7 @@ import { getConfig } from "@/lib/config";
 import { cn } from "@/lib/cn";
 import { claimAction, decisionAction, overrideAction, rebookAction, scopeAction, shortlistAction, stepAction } from "../../asks-actions";
 import { StepBar } from "./step-bar";
+import { reviewSteps } from "@/lib/domain/review-steps";
 
 export const metadata = { title: "Ask review" };
 export const dynamic = "force-dynamic";
@@ -35,7 +36,8 @@ export default async function AskReview({ params }: { params: { id: string } }) 
   const triage = c.perms.includes("asks.triage"); const release = c.perms.includes("asks.release");
   const inReview = d.ask.state === "IN_TEAM_REVIEW";
   const mine = d.review?.reviewerId === c.userId;
-  const done = d.review?.stepsDone ?? [];
+  // Done from the work itself (expertise, summary, release) as well as the reviewer's ticks.
+  const steps = reviewSteps({ state: d.ask.state, review: d.review });
   const opts = release && inReview ? await mentorOptions(d.participant.minor) : [];
   const flags = [...new Set([...d.flags, ...d.liveFlags])];
   const stepped = d.shortlist.filter((s) => s.response === "STEPPED_FORWARD");
@@ -95,7 +97,7 @@ export default async function AskReview({ params }: { params: { id: string } }) 
         {inReview && !mine && triage && <form action={claimAction}><input type="hidden" name="askId" value={id} /><button type="submit" className="rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] font-bold">{d.review?.reviewerId ? "Take over this review" : "Claim this review"}</button></form>}
         {mine && <Pill tone="outline" icon="user">You are reviewing</Pill>}
       </div>
-      <StepBar askId={id} done={done} editable={inReview && triage} action={stepAction} />
+      <StepBar askId={id} steps={steps} editable={inReview && triage} action={stepAction} />
 
       <Panel>
         <PanelHead title="Step A. Read what the participant wrote" />
