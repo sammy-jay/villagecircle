@@ -5,7 +5,7 @@ import { notify, notifySafeguarding, appUrl } from "./notify";
 import { moveAsk, guardianContext, type R } from "./asks";
 import { sendEmail } from "./integrations/email";
 import { buildIcs, googleCalendarLink } from "./integrations/calendar";
-import { createRoom, createMeetingToken, deleteRoom } from "./integrations/video";
+import { createRoom, createMeetingToken, deleteRoom, ensureRoom, roomUrl } from "./integrations/video";
 import { isMinor, ageOn } from "./domain/age";
 import { isOffered, validateOffers, joinState, minutesUntilOpen, attendanceAfterWait, canReschedule, fmtWhen, MISSED_AFTER_MIN } from "./domain/scheduling";
 import { toMentorCard, toParticipantCard, shortName, firstName } from "./domain/views";
@@ -199,12 +199,13 @@ export async function joinCall(userId: string, askId: string): Promise<R<{ url: 
   const u = await db.user.findUnique({ where: { id: userId }, select: { name: true } });
   const display = role === "MENTOR" ? shortName(u!.name) : role === "GUARDIAN" ? `${firstName(u!.name)}, observing` : firstName(u!.name);
   const name = conn.roomName ?? `vc-${conn.id}`;
-  const tok = await createMeetingToken({ room: name, userName: display, ttlMinutes: conn.durationMinutes + 40 });
+  // Make sure the room exists for this time: calls booked before video was set up (or whose room was cleared) get one now.
+  await ensureRoom({ name, startsAt: conn.scheduledAt!, durationMinutes: conn.durationMinutes, record: isMinorAsk(ask) });
+  if (!conn.roomName) await db.connection.update({ where: { id: conn.id }, data: { roomName: name } });
+  const tok = await createMeetingToken({ room: name, userName: display, ttlMinutes: conn.durationMinutes + 40, role, record: isMinorAsk(ask) });
   const field = role === "MENTOR" ? "mentorJoinedAt" : role === "GUARDIAN" ? "guardianJoinedAt" : "participantJoinedAt";
   if (!(conn as Connection)[field]) await db.connection.update({ where: { id: conn.id }, data: { [field]: new Date() } });
-  void ask;
-  const domain = process.env.DAILY_DOMAIN;
-  return { ok: true, role, url: domain ? `https://${domain}.daily.co/${name}` : `/call/${name}?dev=1`, token: tok.token, simulated: tok.simulated };
+  return { ok: true, role, url: tok.simulated ? `/call/${name}?dev=1` : roomUrl(name), token: tok.token, simulated: tok.simulated };
 }
 
 export async function callView(userId: string, askId: string) {

@@ -68,6 +68,12 @@ const paths = {
   trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13",
   logout: "M10 4H4v16h6M16 8l4 4-4 4M20 12H9",
   wifiOff: "M2 2l20 20M8.5 16.5a5 5 0 017 0M5 13a10 10 0 015-2.7M12 20h.01M19 13a10 10 0 00-2.3-1.6M2 8.8a15 15 0 014.2-2.6M22 8.8A15 15 0 0010.7 5",
+  // App-only: the call controls.
+  mic: "M12 3a3 3 0 00-3 3v5a3 3 0 006 0V6a3 3 0 00-3-3zM5.5 11a6.5 6.5 0 0013 0M12 17.5V21M8.5 21h7",
+  micOff: "M3 3l18 18M9 9v2a3 3 0 004.6 2.5M15 10V6a3 3 0 00-5.6-1.5M18.5 11a6.5 6.5 0 01-1 3.4M5.5 11a6.5 6.5 0 0010.4 5.2M12 17.5V21M8.5 21h7",
+  videoOff: "M3 3l18 18M15 11.5l6-3.5v8.5M15 15.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1h2M10 6h4a1 1 0 011 1v1.5",
+  screenShare: "M3 5h18v11H3V5zM8 20h8M12 16v4M12 13V8.5M9.5 10.5L12 8l2.5 2.5",
+  flipCamera: "M3 8h3.5l2-2.5h7l2 2.5H21v11H3V8zM9 13.5a3 3 0 014.9-2.3M15 12.5a3 3 0 01-4.9 2.3M14.2 9.5v2h-2M9.8 16.5v-2h2",
   // App-only: the formatting toolbar of the resource editor.
   bold: "M7 5h6a3.5 3.5 0 010 7H7V5zM7 12h7a3.5 3.5 0 010 7H7v-7z",
   italic: "M10 5h8M6 19h8M14 5l-4 14",

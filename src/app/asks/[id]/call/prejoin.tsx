@@ -8,6 +8,7 @@ import { PhoneBar } from "@/components/account/shells";
 import { joinAction, type AskFormState } from "@/app/asks/actions";
 import { cn } from "@/lib/cn";
 import { useCallClock, type CallClock } from "@/components/app/call-clock";
+import { savedDevices, saveDevices } from "@/components/app/call/devices";
 
 type Dev = { id: string; label: string };
 
@@ -18,6 +19,9 @@ export function Preview() {
   const [level, setLevel] = useState(0);
   const [cams, setCams] = useState<Dev[]>([]); const [mics, setMics] = useState<Dev[]>([]);
   const [cam, setCam] = useState(""); const [mic, setMic] = useState("");
+  // Start from, and remember, the camera and microphone picked here: the call joins with them.
+  useEffect(() => { const d = savedDevices(); if (d.cam) setCam(d.cam); if (d.mic) setMic(d.mic); }, []);
+  useEffect(() => { saveDevices({ cam, mic }); }, [cam, mic]);
   useEffect(() => {
     let stream: MediaStream | null = null; let raf = 0; let ctx: AudioContext | null = null;
     (async () => {

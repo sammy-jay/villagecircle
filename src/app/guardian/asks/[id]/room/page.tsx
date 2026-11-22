@@ -39,5 +39,5 @@ export default async function GuardianInCall({ params, searchParams }: { params:
   }
   const j = await joinCall(r.ctx.userId, params.id);
   if (!j.ok) redirect(`/guardian/asks/${params.id}/call`);
-  return <GuardianRoom askId={params.id} src={j.simulated ? "" : `${j.url}?t=${encodeURIComponent(j.token)}`} simulated={j.simulated} title={title} mentor={v.mentorShort} first={v.participantFirst} recorded={v.recorded} startIso={v.start.toISOString()} minutes={v.minutes} />;
+  return <GuardianRoom askId={params.id} url={j.url} token={j.token} simulated={j.simulated} title={title} mentor={v.mentorShort} first={v.participantFirst} recorded={v.recorded} startIso={v.start.toISOString()} minutes={v.minutes} />;
 }

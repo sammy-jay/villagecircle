@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/dc/icons";
 import { CONSENT_KEY, OPEN_EVENT, parseConsent, readConsent, writeConsent, type Consent } from "@/lib/consent";
@@ -12,16 +13,21 @@ const saved = () => readConsent() ?? parseConsent(document.cookie.split("; ").fi
  * HP5 cookie and privacy banner. Dims the page; a card on desktop, a bottom sheet on the phone.
  * Saves "analytics" or "needed" through lib/consent. Opens again on the vc-cookie-open event.
  */
+/** The before-the-call and in-the-call screens: the banner never opens over them by itself (it would cover Join and the call controls). */
+const CALL_SCREEN = /\/(call|room)$/;
+
 export function CookieBanner() {
   const [show, setShow] = useState(false);
   const [choosing, setChoosing] = useState(false);
   const [counts, setCounts] = useState(false);
+  const path = usePathname() ?? "";
   useEffect(() => {
-    if (!saved()) setShow(true);
+    // No choice yet means no analytics, so waiting for the next ordinary page loses nothing.
+    if (!saved() && !CALL_SCREEN.test(path)) setShow(true);
     const open = () => { setCounts(saved() === "analytics"); setChoosing(true); setShow(true); };
     window.addEventListener(OPEN_EVENT, open);
     return () => window.removeEventListener(OPEN_EVENT, open);
-  }, []);
+  }, [path]); // leaving a call screen for an ordinary page shows it then
   if (!show) return null;
 
   const save = (v: Consent) => { writeConsent(v); setShow(false); };

@@ -11,6 +11,7 @@
 import { PrismaClient, type AskState, type Cohort, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { shortName } from "../src/lib/domain/views"; // the same public name the app shows
+import { ensureRoom } from "../src/lib/integrations/video";
 
 const db = new PrismaClient();
 const DOMAIN = "@example.com";
@@ -285,19 +286,12 @@ async function ask(s: AskSpec) {
   }
 }
 
-/** Seeded booked calls need a real Daily room when video is configured; otherwise the app uses its practice room. */
+/**
+ * Seeded booked calls get a real Daily room when video is configured, with the same setup as the app (chat off,
+ * recording for under 18s). If this fails the app makes the room when someone joins.
+ */
 async function dailyRoom(name: string, startsAt: Date, minutes: number, record: boolean): Promise<string> {
-  const key = process.env.DAILY_API_KEY; const domain = process.env.DAILY_DOMAIN;
-  if (!key || !domain) return name;
-  const exp = Math.floor(startsAt.getTime() / 1000) + (minutes + 30) * 60;
-  const nbf = Math.floor(startsAt.getTime() / 1000) - 10 * 60;
-  try {
-    const res = await fetch("https://api.daily.co/v1/rooms", {
-      method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ name, privacy: "private", properties: { exp, nbf, max_participants: 3, enable_recording: record ? "cloud" : undefined, enable_chat: true, eject_at_room_exp: true } }),
-    });
-    if (!res.ok) console.warn(`  Daily room ${name}: ${res.status} ${await res.text()}`);
-  } catch (e) { console.warn(`  Daily room ${name} failed:`, e); }
+  try { await ensureRoom({ name, startsAt, durationMinutes: minutes, record }); } catch (e) { console.warn(`  Daily room ${name}:`, e instanceof Error ? e.message : e); }
   return name;
 }
 
