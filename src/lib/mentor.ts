@@ -85,6 +85,7 @@ export async function statusFor(userId: string) {
 }
 
 type Ok = { ok: true } | { ok: false; error: string };
+type OrientationResult = { ok: true; completed: boolean } | { ok: false; error: string };
 const admins = async (event: string, title: string, body: string, link: string) => (await import("./insight-admin")).notifyAdmins(event, title, body, link).catch(() => {});
 
 /** DK11 "More information requested": the reviewer's question and the mentor's replies, kept on the application. */
@@ -130,13 +131,19 @@ export async function orientationView(userId: string) {
   if (!m || !app) return null;
   const moduleRows = await Promise.all(ORIENTATION_MODULES.map(({ id }) => db.setting.findUnique({ where: { key: `orientation-video:${userId}:${id}` } })));
   const completedModules = ORIENTATION_MODULES.filter((_, i) => !!moduleRows[i]).map(({ id }) => id);
+  let orientation = !!m.orientationDoneAt;
+  if (!orientation && allOrientationModulesComplete(completedModules) && m.codeOfConductAt && app.state === "APPROVED" && m.verification === "APPROVED") {
+    await db.mentorProfile.update({ where: { userId }, data: { orientationDoneAt: new Date() } });
+    await audit(userId, "mentor.orientation.completed", "User", userId, null, { modules: completedModules });
+    orientation = true;
+  }
   const approvedAt = app.decidedAt && app.state === "APPROVED" ? app.decidedAt : null;
   const daysLeft = approvedAt ? Math.max(0, 30 - Math.floor((Date.now() - approvedAt.getTime()) / 86400_000)) : 30;
   const sc = app.screeningState === "CLEAR" ? "CLEAR" : app.screeningState === "CONSIDER" ? "CONSIDER" : app.screeningState ? "PENDING" : "NONE";
-  return { conduct: !!m.codeOfConductAt, orientation: !!m.orientationDoneAt, completedModules, minors: m.optedForMinors, screening: sc as ScreeningState, daysLeft };
+  return { conduct: !!m.codeOfConductAt, orientation, completedModules, minors: m.optedForMinors, screening: sc as ScreeningState, daysLeft };
 }
 
-export async function completeOrientationModule(userId: string, moduleId: string): Promise<Ok> {
+export async function completeOrientationModule(userId: string, moduleId: string): Promise<OrientationResult> {
   if (!isOrientationModuleId(moduleId)) return { ok: false, error: "Choose a lesson from the orientation." };
   const [mentor, app] = await Promise.all([
     db.mentorProfile.findUnique({ where: { userId }, select: { codeOfConductAt: true, orientationDoneAt: true, verification: true } }),
@@ -144,17 +151,18 @@ export async function completeOrientationModule(userId: string, moduleId: string
   ]);
   if (!mentor || app?.state !== "APPROVED" || mentor.verification !== "APPROVED") return { ok: false, error: "Your application must be approved before you can complete orientation." };
   if (!mentor.codeOfConductAt) return { ok: false, error: "Accept the Code of Conduct before starting orientation." };
-  if (mentor.orientationDoneAt) return { ok: true };
+  if (mentor.orientationDoneAt) return { ok: true, completed: true };
 
   const key = `orientation-video:${userId}:${moduleId}`;
   await db.setting.upsert({ where: { key }, update: { value: { completedAt: new Date().toISOString() } }, create: { key, value: { completedAt: new Date().toISOString() } } });
   const rows = await Promise.all(ORIENTATION_MODULES.map(({ id }) => db.setting.findUnique({ where: { key: `orientation-video:${userId}:${id}` } })));
   const completed = ORIENTATION_MODULES.filter((_, i) => !!rows[i]).map(({ id }) => id);
-  if (allOrientationModulesComplete(completed)) {
-    const result = await db.mentorProfile.updateMany({ where: { userId, orientationDoneAt: null }, data: { orientationDoneAt: new Date() } });
-    if (result.count > 0) await audit(userId, "mentor.orientation.completed", "User", userId, null, { modules: completed });
+  const orientationComplete = allOrientationModulesComplete(completed);
+  if (orientationComplete) {
+    await db.mentorProfile.update({ where: { userId }, data: { orientationDoneAt: new Date() } });
+    await audit(userId, "mentor.orientation.completed", "User", userId, null, { modules: completed });
   }
-  return { ok: true };
+  return { ok: true, completed: orientationComplete };
 }
 
 /** DK9 / M7: the four commitments and the signature, held on the draft until "Send to the team" (submit) records the attestation. */

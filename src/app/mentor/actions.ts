@@ -109,6 +109,7 @@ export async function orientationVideoAction(_: MState, fd: FormData): Promise<M
   if (!result.ok) return { error: result.error };
   revalidatePath("/mentor/orientation");
   revalidatePath("/mentor");
+  if (result.completed) redirect("/mentor");
   return { ok: true };
 }
 

@@ -20,6 +20,7 @@ export default async function Orientation() {
   if (c.gate === "STATUS" || c.gate === "APPLY") redirect(c.gate === "APPLY" ? "/mentor/apply" : "/mentor/application");
   const v = await orientationView(c.userId);
   if (!v) redirect("/mentor/application");
+  if (v.orientation && c.gate !== "ACTIVE") redirect("/mentor");
   const items = [v.conduct, v.orientation, ...(v.minors ? [v.screening === "CLEAR"] : [])];
   const done = items.filter(Boolean).length; const pct = Math.round((done / items.length) * 100);
   const aside = (
