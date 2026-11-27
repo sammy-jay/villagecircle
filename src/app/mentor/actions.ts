@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { appealDecline, applyView, replyToInfoRequest, requestOrientation, saveDraft, saveSign, saveStep, submit } from "@/lib/mentor";
+import { appealDecline, applyView, completeOrientationModule, replyToInfoRequest, saveDraft, saveSign, saveStep, submit } from "@/lib/mentor";
 import { mentorRespond } from "@/lib/mentor-asks";
 import { acceptCodeOfConduct, requestMinorsClearance, setMinorsOptIn, startEnhancedScreening, updateProfile } from "@/lib/mentor-profile";
 import { discloseChange, reaffirm } from "@/lib/reaffirm";
@@ -102,9 +102,14 @@ export async function conductAction(fd: FormData) {
   await acceptCodeOfConduct(await uid(), ip());
   revalidatePath("/mentor/orientation");
 }
-export async function orientationAction() {
-  await requestOrientation(await uid());
+export async function orientationVideoAction(_: MState, fd: FormData): Promise<MState> {
+  const s = await getSession();
+  if (!s?.user?.id || !s.user.roles.includes("MENTOR")) return { error: "Sign in with a mentor account to continue." };
+  const result = await completeOrientationModule(s.user.id, str(fd, "moduleId"));
+  if (!result.ok) return { error: result.error };
   revalidatePath("/mentor/orientation");
+  revalidatePath("/mentor");
+  return { ok: true };
 }
 
 /* ───── D6 / D27 / EX13 responding to an Ask ───── */
@@ -244,4 +249,3 @@ export async function talkAction(_: MState, fd: FormData): Promise<MState> {
   if (!r.ok) return { error: r.error, field: "note" };
   return { ok: true, talk: true };
 }
-

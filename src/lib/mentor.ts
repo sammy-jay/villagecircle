@@ -4,11 +4,9 @@ import { sendEmail } from "./integrations/email";
 import { screening } from "./integrations/screening";
 import { step1, step2, step3, checkAttestation, ATTESTATION_VERSION, mentorAgeOk, mentorStage, type ScreeningState } from "./domain/mentor-application";
 import { addBusinessDays, WINDOWS } from "./domain/service-windows";
+import { allOrientationModulesComplete, isOrientationModuleId, ORIENTATION_MODULES } from "./domain/mentor-orientation";
 
-export const ORIENTATION_MODULES = [
-  ["boundaries", "Boundaries and the platform-only rule"], ["signs", "Recognising signs a young person may need help"],
-  ["report", "How to raise a concern in under a minute"], ["conversation", "Running a good 30 or 60 minute conversation"],
-] as const;
+export { ORIENTATION_MODULES } from "./domain/mentor-orientation";
 
 export async function getApplication(userId: string) {
   return db.application.findFirst({ where: { applicantId: userId, type: "MENTOR" }, orderBy: { createdAt: "desc" } });
@@ -130,20 +128,32 @@ export async function appealDecline(userId: string, kind: string, note: string):
 export async function orientationView(userId: string) {
   const m = await db.mentorProfile.findUnique({ where: { userId } }); const app = await getApplication(userId);
   if (!m || !app) return null;
-  const req = await db.setting.findUnique({ where: { key: `orientation-request:${userId}` } });
+  const moduleRows = await Promise.all(ORIENTATION_MODULES.map(({ id }) => db.setting.findUnique({ where: { key: `orientation-video:${userId}:${id}` } })));
+  const completedModules = ORIENTATION_MODULES.filter((_, i) => !!moduleRows[i]).map(({ id }) => id);
   const approvedAt = app.decidedAt && app.state === "APPROVED" ? app.decidedAt : null;
   const daysLeft = approvedAt ? Math.max(0, 30 - Math.floor((Date.now() - approvedAt.getTime()) / 86400_000)) : 30;
   const sc = app.screeningState === "CLEAR" ? "CLEAR" : app.screeningState === "CONSIDER" ? "CONSIDER" : app.screeningState ? "PENDING" : "NONE";
-  return { conduct: !!m.codeOfConductAt, orientation: !!m.orientationDoneAt, requested: req ? new Date(String((req.value as { at?: string })?.at ?? Date.now())) : null, minors: m.optedForMinors, screening: sc as ScreeningState, daysLeft };
+  return { conduct: !!m.codeOfConductAt, orientation: !!m.orientationDoneAt, completedModules, minors: m.optedForMinors, screening: sc as ScreeningState, daysLeft };
 }
 
-export async function requestOrientation(userId: string): Promise<Ok> {
-  const v = await orientationView(userId); if (!v) return { ok: false, error: "Send your application first." };
-  if (v.orientation || v.requested) return { ok: true };
-  await db.setting.upsert({ where: { key: `orientation-request:${userId}` }, update: { value: { at: new Date().toISOString() } }, create: { key: `orientation-request:${userId}`, value: { at: new Date().toISOString() } } });
-  await audit(userId, "mentor.orientation.requested", "User", userId);
-  const app = await getApplication(userId);
-  await admins("mentor.orientation.requested", "A mentor is ready for orientation", "Send them a session time, then record it on their application.", `/admin/mentors/${app?.id ?? ""}`);
+export async function completeOrientationModule(userId: string, moduleId: string): Promise<Ok> {
+  if (!isOrientationModuleId(moduleId)) return { ok: false, error: "Choose a lesson from the orientation." };
+  const [mentor, app] = await Promise.all([
+    db.mentorProfile.findUnique({ where: { userId }, select: { codeOfConductAt: true, orientationDoneAt: true, verification: true } }),
+    getApplication(userId),
+  ]);
+  if (!mentor || app?.state !== "APPROVED" || mentor.verification !== "APPROVED") return { ok: false, error: "Your application must be approved before you can complete orientation." };
+  if (!mentor.codeOfConductAt) return { ok: false, error: "Accept the Code of Conduct before starting orientation." };
+  if (mentor.orientationDoneAt) return { ok: true };
+
+  const key = `orientation-video:${userId}:${moduleId}`;
+  await db.setting.upsert({ where: { key }, update: { value: { completedAt: new Date().toISOString() } }, create: { key, value: { completedAt: new Date().toISOString() } } });
+  const rows = await Promise.all(ORIENTATION_MODULES.map(({ id }) => db.setting.findUnique({ where: { key: `orientation-video:${userId}:${id}` } })));
+  const completed = ORIENTATION_MODULES.filter((_, i) => !!rows[i]).map(({ id }) => id);
+  if (allOrientationModulesComplete(completed)) {
+    const result = await db.mentorProfile.updateMany({ where: { userId, orientationDoneAt: null }, data: { orientationDoneAt: new Date() } });
+    if (result.count > 0) await audit(userId, "mentor.orientation.completed", "User", userId, null, { modules: completed });
+  }
   return { ok: true };
 }
 

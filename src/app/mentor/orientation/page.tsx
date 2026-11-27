@@ -4,16 +4,13 @@ import type { ReactNode } from "react";
 import { Icon } from "@/components/dc/icons";
 import { mentorPage } from "@/lib/mentor-ctx";
 import { orientationView } from "@/lib/mentor";
-import { APP_TZ } from "@/lib/domain/scheduling";
 import { cn } from "@/lib/cn";
-import { conductAction, orientationAction } from "../actions";
+import { conductAction } from "../actions";
 import { JoinShell } from "../mentor-kit";
+import { OrientationVideos } from "./orientation-videos";
 
 export const metadata = { title: "Before your first conversation" };
 export const dynamic = "force-dynamic";
-
-const MODULES: [string, string][] = [["Why we do this", "4 min"], ["Talking with young adults", "8 min"], ["Spotting a worry", "7 min"], ["What to do if something feels wrong", "6 min"]];
-const day = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: APP_TZ(), day: "numeric", month: "long" }).format(d);
 
 /** M15 / DK12 Orientation: the Code of Conduct, safeguarding orientation, and the enhanced check for mentors who chose under-18s. */
 export default async function Orientation() {
@@ -41,7 +38,7 @@ export default async function Orientation() {
         <div className="flex-1">
           <p className="text-[12.5px] font-extrabold uppercase tracking-[.07em]">Before your first conversation</p>
           <h1 className="mt-1 font-display text-[30px] font-extrabold leading-[1.08] tracking-[-.02em] lg:text-[38px]">Almost there, {c.first}</h1>
-          <p className="mt-1.5 text-[15px] leading-normal">{done} of {items.length} done. No Asks reach you until these are done. Nothing is rushed. You have 30 days.</p>
+              <p className="mt-1.5 text-[15px] leading-normal">{done} of {items.length} done. No Asks reach you until these are done. Nothing is rushed. You have 30 days.</p>
         </div>
         <span className="self-start rounded-full bg-card px-3.5 py-2 text-[13.5px] font-bold text-ink">{v.daysLeft} days left</span>
       </section>
@@ -56,13 +53,10 @@ export default async function Orientation() {
         )}
       </Step>
 
-      <Step n={2} done={v.orientation} title="Safeguarding orientation" sub="A short session with the team, about 25 minutes. It covers four parts.">
-        <ul className="divide-y divide-line rounded-[18px] border border-line">
-          {MODULES.map(([t, m]) => <li key={t} className="flex items-center gap-3 px-4 py-3"><Icon name={v.orientation ? "check" : "play"} size={18} className={v.orientation ? "text-forest" : "text-stone"} /><span className="flex-1 text-[15px] font-semibold">{t}</span><span className="text-[13px] text-stone">{m}</span></li>)}
-        </ul>
-        {v.orientation ? <p className="text-[14.5px] font-semibold text-forest">Recorded by the team. Thank you.</p>
-          : v.requested ? <p className="rounded-[16px] bg-sand px-4 py-3 text-[14.5px]">You asked for a place on {day(v.requested)}. The team will email you a time. Once you have attended, they record it here.</p>
-          : <form action={orientationAction}><button type="submit" className="dc-btn dc-btn-primary h-[52px]"><Icon name="play" size={18} />Start orientation</button><p className="mt-2 text-[13px] text-stone">The team sends you a session time by email.</p></form>}
+      <Step n={2} done={v.orientation} title="Safeguarding orientation" sub="Watch four short recorded lessons, about 25 minutes in total.">
+        <OrientationVideos completed={v.completedModules} orientationDone={v.orientation} />
+        <p className="text-[13px] leading-normal text-stone">These are temporary video placeholders while the recordings are being prepared. Open each lesson and mark it watched to continue.</p>
+        {v.orientation && <p className="text-[14.5px] font-semibold text-forest">All four lessons are complete. Thank you.</p>}
       </Step>
 
       {v.minors && (
