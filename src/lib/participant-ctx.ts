@@ -11,7 +11,7 @@ export interface PCtx { userId: string; name: string; first: string; minor: bool
 /** Shared guard for participant pages. Returns a redirect target or the shell context. */
 export async function participantPage(opts: { allowPaused?: boolean } = {}): Promise<{ to: string } | { ctx: PCtx }> {
   const g = await requireRole("PARTICIPANT");
-  if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : "/login" };
+  if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : g.reason === "email" ? "/check-email" : "/login" };
   // One round of reads at once. Ask states are read after the sweep, so a call whose time has passed never shows as booked.
   const [p, asks, unreadN] = await Promise.all([
     participantFor(g.user.id), // shared with the page's own loaders (once per request)

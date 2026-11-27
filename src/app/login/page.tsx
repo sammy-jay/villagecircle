@@ -6,7 +6,7 @@ import { LoginForm } from "./login-form";
 
 export const metadata = { title: "Log in" };
 
-const NOTICES: Record<string, string> = { verified: "Your email is confirmed. Log in to carry on.", reset: "Your password is changed. Log in with the new one." };
+const NOTICES: Record<string, string> = { verified: "Your email is confirmed. Log in to carry on.", reset: "Your password is changed. Log in with the new one.", registered: "Your account is ready. Log in to carry on." };
 
 function Art() {
   return (
@@ -37,9 +37,9 @@ function Art() {
 }
 
 /** M9 / DK3 Log in. Already signed-in visitors go straight to their place. */
-export default async function Login({ searchParams }: { searchParams: { next?: string; verified?: string; reset?: string } }) {
+export default async function Login({ searchParams }: { searchParams: { next?: string; verified?: string; reset?: string; registered?: string } }) {
   if ((await getSession())?.user?.id) redirect("/after-login");
-  const notice = searchParams.verified ? NOTICES.verified : searchParams.reset ? NOTICES.reset : undefined;
+  const notice = searchParams.verified ? NOTICES.verified : searchParams.reset ? NOTICES.reset : searchParams.registered ? NOTICES.registered : undefined;
   return (
     <>
       <SplitShell width="half" panel="blush" art={<Art />}>

@@ -8,12 +8,13 @@ import { db } from "./db";
 import { verifyPassword, MAX_FAILED, LOCK_MINUTES, lockState } from "./password";
 import { requiresMfa } from "./domain/permissions";
 import { perRequest } from "./request-cache";
+import { authChecksEnabled } from "./auth-checks";
 
 // Auth.js: JWT sessions (credentials need them). MFA state lives in the token and is set only after a TOTP check.
 declare module "next-auth" {
-  interface Session { user: { id: string; name?: string | null; email?: string | null; roles: Role[]; mfaRequired: boolean; mfaPassed: boolean } }
+  interface Session { user: { id: string; name?: string | null; email?: string | null; emailVerified: boolean; roles: Role[]; mfaRequired: boolean; mfaPassed: boolean } }
 }
-declare module "next-auth/jwt" { interface JWT { uid?: string; roles?: Role[]; mfaPassed?: boolean } }
+declare module "next-auth/jwt" { interface JWT { uid?: string; roles?: Role[]; emailVerified?: boolean; mfaPassed?: boolean } }
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db as never),
@@ -44,9 +45,10 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger }) {
       if (user) { token.uid = user.id; token.mfaPassed = false; }
       if (token.uid) {
-        const u = await db.user.findUnique({ where: { id: token.uid }, select: { roles: true, status: true } });
+        const u = await db.user.findUnique({ where: { id: token.uid }, select: { roles: true, status: true, emailVerified: true } });
         if (!u || u.status === "CLOSED" || u.status === "SUSPENDED") return {} as never;
         token.roles = u.roles;
+        token.emailVerified = !!u.emailVerified;
       }
       // Client-supplied update data is NOT trusted: MFA passes only if the server recorded a fresh TOTP check.
       if (trigger === "update" && token.uid) {
@@ -57,7 +59,14 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       const roles = token.roles ?? [];
-      session.user = { ...session.user, id: token.uid ?? "", roles, mfaRequired: requiresMfa(roles), mfaPassed: !!token.mfaPassed };
+      session.user = {
+        ...session.user,
+        id: token.uid ?? "",
+        emailVerified: !!token.emailVerified,
+        roles,
+        mfaRequired: authChecksEnabled() && requiresMfa(roles),
+        mfaPassed: !!token.mfaPassed,
+      };
       return session;
     },
   },
@@ -71,6 +80,9 @@ export async function requireRole(...allowed: Role[]) {
   const s = await getSession();
   if (!s?.user?.id) return { ok: false as const, reason: "unauthenticated" as const };
   if (!s.user.roles.some((r) => allowed.includes(r))) return { ok: false as const, reason: "forbidden" as const };
+  if (authChecksEnabled() && !s.user.emailVerified) {
+    return { ok: false as const, reason: "email" as const };
+  }
   if (s.user.mfaRequired && !s.user.mfaPassed) return { ok: false as const, reason: "mfa" as const };
   return { ok: true as const, user: s.user };
 }

@@ -9,7 +9,7 @@ export interface GCtx { userId: string; name: string; first: string; kids: strin
 /** Shared guard for guardian pages. Returns a redirect target or the shell context. */
 export async function guardianPage(next: string): Promise<{ to: string } | { ctx: GCtx }> {
   const g = await requireRole("GUARDIAN");
-  if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : `/login?next=${encodeURIComponent(next)}` };
+  if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : g.reason === "email" ? "/check-email" : `/login?next=${encodeURIComponent(next)}` };
   // One round of reads. The approvals count waits for the sweep, so a call whose time has passed never shows as booked.
   const [u, sh, unread] = await Promise.all([
     db.user.findUnique({ where: { id: g.user.id }, select: { id: true, name: true } }),

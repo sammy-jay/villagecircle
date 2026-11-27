@@ -8,6 +8,7 @@ import { moderationCounts } from "./admin-counts-4";
 import { PERMS, allows, permForPath, teamRoleOf, type Perm } from "./domain/admin-perms";
 import { TEAM_ROLE_LABEL, type TeamRole } from "./domain/admin-safety-1";
 import { shortName } from "./domain/views";
+import { authChecksEnabled } from "./auth-checks";
 
 export interface ACtx {
   userId: string; name: string; short: string; roles: Role[]; teamRole: TeamRole; roleLabel: string; perms: Perm[];
@@ -18,6 +19,7 @@ async function actorFor() {
   const s = await getSession();
   if (!s?.user?.id) return { to: "/admin/sign-in" } as const;
   if (!s.user.roles.includes("ADMIN") && !s.user.roles.includes("SAFEGUARDING_LEAD")) return { to: "/after-login" } as const;
+  if (authChecksEnabled() && !s.user.emailVerified) return { to: `/check-email?email=${encodeURIComponent(s.user.email ?? "")}` } as const;
   if (s.user.mfaRequired && !s.user.mfaPassed) return { to: "/admin/sign-in" } as const;
   const [u, m] = await Promise.all([
     db.user.findUnique({ where: { id: s.user.id }, select: { id: true, name: true, roles: true, status: true } }),

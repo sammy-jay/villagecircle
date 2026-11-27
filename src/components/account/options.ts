@@ -3,7 +3,7 @@ export const NG_STATES = ["Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "
 export const US_STATES = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
 export const UK_REGIONS = ["East Midlands", "East of England", "London", "North East England", "North West England", "South East England", "South West England", "West Midlands", "Yorkshire and the Humber", "Scotland", "Wales", "Northern Ireland"];
 /** Sign-up countries for now: the three with a state list, plus everyone else. */
-export const SIGNUP_COUNTRIES = ["Nigeria", "United Kingdom", "United States", "Somewhere else"];
+export const SIGNUP_COUNTRIES = ["Nigeria", "United Kingdom", "United States", "Others"];
 /** The state or region list for a country, or null when the person types their own. */
 export const regionsFor = (country?: string | null) => (country === "Nigeria" ? NG_STATES : country === "United Kingdom" ? UK_REGIONS : country === "United States" ? US_STATES : null);
 export const COUNTRIES = ["Nigeria", "Ghana", "Kenya", "South Africa", "United Kingdom", "United States", "Canada", "Other"];

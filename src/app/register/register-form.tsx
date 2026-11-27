@@ -77,7 +77,7 @@ export function RegisterForm({ role, minAge }: { role: SignupRole; minAge: numbe
       <div className="flex flex-col gap-4 lg:flex-row lg:gap-3.5">
         <FieldWrap label={<><span className="lg:hidden">Where do you live?</span><span className="max-lg:hidden">Country</span></>} htmlFor="r-country" className="min-w-0 flex-1"><SelectField id="r-country" name="country" options={opts(SIGNUP_COUNTRIES)} value={country} onChange={setCountry} /></FieldWrap>
         <FieldWrap label="State or region" htmlFor="r-region" hint="State only. We never ask for your address." className="min-w-0 flex-1">
-          {regions ? <SelectField key={country} id="r-region" name="region" options={opts(regions)} /> : <TextField key={country} id="r-region" name="region" maxLength={60} placeholder="Country and state or region" />}
+          {regions ? <SelectField key={country} id="r-region" name="region" options={opts(regions)} /> : <TextField key={country} id="r-region" name="region" maxLength={60} placeholder="State or region" />}
         </FieldWrap>
       </div>
 

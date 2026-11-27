@@ -8,6 +8,7 @@ import { pendingMfa } from "@/lib/admin-auth";
 import { teamRoleOf } from "@/lib/domain/admin-perms";
 import { TEAM_ROLE_LABEL } from "@/lib/domain/admin-safety-1";
 import { shortName } from "@/lib/domain/views";
+import { authChecksEnabled } from "@/lib/auth-checks";
 import { CodeStep, PasswordStep, SetupStep } from "./forms";
 
 export const metadata = { title: "Team sign-in" };
@@ -19,10 +20,11 @@ export default async function TeamSignIn({ searchParams }: { searchParams: { nex
   const s = await getSession();
   const team = !!s?.user?.id && (s.user.roles.includes("ADMIN") || s.user.roles.includes("SAFEGUARDING_LEAD"));
   if (s?.user?.id && !team) redirect("/after-login");
-  if (team && s!.user.mfaPassed) redirect(next);
+  if (team && authChecksEnabled() && !s!.user.emailVerified) redirect(`/check-email?email=${encodeURIComponent(s!.user.email ?? "")}`);
+  if (team && (!s!.user.mfaRequired || s!.user.mfaPassed)) redirect(next);
   const u = team ? await db.user.findUnique({ where: { id: s!.user.id }, select: { name: true, email: true, roles: true, mfaEnabled: true } }) : null;
 
-  if (u && !u.mfaEnabled) {
+  if (u && !u.mfaEnabled && s!.user.mfaRequired) {
     const m = await pendingMfa(s!.user.id);
     const member = await db.teamMember.findUnique({ where: { userId: s!.user.id } });
     return (

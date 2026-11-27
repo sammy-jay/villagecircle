@@ -6,6 +6,7 @@ import { sendVerifyEmail } from "./account";
 import { createInvite, GUIDELINES_VERSION } from "./guardian";
 import { ADULT_AGE, ageGate, ageOn } from "./domain/age";
 import { mentorAgeOk, MENTOR_MIN_AGE } from "./domain/mentor-application";
+import { authChecksEnabled } from "./auth-checks";
 
 export type SignupRole = "participant" | "mentor" | "guardian";
 export type RegisterResult =
@@ -87,7 +88,7 @@ export async function registerUser(input: RegisterInput, now = new Date()): Prom
   await db.consentRecord.createMany({ data: (["TERMS", "PRIVACY", "CODE_OF_CONDUCT"] as const).map((kind) => ({ userId: user.id, kind, version: GUIDELINES_VERSION, granted: true })) });
   await audit(user.id, "account.registered", "User", user.id, null, { role: d.role, minor });
   if (g) await createInvite(user.id, { name: g.guardianName, email: g.guardianEmail, mobile: g.guardianMobile, relationship: g.relationship });
-  await sendVerifyEmail({ email: user.email, name: user.name });
+  if (authChecksEnabled()) await sendVerifyEmail({ email: user.email, name: user.name });
   return { ok: true, email: user.email, minor };
 }
 
@@ -95,8 +96,10 @@ export async function registerUser(input: RegisterInput, now = new Date()): Prom
 export async function landingFor(userId: string): Promise<string> {
   const u = await db.user.findUnique({ where: { id: userId }, include: { participant: true } });
   if (!u) return "/login";
+  if (u.roles.includes("ADMIN") || u.roles.includes("SAFEGUARDING_LEAD")) {
+  }
+  if (authChecksEnabled() && !u.emailVerified) return `/check-email?email=${encodeURIComponent(u.email)}`;
   if (u.roles.includes("ADMIN") || u.roles.includes("SAFEGUARDING_LEAD")) return "/admin";
-  if (!u.emailVerified) return `/check-email?email=${encodeURIComponent(u.email)}`;
   if (u.roles.includes("PARTICIPANT")) {
     if (u.status === "PENDING_GUARDIAN") return "/guardian-needed";
     if (u.status === "PAUSED") return "/paused";

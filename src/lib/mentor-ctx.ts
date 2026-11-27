@@ -15,7 +15,7 @@ export interface MCtx { userId: string; name: string; first: string; short: stri
  */
 export async function mentorPage(next: string, need: "any" | "profile" | "active" = "active"): Promise<{ to: string } | { ctx: MCtx }> {
   const g = await requireRole("MENTOR");
-  if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : g.reason === "forbidden" ? "/after-login" : `/login?next=${encodeURIComponent(next)}` };
+  if (!g.ok) return { to: g.reason === "mfa" ? "/mfa" : g.reason === "email" ? "/check-email" : g.reason === "forbidden" ? "/after-login" : `/login?next=${encodeURIComponent(next)}` };
   const id = g.user.id;
   // One round of reads, alongside the sweep (a call whose time has passed must not show as booked; the page loads its data after this returns).
   const [, u, app, m, unread, hold, openN] = await Promise.all([

@@ -17,7 +17,7 @@ Use MongoDB Atlas (or any replica set): Prisma transactions need one. Unconfigur
 ## What is in Step 1
 - `prisma/schema.prisma`: every BRD §11 entity; append-only: AuditEvent, Attestation, ConsentRecord, AskStateChange.
 - `src/lib/domain/*`: age gate (BR-19/20), Ask state machine (§6.1; BR-05/06/08/15), 3-open-Ask cap (BR-14), contact-detail detection (BR-10), mentor-facing summary + whitelist projection (BR-09), eligibility (BR-01/04/13), recording access, ranking weights (§6.4), service windows.
-- `src/lib/auth.ts`: Auth.js (email+password, Google), lockout, roles, admin/safeguarding TOTP two-step sign-in with recovery codes.
+- `src/lib/auth.ts`: Auth.js (email+password, Google), lockout, roles, admin/safeguarding TOTP two-step sign-in with recovery codes. `ADMIN_AUTH_CHECKS_ENABLED=false` temporarily bypasses email verification for all registrations and MFA for admins; it defaults to enabled.
 - `src/lib/integrations/*`: Resend, Twilio (SMS + Verify), Daily, S3 storage (signed URLs), ICS/Google Calendar, screening adapter (Checkr default, provider TBC), PostHog; `/api/cron/*` jobs (`vercel.json`).
 - UI kit, shells, landing, sign-in, sign-up with age gate, under-13, guardian-needed, crisis, MFA, `/styleguide`.
 

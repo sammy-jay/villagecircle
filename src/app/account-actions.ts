@@ -11,6 +11,7 @@ import { hashPassword, passwordSchema } from "@/lib/password";
 import { checkInviteCode, createInvite, decide, renewInvite, resendParticipantInvite, sendCode } from "@/lib/guardian";
 import { confirmTurning18, guardianPauseConnection, recommend, submitConcern } from "@/lib/safety-user";
 import { CONCERN_KINDS, type ConcernKind } from "@/lib/domain/safety-user";
+import { authChecksEnabled } from "@/lib/auth-checks";
 
 export type ActionState = { ok?: boolean; error?: string; field?: string; [k: string]: unknown };
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -27,7 +28,7 @@ export async function registerAction(_: ActionState, fd: FormData): Promise<Acti
   });
   if ("redirect" in r) redirect(r.redirect);
   if (!r.ok) return { error: r.error, field: r.field };
-  redirect(`/check-email?email=${encodeURIComponent(r.email)}`);
+  redirect(authChecksEnabled() ? `/check-email?email=${encodeURIComponent(r.email)}` : "/login?registered=1");
 }
 
 /* ───── M10 / DK4 / M22 Verify email ───── */
